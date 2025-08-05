@@ -245,13 +245,13 @@ const LogisticIntelLanding = () => {
               <a href="#pricing" className="text-slate-300 hover:text-white transition-colors duration-200">Pricing</a>
               <a href="#testimonials" className="text-slate-300 hover:text-white transition-colors duration-200">Reviews</a>
               <button 
-                onClick={() => router.push('/admin/login')}
+                onClick={() => router.push('/login')}
                 className="text-slate-300 hover:text-white transition-colors duration-200"
               >
                 Login
               </button>
               <button 
-                onClick={() => router.push('/admin/login')}
+                onClick={() => router.push('/login')}
                 className="bg-gradient-to-r from-sky-400 to-blue-500 text-white px-6 py-2 rounded-lg font-semibold hover:from-sky-500 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Get Started
@@ -274,13 +274,13 @@ const LogisticIntelLanding = () => {
                 <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Pricing</a>
                 <a href="#testimonials" className="text-slate-300 hover:text-white transition-colors">Reviews</a>
                 <button 
-                  onClick={() => router.push('/admin/login')}
+                  onClick={() => router.push('/login')}
                   className="text-left text-slate-300 hover:text-white transition-colors"
                 >
                   Login
                 </button>
                 <button 
-                  onClick={() => router.push('/admin/login')}
+                  onClick={() => router.push('/login')}
                   className="bg-gradient-to-r from-sky-400 to-blue-500 text-white px-6 py-2 rounded-lg font-semibold w-full"
                 >
                   Get Started
@@ -323,7 +323,7 @@ const LogisticIntelLanding = () => {
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
               <button 
-                onClick={() => router.push('/admin/login')}
+                onClick={() => router.push('/login')}
                 className="group bg-gradient-to-r from-sky-400 to-blue-500 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-sky-500 hover:to-blue-600 transition-all duration-300 shadow-2xl hover:shadow-sky-500/25 hover:scale-105"
               >
                 Start Free Trial
@@ -702,7 +702,7 @@ const LogisticIntelLanding = () => {
                 </ul>
                 
                 <button
-                  onClick={() => router.push('/admin/login')}
+                  onClick={() => router.push('/login')}
                   className={`w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 ${
                     tier.popular
                       ? 'bg-gradient-to-r from-sky-400 to-blue-500 text-white hover:from-sky-500 hover:to-blue-600 shadow-lg hover:shadow-xl'
@@ -746,7 +746,7 @@ const LogisticIntelLanding = () => {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <button 
-              onClick={() => router.push('/admin/login')}
+              onClick={() => router.push('/login')}
               className="group w-full sm:w-auto bg-gradient-to-r from-sky-400 to-blue-500 text-white px-10 py-5 rounded-xl text-xl font-bold hover:from-sky-500 hover:to-blue-600 transition-all duration-300 shadow-2xl hover:shadow-sky-500/25 hover:scale-105"
             >
               Start Your Free Trial
