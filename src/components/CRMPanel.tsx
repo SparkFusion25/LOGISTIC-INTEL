@@ -3,10 +3,10 @@ import { saveLeadToCRM } from '../lib/api';
 
 const CRMPanel = ({ prefillData }: { prefillData?: any }) => {
   const [lead, setLead] = useState({
-    name: prefillData?.company || '',
-    email: prefillData?.contactEmail || '',
-    phone: prefillData?.contactPhone || '',
-    notes: '',
+    name: prefillData?.contact || '',
+    email: prefillData?.email || '',
+    phone: '',
+    notes: `Company: ${prefillData?.company || ''} | Tradelane: ${prefillData?.tradelane || ''} | Commodity: ${prefillData?.commodity || ''}`,
   });
 
   const [status, setStatus] = useState('');

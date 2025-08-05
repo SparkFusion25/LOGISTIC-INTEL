@@ -54,8 +54,9 @@ const SearchPanel = () => {
           results.map((entry, idx) => (
             <div key={idx} className="border p-4 mb-2 bg-gray-50 rounded">
               <h3 className="font-bold text-md">{entry.company}</h3>
-              <p className="text-sm">City: {entry.city} | Commodity: {entry.commodity}</p>
-              <p className="text-sm">Contact: {entry.contactEmail}</p>
+              <p className="text-sm">Tradelane: {entry.tradelane} | Commodity: {entry.commodity}</p>
+              <p className="text-sm">Contact: {entry.contact} | Email: {entry.email}</p>
+              <p className="text-sm">Location: {entry.city}, {entry.country} | Volume: {entry.volume} TEU</p>
               <CRMPanel prefillData={entry} />
             </div>
           ))

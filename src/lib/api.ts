@@ -26,73 +26,53 @@ export interface CRMLead {
 const mockTradeData: TradeEntry[] = [
   {
     company: 'Global Electronics Trading Corp',
+    tradelane: 'China - USA',
+    commodity: 'Electronics',
+    contact: 'Sarah Chen',
+    email: 'sarah.chen@getc.com',
     city: 'Shanghai',
     country: 'China',
-    state: '',
-    commodity: 'Electronics',
-    hsCode: '8471.30.01',
-    mode: 'Ocean',
-    contactEmail: 'sarah.chen@getc.com',
-    contactPhone: '+86-21-123456',
-    volume: '2,450 TEU',
-    value: '$2.4M',
-    lastShipment: '2024-01-15'
+    volume: 2450
   },
   {
     company: 'European Auto Parts Ltd',
+    tradelane: 'Germany - USA',
+    commodity: 'Auto Parts',
+    contact: 'Miguel Rodriguez',
+    email: 'm.rodriguez@eaparts.eu',
     city: 'Hamburg',
     country: 'Germany',
-    state: '',
-    commodity: 'Auto Parts',
-    hsCode: '8708.29.50',
-    mode: 'Ocean',
-    contactEmail: 'm.rodriguez@eaparts.eu',
-    contactPhone: '+49-40-123456',
-    volume: '1,200 TEU',
-    value: '$1.8M',
-    lastShipment: '2024-01-12'
+    volume: 1200
   },
   {
     company: 'Pacific Textiles Manufacturing',
+    tradelane: 'South Korea - Europe',
+    commodity: 'Textiles',
+    contact: 'Jin Kim',
+    email: 'j.kim@pactextiles.com',
     city: 'Busan',
     country: 'South Korea',
-    state: '',
-    commodity: 'Textiles',
-    hsCode: '6109.10.00',
-    mode: 'Ocean',
-    contactEmail: 'j.kim@pactextiles.com',
-    contactPhone: '+82-51-123456',
-    volume: '890 TEU',
-    value: '$950K',
-    lastShipment: '2024-01-10'
+    volume: 890
   },
   {
     company: 'American Steel Corp',
+    tradelane: 'USA - Canada',
+    commodity: 'Steel Products',
+    contact: 'Robert Wilson',
+    email: 'operations@amsteel.com',
     city: 'Pittsburgh',
     country: 'USA',
-    state: 'PA',
-    commodity: 'Steel Products',
-    hsCode: '7208.10.00',
-    mode: 'Truck',
-    contactEmail: 'operations@amsteel.com',
-    contactPhone: '+1-412-555-0123',
-    volume: '450 tons',
-    value: '$680K',
-    lastShipment: '2024-01-14'
+    volume: 450
   },
   {
     company: 'California Fresh Produce',
+    tradelane: 'USA - Asia',
+    commodity: 'Fresh Fruits',
+    contact: 'Maria Lopez',
+    email: 'exports@cafresh.com',
     city: 'Los Angeles',
     country: 'USA',
-    state: 'CA',
-    commodity: 'Fresh Fruits',
-    hsCode: '0803.10.00',
-    mode: 'Air',
-    contactEmail: 'exports@cafresh.com',
-    contactPhone: '+1-323-555-0456',
-    volume: '125 tons',
-    value: '$220K',
-    lastShipment: '2024-01-16'
+    volume: 125
   }
 ];
 
@@ -115,20 +95,13 @@ export const searchTradeData = async (filters: TradeDataFilters): Promise<TradeE
       const matchesCity = !filters.city || 
         entry.city.toLowerCase().includes(filters.city.toLowerCase());
       
-      const matchesState = !filters.state || 
-        entry.state.toLowerCase().includes(filters.state.toLowerCase());
-      
-      const matchesHsCode = !filters.hsCode || 
-        entry.hsCode.includes(filters.hsCode);
-      
       const matchesCommodity = !filters.commodity || 
         entry.commodity.toLowerCase().includes(filters.commodity.toLowerCase());
-      
-      const matchesMode = !filters.mode || 
-        entry.mode.toLowerCase().includes(filters.mode.toLowerCase());
 
-      return matchesCompany && matchesCountry && matchesCity && 
-             matchesState && matchesHsCode && matchesCommodity && matchesMode;
+      // Note: hsCode and mode filters removed since they're not in the new TradeEntry interface
+      // state filter removed since it's not in the new interface
+      
+      return matchesCompany && matchesCountry && matchesCity && matchesCommodity;
     });
 
     return filteredData;
@@ -218,20 +191,18 @@ export const getTradeUpdates = async () => {
  * Export trade data to CSV
  */
 export const exportTradeData = (data: TradeEntry[]): void => {
-  const headers = ['Company', 'City', 'Country', 'State', 'Commodity', 'HS Code', 'Mode', 'Contact Email', 'Volume', 'Value'];
+  const headers = ['Company', 'Tradelane', 'Commodity', 'Contact', 'Email', 'City', 'Country', 'Volume'];
   const csvContent = [
     headers.join(','),
     ...data.map(entry => [
       entry.company,
+      entry.tradelane,
+      entry.commodity,
+      entry.contact,
+      entry.email,
       entry.city,
       entry.country,
-      entry.state,
-      entry.commodity,
-      entry.hsCode,
-      entry.mode,
-      entry.contactEmail || '',
-      entry.volume || '',
-      entry.value || ''
+      entry.volume.toString()
     ].map(field => `"${field}"`).join(','))
   ].join('\n');
 
