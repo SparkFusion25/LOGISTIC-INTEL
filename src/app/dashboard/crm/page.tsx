@@ -1,13 +1,8 @@
-'use client'
-
-import CRMPanel from '@/components/CRMPanel'
+// src/app/dashboard/crm/page.tsx
+'use client';
+import React from 'react';
+import CRMPanel from '@/components/CRMPanel';
 
 export default function CRMPage() {
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="p-6">
-        <CRMPanel />
-      </div>
-    </div>
-  )
+  return <CRMPanel />;
 }
