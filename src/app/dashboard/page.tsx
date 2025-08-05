@@ -1,9 +1,9 @@
 'use client';
 export default function DashboardHome() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Welcome to Logistic Intel</h1>
-      <p>Select a module from the sidebar to get started.</p>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold">✅ Welcome to Logistic Intel Dashboard</h1>
+      <p>This page confirms layout and routing are working correctly.</p>
     </div>
   );
 }
