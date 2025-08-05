@@ -1,8 +1,7 @@
-// DashboardHome.tsx (Main content of the Dashboard homepage)
-
 import React from 'react';
 import SummaryTile from '@/components/dashboard/SummaryTile';
 import QuickActions from '@/components/dashboard/QuickActions';
+import ActivityFeed from '@/components/dashboard/ActivityFeed';
 
 export default function DashboardHome() {
   return (
@@ -19,6 +18,9 @@ export default function DashboardHome() {
 
       {/* Quick Actions */}
       <QuickActions />
+
+      {/* Activity Feed */}
+      <ActivityFeed />
     </div>
   );
 }
