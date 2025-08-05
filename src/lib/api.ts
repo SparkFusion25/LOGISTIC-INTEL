@@ -12,20 +12,8 @@ export interface TradeDataFilters {
   mode: string;
 }
 
-export interface TradeEntry {
-  company: string;
-  city: string;
-  country: string;
-  state: string;
-  commodity: string;
-  hsCode: string;
-  mode: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  volume?: string;
-  value?: string;
-  lastShipment?: string;
-}
+// Import the standardized TradeEntry type
+import { TradeEntry } from '../types/TradeEntry';
 
 export interface CRMLead {
   name: string;

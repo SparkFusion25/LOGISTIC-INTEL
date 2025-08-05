@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { searchTradeData, TradeEntry } from '../lib/api'; // API function to call your backend search logic
+import { searchTradeData } from '../lib/api'; // API function to call your backend search logic
+import { TradeEntry } from '../types/TradeEntry'; // Import the proper type
 import CRMPanel from './CRMPanel';
 
 const SearchPanel = () => {
