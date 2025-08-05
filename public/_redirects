@@ -1,0 +1,5 @@
+# Redirect root to landing page
+/  /landing  302
+
+# Ensure all routes are handled by Next.js
+/*  /index.html  200
