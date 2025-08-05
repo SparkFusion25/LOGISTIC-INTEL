@@ -5,34 +5,95 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Admin-specific functions
+// Demo credentials
+const DEMO_CREDENTIALS = {
+  email: 'admin@logisticintel.com',
+  password: 'demo123'
+}
+
+// Mock admin user data
+const MOCK_ADMIN_USER = {
+  id: 'demo-admin-001',
+  email: 'admin@logisticintel.com',
+  role: 'super_admin',
+  name: 'Demo Administrator',
+  created_at: '2024-01-01T00:00:00Z'
+}
+
+// In-memory session storage for demo
+let currentSession: any = null
+
+// Admin-specific functions with mock authentication for demo
 export const adminAuth = {
   signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { data, error }
+    // Mock authentication - check demo credentials
+    if (email === DEMO_CREDENTIALS.email && password === DEMO_CREDENTIALS.password) {
+      currentSession = {
+        user: MOCK_ADMIN_USER,
+        access_token: 'demo-token-' + Date.now(),
+        expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+      }
+      
+      // Store in localStorage for persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('demo_admin_session', JSON.stringify(currentSession))
+      }
+      
+      return { 
+        data: { user: MOCK_ADMIN_USER, session: currentSession }, 
+        error: null 
+      }
+    } else {
+      return { 
+        data: null, 
+        error: { message: 'Invalid email or password' } 
+      }
+    }
   },
 
   signOut: async () => {
-    const { error } = await supabase.auth.signOut()
-    return { error }
+    currentSession = null
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('demo_admin_session')
+    }
+    return { error: null }
   },
 
   getCurrentUser: async () => {
-    const { data: { user }, error } = await supabase.auth.getUser()
-    return { user, error }
+    // Check current session first
+    if (currentSession && currentSession.expires_at > Date.now()) {
+      return { user: currentSession.user, error: null }
+    }
+    
+    // Check localStorage for persisted session
+    if (typeof window !== 'undefined') {
+      const storedSession = localStorage.getItem('demo_admin_session')
+      if (storedSession) {
+        try {
+          const session = JSON.parse(storedSession)
+          if (session.expires_at > Date.now()) {
+            currentSession = session
+            return { user: session.user, error: null }
+          } else {
+            // Session expired
+            localStorage.removeItem('demo_admin_session')
+          }
+        } catch (e) {
+          // Invalid session data
+          localStorage.removeItem('demo_admin_session')
+        }
+      }
+    }
+    
+    return { user: null, error: { message: 'No active session' } }
   },
 
   checkAdminRole: async (userId: string) => {
-    const { data, error } = await supabase
-      .from('admin_users')
-      .select('role')
-      .eq('id', userId)
-      .single()
-    
-    return { isAdmin: data?.role === 'admin' || data?.role === 'super_admin', error }
+    // For demo purposes, always return true for our demo user
+    if (userId === MOCK_ADMIN_USER.id) {
+      return { isAdmin: true, error: null }
+    }
+    return { isAdmin: false, error: { message: 'User not found' } }
   }
 }
 
