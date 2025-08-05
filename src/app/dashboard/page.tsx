@@ -2,6 +2,7 @@ import React from 'react';
 import SummaryTile from '@/components/dashboard/SummaryTile';
 import QuickActions from '@/components/dashboard/QuickActions';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import MarketBenchmarkEstimator from '@/components/widgets/MarketBenchmarkEstimator';
 
 export default function DashboardHome() {
   return (
@@ -21,6 +22,9 @@ export default function DashboardHome() {
 
       {/* Activity Feed */}
       <ActivityFeed />
+
+      {/* Market Benchmark Estimator */}
+      <MarketBenchmarkEstimator />
     </div>
   );
 }
