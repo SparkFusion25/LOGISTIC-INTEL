@@ -11,7 +11,7 @@ import {
   Users, 
   Play, 
   Pause, 
-  Stop,
+  Square,
   BarChart3,
   Target,
   Eye,

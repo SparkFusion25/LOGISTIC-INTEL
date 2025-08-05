@@ -209,7 +209,7 @@ export function searchCRMContacts(query: string): Contact[] {
     contact.company.toLowerCase().includes(lowercaseQuery) ||
     contact.name.toLowerCase().includes(lowercaseQuery) ||
     contact.email.toLowerCase().includes(lowercaseQuery) ||
-    contact.city.toLowerCase().includes(lowercaseQuery) ||
-    contact.commodity.toLowerCase().includes(lowercaseQuery)
+    contact.city?.toLowerCase().includes(lowercaseQuery) ||
+    contact.commodity?.toLowerCase().includes(lowercaseQuery)
   );
 }
