@@ -2,6 +2,7 @@
 
 import { BarChart3, DollarSign, Users, TrendingUp, Mail, Search, Target, Package, Globe, Zap, Clock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import TradeNewsFeed from '@/components/dashboard/TradeNewsFeed';
 
 const stats = [
   { 
