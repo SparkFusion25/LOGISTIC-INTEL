@@ -30,7 +30,7 @@ import {
 
 // Import user components
 import SearchPanel from '@/components/SearchPanel'
-import CRMManager from '@/components/user/CRMManager'
+import CRMPanel from '@/components/CRMPanel'
 import CampaignBuilder from '@/components/user/CampaignBuilder'
 import EmailIntegration from '@/components/EmailIntegration'
 
@@ -105,7 +105,11 @@ export default function UserDashboard() {
             <SearchPanel />
           </div>
         )}
-        {tab === 'crm' && <CRMManager />}
+        {tab === 'crm' && (
+          <div className="space-y-6">
+            <CRMPanel />
+          </div>
+        )}
         {tab === 'campaign' && <CampaignBuilder />}
         {tab === 'quote' && (
           <div className="text-center py-12">

@@ -1,57 +1,109 @@
-import React, { useState } from 'react';
-import { saveLeadToCRM } from '../lib/api';
+import React, { useEffect, useState } from 'react';
+import { fetchCRMContacts, updateCRMContactNote } from '../lib/crm';
 
-const CRMPanel = ({ prefillData }: { prefillData?: any }) => {
-  const [lead, setLead] = useState({
-    name: prefillData?.contact || '',
-    email: prefillData?.email || '',
-    phone: '',
-    notes: `Company: ${prefillData?.company || ''} | Tradelane: ${prefillData?.tradelane || ''} | Commodity: ${prefillData?.commodity || ''}`,
-  });
+interface Contact {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  phone?: string;
+  city?: string;
+  commodity?: string;
+  last_contacted?: string;
+  notes?: string;
+}
 
-  const [status, setStatus] = useState('');
+const CRMPanel: React.FC = () => {
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [noteEdits, setNoteEdits] = useState<{ [id: string]: string }>({});
 
-  const saveLead = async () => {
-    setStatus('Saving...');
-    await saveLeadToCRM(lead);
-    setStatus('Lead saved to CRM.');
+  useEffect(() => {
+    const loadContacts = async () => {
+      try {
+        const data = await fetchCRMContacts();
+        setContacts(data);
+      } catch (err) {
+        console.error('Failed to fetch CRM contacts:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadContacts();
+  }, []);
+
+  const handleNoteChange = (id: string, value: string) => {
+    setNoteEdits(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSaveNote = async (id: string) => {
+    const note = noteEdits[id];
+    if (!note) return;
+    try {
+      await updateCRMContactNote(id, note);
+      const updated = contacts.map(c => (c.id === id ? { ...c, notes: note } : c));
+      setContacts(updated);
+      setNoteEdits(prev => {
+        const updatedEdits = { ...prev };
+        delete updatedEdits[id];
+        return updatedEdits;
+      });
+    } catch (err) {
+      console.error('Error saving note:', err);
+    }
   };
 
   return (
-    <div className="mt-2">
-      <div className="grid grid-cols-2 gap-4">
-        <input
-          className="border p-2 rounded"
-          placeholder="Name"
-          value={lead.name}
-          onChange={e => setLead({ ...lead, name: e.target.value })}
-        />
-        <input
-          className="border p-2 rounded"
-          placeholder="Email"
-          value={lead.email}
-          onChange={e => setLead({ ...lead, email: e.target.value })}
-        />
-        <input
-          className="border p-2 rounded"
-          placeholder="Phone"
-          value={lead.phone}
-          onChange={e => setLead({ ...lead, phone: e.target.value })}
-        />
-        <textarea
-          className="border p-2 rounded col-span-2"
-          placeholder="Notes"
-          value={lead.notes}
-          onChange={e => setLead({ ...lead, notes: e.target.value })}
-        />
-      </div>
-      <button
-        onClick={saveLead}
-        className="mt-2 bg-green-600 text-white px-4 py-2 rounded"
-      >
-        Save to CRM
-      </button>
-      {status && <p className="text-xs mt-1 text-gray-500">{status}</p>}
+    <div className="p-6 bg-white rounded shadow">
+      <h2 className="text-xl font-semibold mb-4">My CRM Contacts</h2>
+      {loading ? (
+        <p>Loading contacts...</p>
+      ) : contacts.length === 0 ? (
+        <p>No CRM contacts found.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full border text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">Company</th>
+                <th className="p-2 border">Email</th>
+                <th className="p-2 border">City</th>
+                <th className="p-2 border">Commodity</th>
+                <th className="p-2 border">Last Contacted</th>
+                <th className="p-2 border">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {contacts.map(contact => (
+                <tr key={contact.id}>
+                  <td className="p-2 border">{contact.name}</td>
+                  <td className="p-2 border">{contact.company}</td>
+                  <td className="p-2 border">{contact.email}</td>
+                  <td className="p-2 border">{contact.city}</td>
+                  <td className="p-2 border">{contact.commodity}</td>
+                  <td className="p-2 border">{contact.last_contacted || '—'}</td>
+                  <td className="p-2 border">
+                    <textarea
+                      className="w-full p-1 border rounded"
+                      value={noteEdits[contact.id] ?? contact.notes ?? ''}
+                      onChange={e => handleNoteChange(contact.id, e.target.value)}
+                      rows={2}
+                    />
+                    <button
+                      onClick={() => handleSaveNote(contact.id)}
+                      className="mt-1 bg-blue-600 text-white px-2 py-1 rounded text-xs"
+                    >
+                      Save
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
