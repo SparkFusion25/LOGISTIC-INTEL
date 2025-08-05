@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { searchTradeData } from '../lib/api'; // API function to call your backend search logic
+import { searchTradeData, TradeEntry } from '../lib/api'; // API function to call your backend search logic
 import CRMPanel from './CRMPanel';
 
 const SearchPanel = () => {
@@ -12,7 +12,7 @@ const SearchPanel = () => {
     commodity: '',
     mode: '', // air, ocean, or domestic
   });
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<TradeEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
@@ -50,7 +50,7 @@ const SearchPanel = () => {
 
       <div className="mt-6">
         {results.length > 0 ? (
-          results.map((entry: any, idx: number) => (
+          results.map((entry, idx) => (
             <div key={idx} className="border p-4 mb-2 bg-gray-50 rounded">
               <h3 className="font-bold text-md">{entry.company}</h3>
               <p className="text-sm">City: {entry.city} | Commodity: {entry.commodity}</p>
