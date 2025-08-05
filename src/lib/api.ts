@@ -76,40 +76,20 @@ const mockTradeData: TradeEntry[] = [
   }
 ];
 
-/**
- * Search trade data based on filters
- */
-export const searchTradeData = async (filters: TradeDataFilters): Promise<TradeEntry[]> => {
-  try {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+// Replace with your real API fetch logic
+export async function searchTradeData(filters: any): Promise<any[]> {
+  const response = await fetch('/api/search', {
+    method: 'POST',
+    body: JSON.stringify(filters),
+    headers: { 'Content-Type': 'application/json' },
+  });
 
-    // Filter mock data based on provided filters
-    const filteredData = mockTradeData.filter(entry => {
-      const matchesCompany = !filters.company || 
-        entry.company.toLowerCase().includes(filters.company.toLowerCase());
-      
-      const matchesCountry = !filters.country || 
-        entry.country.toLowerCase().includes(filters.country.toLowerCase());
-      
-      const matchesCity = !filters.city || 
-        entry.city.toLowerCase().includes(filters.city.toLowerCase());
-      
-      const matchesCommodity = !filters.commodity || 
-        entry.commodity.toLowerCase().includes(filters.commodity.toLowerCase());
-
-      // Note: hsCode and mode filters removed since they're not in the new TradeEntry interface
-      // state filter removed since it's not in the new interface
-      
-      return matchesCompany && matchesCountry && matchesCity && matchesCommodity;
-    });
-
-    return filteredData;
-  } catch (error) {
-    console.error('Error searching trade data:', error);
-    throw new Error('Failed to search trade data');
+  if (!response.ok) {
+    throw new Error('Search API failed');
   }
-};
+
+  return await response.json();
+}
 
 /**
  * Save lead to CRM system

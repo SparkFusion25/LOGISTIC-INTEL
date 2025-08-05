@@ -1,67 +1,88 @@
-import React, { useState } from 'react';
-import { searchTradeData } from '../lib/api'; // API function to call your backend search logic
-import { TradeEntry } from '../types/TradeEntry'; // Import the proper type
-import CRMPanel from './CRMPanel';
+// src/components/SearchPanel.tsx
 
-const SearchPanel = () => {
+import React, { useState } from 'react';
+import { searchTradeData } from '../lib/api';
+import { addToCRM } from '../lib/crm';
+
+interface TradeEntry {
+  company: string;
+  name: string;
+  city: string;
+  commodity: string;
+  contact: string;
+  email: string;
+  phone?: string;
+}
+
+const SearchPanel: React.FC = () => {
   const [filters, setFilters] = useState({
     company: '',
-    country: '',
+    name: '',
     city: '',
-    state: '',
-    hsCode: '',
     commodity: '',
-    mode: '', // air, ocean, or domestic
   });
+
   const [results, setResults] = useState<TradeEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
     setLoading(true);
-    const data = await searchTradeData(filters); // Replace with actual API integration
-    setResults(data);
-    setLoading(false);
+    try {
+      const data: TradeEntry[] = await searchTradeData(filters);
+      setResults(data);
+      // Automatically add to CRM
+      data.forEach(contact => addToCRM(contact));
+    } catch (error) {
+      console.error('Search failed:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateFilter = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   return (
-    <div className="bg-white p-6 rounded shadow-md mb-8">
-      <h2 className="text-xl font-bold mb-4">Trade Lookup</h2>
+    <div className="bg-white p-6 rounded shadow">
+      <h2 className="text-xl font-semibold mb-4">Market Intelligence Search</h2>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
-        {['company', 'country', 'city', 'state', 'hsCode', 'commodity', 'mode'].map(field => (
-          <input
-            key={field}
-            placeholder={`Search by ${field}`}
-            className="border p-2 rounded w-full"
-            value={(filters as any)[field]}
-            onChange={e => updateFilter(field, e.target.value)}
-          />
-        ))}
+        <input name="company" placeholder="Company" onChange={handleChange} className="border p-2 rounded" />
+        <input name="name" placeholder="Contact Name" onChange={handleChange} className="border p-2 rounded" />
+        <input name="city" placeholder="City" onChange={handleChange} className="border p-2 rounded" />
+        <input name="commodity" placeholder="Commodity" onChange={handleChange} className="border p-2 rounded" />
       </div>
 
-      <button onClick={handleSearch} className="bg-blue-700 text-white px-4 py-2 rounded">
-        Search
+      <button onClick={handleSearch} className="bg-blue-600 text-white px-4 py-2 rounded">
+        {loading ? 'Searching...' : 'Search'}
       </button>
 
-      {loading && <p className="mt-4 text-sm">Loading results...</p>}
-
       <div className="mt-6">
-        {results.length > 0 ? (
-          results.map((entry, idx) => (
-            <div key={idx} className="border p-4 mb-2 bg-gray-50 rounded">
-              <h3 className="font-bold text-md">{entry.company}</h3>
-              <p className="text-sm">Tradelane: {entry.tradelane} | Commodity: {entry.commodity}</p>
-              <p className="text-sm">Contact: {entry.contact} | Email: {entry.email}</p>
-              <p className="text-sm">Location: {entry.city}, {entry.country} | Volume: {entry.volume} TEU</p>
-              <CRMPanel prefillData={entry} />
-            </div>
-          ))
-        ) : (
-          !loading && <p className="text-sm text-gray-500">No results found.</p>
+        {results.length > 0 && (
+          <table className="w-full border mt-4">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="p-2 border">Company</th>
+                <th className="p-2 border">Name</th>
+                <th className="p-2 border">City</th>
+                <th className="p-2 border">Commodity</th>
+                <th className="p-2 border">Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((entry, index) => (
+                <tr key={index} className="text-sm">
+                  <td className="p-2 border">{entry.company}</td>
+                  <td className="p-2 border">{entry.name}</td>
+                  <td className="p-2 border">{entry.city}</td>
+                  <td className="p-2 border">{entry.commodity}</td>
+                  <td className="p-2 border">{entry.email}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
