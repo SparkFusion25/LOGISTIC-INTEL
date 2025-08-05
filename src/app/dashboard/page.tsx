@@ -241,6 +241,9 @@ export default function DashboardHome() {
           </div>
         </div>
       </div>
+
+      {/* Global Trade News Feed */}
+      <TradeNewsFeed />
     </div>
   );
 }

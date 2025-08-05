@@ -1,123 +1,203 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Plus, ExternalLink, Building2, Globe, Truck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle } from 'lucide-react';
 
-interface TradeResult {
-  company_name: string;
+interface TradeIntelligenceRecord {
+  id: string;
+  companyName: string;
+  commodity: string;
+  hsCode: string;
+  commodityDescription: string;
+  originCountry: string;
+  originCity: string;
+  originPort: string;
+  destinationCountry: string;
+  destinationCity: string;
+  destinationPort: string;
+  containerSize: string;
+  containerCount: number;
+  weightKg: number;
+  volumeCbm: number;
+  valueUsd: number;
+  shipmentFrequency: string;
+  carrier: string;
+  vessel: string;
+  billOfLading: string;
+  consignee: string;
+  shipper: string;
+  lastImportDate: string;
+  totalShipmentsYtd: number;
+  avgMonthlyVolume: number;
+  marketShare: number;
+  tradeRelationship: string;
+  riskScore: number;
+  complianceStatus: string;
+}
+
+interface SearchFilters {
+  company: string;
+  commodity: string;
   origin_country: string;
   destination_country: string;
-  port_of_loading: string;
-  port_of_discharge: string;
   hs_code: string;
-  commodity_description: string;
-  shipment_count: number;
-  total_weight_kg: number;
+  carrier: string;
+  date_from: string;
+  date_to: string;
+}
+
+interface SearchSummary {
+  total_records: number;
+  displayed_records: number;
   total_value_usd: number;
-  last_shipment_date: string;
-  primary_contact?: {
-    name: string;
-    email: string;
-    title: string;
-    linkedin_url?: string;
-  };
+  total_containers: number;
+  unique_companies: number;
+  unique_carriers: number;
 }
 
-interface SearchPanelProps {
-  compact?: boolean;
-}
-
-export default function SearchPanel({ compact = false }: SearchPanelProps) {
-  const [filters, setFilters] = useState({
+export default function SearchPanel() {
+  const [results, setResults] = useState<TradeIntelligenceRecord[]>([]);
+  const [summary, setSummary] = useState<SearchSummary | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  
+  const [filters, setFilters] = useState<SearchFilters>({
     company: '',
-    origin: '',
-    destination: '',
     commodity: '',
-    port: '',
+    origin_country: '',
+    destination_country: '',
+    hs_code: '',
+    carrier: '',
+    date_from: '',
+    date_to: ''
   });
 
-  const [results, setResults] = useState<TradeResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const search = async () => {
+  const searchTradeIntelligence = async () => {
     setLoading(true);
+    setError(null);
+    
     try {
-      const query = new URLSearchParams(filters).toString();
-      const res = await fetch(`/api/search-tradelane?${query}`);
-      const data = await res.json();
-      setResults(data.results);
-      setTotalCount(data.total_count);
-    } catch (error) {
-      console.error('Search failed:', error);
+      const searchParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) searchParams.append(key, value);
+      });
+      
+      const response = await fetch(`/api/trade/intelligence?${searchParams.toString()}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setResults(data.results);
+        setSummary(data.summary);
+      } else {
+        setError(data.message || 'Search failed');
+        setResults([]);
+        setSummary(null);
+      }
+    } catch (err) {
+      setError('Trade intelligence system unavailable');
+      setResults([]);
+      setSummary(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const saveToCRM = async (company: TradeResult) => {
-    try {
-      await fetch('/api/crm/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company: company.company_name,
-          name: company.primary_contact?.name || '',
-          email: company.primary_contact?.email || '',
-          phone: '',
-          commodity: company.commodity_description,
-          city: company.port_of_loading,
-          notes: `Trade data: ${company.shipment_count} shipments, $${company.total_value_usd.toLocaleString()} value`
-        }),
-      });
-      alert('Lead saved to CRM successfully!');
-    } catch (error) {
-      console.error('Failed to save to CRM:', error);
-      alert('Failed to save lead to CRM');
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  const formatWeight = (kg: number) => {
+    if (kg >= 1000000) return `${(kg / 1000000).toFixed(1)}M kg`;
+    if (kg >= 1000) return `${(kg / 1000).toFixed(0)}K kg`;
+    return `${kg} kg`;
+  };
+
+  const getFrequencyBadge = (frequency: string) => {
+    const colors: { [key: string]: string } = {
+      'Daily': 'bg-green-100 text-green-800',
+      'Weekly': 'bg-blue-100 text-blue-800',
+      'Monthly': 'bg-purple-100 text-purple-800',
+      'Quarterly': 'bg-orange-100 text-orange-800',
+      'Irregular': 'bg-gray-100 text-gray-800'
+    };
+    return colors[frequency] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getComplianceColor = (status: string) => {
+    switch (status) {
+      case 'Clean': return 'text-green-600';
+      case 'Under Review': return 'text-yellow-600';
+      case 'Flagged': return 'text-red-600';
+      default: return 'text-gray-600';
     }
   };
 
-  if (compact) {
-    return (
-      <div className="max-w-xl">
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <input 
-            placeholder="Company" 
-            value={filters.company}
-            onChange={(e) => setFilters({ ...filters, company: e.target.value })}
-            className="border border-gray-300 p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-          />
-          <input 
-            placeholder="Commodity" 
-            value={filters.commodity}
-            onChange={(e) => setFilters({ ...filters, commodity: e.target.value })}
-            className="border border-gray-300 p-2 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-          />
-        </div>
-        <button 
-          onClick={search} 
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded text-sm flex items-center gap-2"
-        >
-          <Search className="w-4 h-4" />
-          {loading ? 'Searching...' : 'Quick Search'}
-        </button>
-        {results.length > 0 && (
-          <div className="mt-4 max-h-48 overflow-y-auto">
-            <p className="text-sm text-gray-600 mb-2">Found {totalCount} results</p>
-            {results.slice(0, 3).map((entry, index) => (
-              <div key={index} className="text-xs border-b py-1">
-                <strong>{entry.company_name}</strong> - {entry.commodity_description} ({entry.origin_country})
-              </div>
-            ))}
-            {results.length > 3 && (
-              <p className="text-xs text-blue-600 mt-1">+{results.length - 3} more results</p>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const exportResults = () => {
+    if (results.length === 0) return;
+    
+    const csvHeaders = [
+      'Company Name', 'Commodity', 'HS Code', 'Origin', 'Destination', 
+      'Container Size', 'Container Count', 'Value (USD)', 'Carrier', 
+      'Last Import Date', 'Shipment Frequency', 'Compliance Status'
+    ];
+    
+    const csvData = results.map(record => [
+      record.companyName,
+      record.commodity,
+      record.hsCode,
+      `${record.originCity}, ${record.originCountry}`,
+      `${record.destinationCity}, ${record.destinationCountry}`,
+      record.containerSize,
+      record.containerCount,
+      record.valueUsd,
+      record.carrier,
+      record.lastImportDate,
+      record.shipmentFrequency,
+      record.complianceStatus
+    ]);
+    
+    const csvContent = [csvHeaders, ...csvData]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trade_intelligence_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const addToCRM = async (record: TradeIntelligenceRecord) => {
+    try {
+      const response = await fetch('/api/crm/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: record.consignee || record.companyName,
+          title: 'Trade Contact',
+          company: record.companyName,
+          email: `contact@${record.companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+          stage: 'Prospect',
+          source: 'Search',
+          notes: `${record.commodity} importer. Last shipment: ${record.lastImportDate}. ${record.containerCount} containers YTD.`
+        })
+      });
+      
+      if (response.ok) {
+        alert(`✅ ${record.companyName} added to CRM`);
+      }
+    } catch (error) {
+      console.error('Failed to add to CRM:', error);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-200">
@@ -126,212 +206,307 @@ export default function SearchPanel({ compact = false }: SearchPanelProps) {
         <div className="flex items-center gap-3">
           <Search className="w-6 h-6" />
           <div>
-            <h2 className="text-2xl font-bold">🔍 TradeLane Intelligence Search</h2>
-            <p className="text-slate-300 text-sm mt-1">Search global trade data and shipment records</p>
+            <h2 className="text-2xl font-bold">🔍 Global Trade Intelligence</h2>
+            <p className="text-slate-300 text-sm mt-1">Enterprise-grade import/export data and analytics</p>
           </div>
         </div>
       </div>
 
-      {/* Search Filters */}
+      {/* Search Interface */}
       <div className="p-6 border-b border-gray-200 bg-gray-50">
-        <div className="grid md:grid-cols-5 gap-4">
-          <div className="relative">
+        {/* Primary Search Fields */}
+        <div className="grid md:grid-cols-3 gap-4 mb-4">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               <Building2 className="w-4 h-4 inline mr-1" />
-              Company
+              Company Name
             </label>
             <input
               type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="Apple, Tesla, Amazon..."
               value={filters.company}
-              onChange={(e) => setFilters({ ...filters, company: e.target.value })}
-              placeholder="e.g. Apple, Tesla"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) => setFilters({...filters, company: e.target.value})}
             />
           </div>
-
-          <div className="relative">
+          
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Globe className="w-4 h-4 inline mr-1" />
-              Origin Country
-            </label>
-            <input
-              type="text"
-              value={filters.origin}
-              onChange={(e) => setFilters({ ...filters, origin: e.target.value })}
-              placeholder="e.g. China, Vietnam"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Globe className="w-4 h-4 inline mr-1" />
-              Destination Country
-            </label>
-            <input
-              type="text"
-              value={filters.destination}
-              onChange={(e) => setFilters({ ...filters, destination: e.target.value })}
-              placeholder="e.g. United States"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Truck className="w-4 h-4 inline mr-1" />
+              <Package className="w-4 h-4 inline mr-1" />
               Commodity
             </label>
             <input
               type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="Electronics, textiles, machinery..."
               value={filters.commodity}
-              onChange={(e) => setFilters({ ...filters, commodity: e.target.value })}
-              placeholder="e.g. Electronics"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) => setFilters({...filters, commodity: e.target.value})}
             />
           </div>
-
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <MapPin className="w-4 h-4 inline mr-1" />
+              Origin Country
+            </label>
             <input
               type="text"
-              value={filters.port}
-              onChange={(e) => setFilters({ ...filters, port: e.target.value })}
-              placeholder="e.g. Shanghai, Los Angeles"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="China, Vietnam, Taiwan..."
+              value={filters.origin_country}
+              onChange={(e) => setFilters({...filters, origin_country: e.target.value})}
             />
           </div>
         </div>
 
-        <div className="mt-4">
-          <button 
-            onClick={search} 
-            disabled={loading}
-            className="bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 text-white px-6 py-3 rounded-md font-semibold flex items-center gap-2 transition-colors"
+        {/* Advanced Filters Toggle */}
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium text-sm"
           >
-            <Search className="w-5 h-5" />
-            {loading ? 'Searching Trade Data...' : 'Search'}
+            <Filter className="w-4 h-4" />
+            {showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
           </button>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={searchTradeIntelligence}
+              disabled={loading}
+              className="bg-indigo-700 hover:bg-indigo-800 disabled:bg-gray-400 text-white px-6 py-2 rounded-md font-semibold flex items-center gap-2 transition-colors"
+            >
+              <Search className="w-4 h-4" />
+              {loading ? 'Searching...' : 'Search Intelligence'}
+            </button>
+            
+            {results.length > 0 && (
+              <button
+                onClick={exportResults}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-semibold flex items-center gap-2 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Export CSV
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Advanced Filters */}
+        {showAdvancedFilters && (
+          <div className="grid md:grid-cols-5 gap-4 p-4 bg-white rounded-lg border border-gray-200">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                placeholder="United States..."
+                value={filters.destination_country}
+                onChange={(e) => setFilters({...filters, destination_country: e.target.value})}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">HS Code</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                placeholder="851712..."
+                value={filters.hs_code}
+                onChange={(e) => setFilters({...filters, hs_code: e.target.value})}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Carrier</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                placeholder="Maersk, COSCO..."
+                value={filters.carrier}
+                onChange={(e) => setFilters({...filters, carrier: e.target.value})}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                value={filters.date_from}
+                onChange={(e) => setFilters({...filters, date_from: e.target.value})}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                value={filters.date_to}
+                onChange={(e) => setFilters({...filters, date_to: e.target.value})}
+              />
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Summary Statistics */}
+      {summary && (
+        <div className="p-6 border-b border-gray-200 bg-indigo-50">
+          <div className="grid md:grid-cols-6 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-indigo-700">{summary.total_records}</div>
+              <div className="text-xs text-gray-600">Total Records</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-indigo-700">{formatCurrency(summary.total_value_usd)}</div>
+              <div className="text-xs text-gray-600">Total Value</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-indigo-700">{summary.total_containers.toLocaleString()}</div>
+              <div className="text-xs text-gray-600">Containers</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-indigo-700">{summary.unique_companies}</div>
+              <div className="text-xs text-gray-600">Companies</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-indigo-700">{summary.unique_carriers}</div>
+              <div className="text-xs text-gray-600">Carriers</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-indigo-700">{summary.displayed_records}</div>
+              <div className="text-xs text-gray-600">Displayed</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (
+        <div className="p-12 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">Analyzing global trade intelligence...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
         <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Searching global trade databases...</p>
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 font-medium">{error}</p>
+          <button
+            onClick={searchTradeIntelligence}
+            className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-medium"
+          >
+            Retry Search
+          </button>
         </div>
       )}
 
-      {/* Results */}
+      {/* Results Table */}
       {results.length > 0 && !loading && (
-        <div className="p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Search Results ({totalCount} companies found)
-            </h3>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
-              <thead className="bg-slate-900 text-white text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Company</th>
-                  <th className="px-4 py-3 font-semibold">Commodity</th>
-                  <th className="px-4 py-3 font-semibold">Origin</th>
-                  <th className="px-4 py-3 font-semibold">Destination</th>
-                  <th className="px-4 py-3 font-semibold">Ports</th>
-                  <th className="px-4 py-3 font-semibold">Shipments</th>
-                  <th className="px-4 py-3 font-semibold">Weight (kg)</th>
-                  <th className="px-4 py-3 font-semibold">Value (USD)</th>
-                  <th className="px-4 py-3 font-semibold">Last Shipment</th>
-                  <th className="px-4 py-3 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {results.map((result, index) => (
-                  <tr key={index} className="hover:bg-blue-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div>
-                        <div className="font-semibold text-gray-900">{result.company_name}</div>
-                        {result.primary_contact && (
-                          <div className="text-xs text-gray-600 mt-1">
-                            {result.primary_contact.name} - {result.primary_contact.title}
-                          </div>
-                        )}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-900 text-white text-xs uppercase tracking-wider">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold">Company & Trade Details</th>
+                <th className="px-4 py-3 text-left font-semibold">Route & Logistics</th>
+                <th className="px-4 py-3 text-left font-semibold">Volume & Value</th>
+                <th className="px-4 py-3 text-left font-semibold">Frequency & Status</th>
+                <th className="px-4 py-3 text-left font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {results.map((record) => (
+                <tr key={record.id} className="hover:bg-indigo-50 transition-colors">
+                  <td className="px-4 py-4">
+                    <div>
+                      <div className="font-semibold text-gray-900">{record.companyName}</div>
+                      <div className="text-sm text-gray-600">{record.commodity}</div>
+                      <div className="text-xs text-gray-500">HS: {record.hsCode}</div>
+                      <div className="text-xs text-gray-500">Consignee: {record.consignee}</div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {record.originCity}, {record.originCountry} → {record.destinationCity}, {record.destinationCountry}
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <div className="text-gray-900">{result.commodity_description}</div>
-                        <div className="text-xs text-gray-500 mt-1">HS: {result.hs_code}</div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-900">{result.origin_country}</td>
-                    <td className="px-4 py-3 text-gray-900">{result.destination_country}</td>
-                    <td className="px-4 py-3">
                       <div className="text-xs text-gray-600">
-                        <div>📍 {result.port_of_loading}</div>
-                        <div>📍 {result.port_of_discharge}</div>
+                        <Ship className="w-3 h-3 inline mr-1" />
+                        {record.carrier}
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {result.shipment_count}
+                      <div className="text-xs text-gray-500">Port: {record.originPort} → {record.destinationPort}</div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div>
+                      <div className="font-medium text-gray-900">{record.containerCount} × {record.containerSize}</div>
+                      <div className="text-sm text-gray-600">{formatCurrency(record.valueUsd)}</div>
+                      <div className="text-xs text-gray-500">{formatWeight(record.weightKg)}</div>
+                      <div className="text-xs text-gray-500">{record.volumeCbm.toLocaleString()} CBM</div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="space-y-1">
+                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getFrequencyBadge(record.shipmentFrequency)}`}>
+                        {record.shipmentFrequency}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-900">{result.total_weight_kg.toLocaleString()}</td>
-                    <td className="px-4 py-3 font-semibold text-green-600">
-                      ${result.total_value_usd.toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{result.last_shipment_date}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => saveToCRM(result)}
-                          className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded flex items-center gap-1 transition-colors"
-                        >
-                          <Plus className="w-3 h-3" />
-                          Save
-                        </button>
-                        {result.primary_contact?.linkedin_url && (
-                          <a
-                            href={result.primary_contact.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded flex items-center gap-1 transition-colors"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            LinkedIn
-                          </a>
-                        )}
+                      <div className="text-xs text-gray-600">
+                        <Calendar className="w-3 h-3 inline mr-1" />
+                        {record.lastImportDate}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <div className={`text-xs font-medium ${getComplianceColor(record.complianceStatus)}`}>
+                        {record.complianceStatus}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => addToCRM(record)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-md transition-colors"
+                        title="Add to CRM"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                      <button
+                        className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-md transition-colors"
+                        title="View Details"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* No Results State */}
+      {!loading && !error && results.length === 0 && (
+        <div className="p-12 text-center text-gray-500">
+          <Globe className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <h3 className="text-lg font-medium mb-2">Start Your Trade Intelligence Search</h3>
+          <p className="text-sm">Enter company names, commodities, or trade routes to discover global trade patterns</p>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="p-4 bg-gray-50 rounded-b-lg border-t">
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <div>
+            Enterprise Trade Intelligence Platform
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Panjiva + Flexport Style Analytics</span>
+            <TrendingUp className="w-4 h-4" />
           </div>
         </div>
-      )}
-
-      {/* No Results */}
-      {!loading && results.length === 0 && (filters.company || filters.origin || filters.destination || filters.commodity || filters.port) && (
-        <div className="p-8 text-center text-gray-500">
-          <Search className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-          <p className="text-lg mb-2">No trade data found</p>
-          <p className="text-sm">Try adjusting your search filters or use broader terms</p>
-        </div>
-      )}
-
-      {/* Initial State */}
-      {!loading && results.length === 0 && !filters.company && !filters.origin && !filters.destination && !filters.commodity && !filters.port && (
-        <div className="p-8 text-center text-gray-500">
-          <Search className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-          <p className="text-lg mb-2">🌍 Search Global Trade Intelligence</p>
-          <p className="text-sm">Enter search criteria above to find trade data, shipment records, and company insights</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
