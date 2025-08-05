@@ -29,9 +29,10 @@ import {
 } from 'lucide-react'
 
 // Import user components
-import SearchPanel from '@/components/user/SearchPanel'
+import SearchPanel from '@/components/SearchPanel'
 import CRMManager from '@/components/user/CRMManager'
 import CampaignBuilder from '@/components/user/CampaignBuilder'
+import EmailIntegration from '@/components/EmailIntegration'
 
 export default function UserDashboard() {
   const router = useRouter()
@@ -99,7 +100,11 @@ export default function UserDashboard() {
       </div>
 
       <div className="p-6 bg-white shadow rounded mt-4 mx-6">
-        {tab === 'search' && <SearchPanel />}
+        {tab === 'search' && (
+          <div className="space-y-6">
+            <SearchPanel />
+          </div>
+        )}
         {tab === 'crm' && <CRMManager />}
         {tab === 'campaign' && <CampaignBuilder />}
         {tab === 'quote' && (
@@ -151,20 +156,8 @@ export default function UserDashboard() {
           </div>
         )}
         {tab === 'email' && (
-          <div className="text-center py-12">
-            <Mail className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Email Integration</h3>
-            <p className="text-gray-500 mb-4">Gmail & Outlook OAuth with read tracking</p>
-            <div className="max-w-md mx-auto p-6 bg-gray-50 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-3">Integration Features:</h4>
-              <ul className="text-sm text-gray-600 space-y-1 text-left">
-                <li>• Gmail OAuth connection (Production-ready)</li>
-                <li>• Outlook OAuth integration</li>
-                <li>• Real-time read tracking via image pixels</li>
-                <li>• Compose window from inside CRM</li>
-                <li>• Track opens, replies, clicks, bounces</li>
-              </ul>
-            </div>
+          <div className="space-y-6">
+            <EmailIntegration />
           </div>
         )}
       </div>
