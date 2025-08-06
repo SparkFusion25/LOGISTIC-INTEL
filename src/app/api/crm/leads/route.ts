@@ -1,4 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+// Create Supabase client
+const supabase = createClient(
+  'https://zupuxlrtixhfnbuhxhum.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1cHV4bHJ0aXhoZm5idWh4aHVtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDQzOTIxNiwiZXhwIjoyMDcwMDE1MjE2fQ.F-dshtyWdNBMeQjFBdvEOdmgZnz3X8W_ZH1X5qdVGcU'
+);
 
 interface CRMLead {
   id: string;
@@ -7,12 +14,12 @@ interface CRMLead {
   company: string;
   email: string;
   phone?: string;
-  linkedin?: string;
+  linkedin_url?: string;
   last_contacted: string;
   stage: 'Prospect' | 'Contacted' | 'Nurturing' | 'Converted';
-  source: 'Search' | 'Manual' | 'Campaign';
+  source: 'Search' | 'Manual' | 'Campaign' | 'Import';
   notes?: string;
-  createdAt: string;
+  created_at: string;
 }
 
 // Enhanced in-memory storage with realistic CRM data

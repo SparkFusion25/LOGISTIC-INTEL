@@ -1,30 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Create Supabase client only if environment variables are available
-let supabase: any = null;
-
-if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
-}
+// Create Supabase client
+const supabase = createClient(
+  'https://zupuxlrtixhfnbuhxhum.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1cHV4bHJ0aXhoZm5idWh4aHVtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDQzOTIxNiwiZXhwIjoyMDcwMDE1MjE2fQ.F-dshtyWdNBMeQjFBdvEOdmgZnz3X8W_ZH1X5qdVGcU'
+);
 
 export async function GET(request: NextRequest) {
   try {
-    // Check if Supabase is configured
-    if (!supabase) {
-      return NextResponse.json(
-        { 
-          data: [], 
-          total: 0, 
-          hasMore: false,
-          message: 'Supabase not configured - returning empty results' 
-        },
-        { status: 200 }
-      );
-    }
 
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('contactId');
@@ -122,13 +106,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if Supabase is configured
-    if (!supabase) {
-      return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 503 }
-      );
-    }
 
     const body = await request.json();
     const {
