@@ -146,7 +146,7 @@ async function searchRealOceanData(filters: UnifiedSearchFilters) {
       id: `ocean_${record.YEAR}_${record.MONTH}_${index}`,
       mode: 'ocean' as const,
       mode_icon: '🚢',
-      unified_company_name: inferCompanyFromCommodity(record.COMMODITY, record.COMMODITY_NAME),
+      unified_company_name: inferCompanyFromCommodity(record.COMMODITY, record.COMMODITY_NAME, record.COUNTRY),
       unified_destination: `${record.STATE}, USA`,
       unified_value: record.VALUE,
       unified_weight: record.WEIGHT,
@@ -339,7 +339,7 @@ async function matchAirData(censusData: CensusTradeRecord[], btsData: BTSRecord[
       id: `air_${censusRecord.YEAR}_${censusRecord.MONTH}_${censusRecord.COMMODITY}`,
       mode: 'air' as const,
       mode_icon: '✈️',
-      unified_company_name: inferCompanyFromCommodity(censusRecord.COMMODITY, censusRecord.COMMODITY_NAME),
+      unified_company_name: inferCompanyFromCommodity(censusRecord.COMMODITY, censusRecord.COMMODITY_NAME, censusRecord.COUNTRY),
       unified_destination: `${censusRecord.STATE}, USA`,
       unified_value: censusRecord.VALUE,
       unified_weight: censusRecord.WEIGHT,
@@ -410,22 +410,70 @@ function generateFallbackCensusData(transportMode: string, filters: UnifiedSearc
   return fallbackData;
 }
 
-function inferCompanyFromCommodity(hsCode: string, commodityName?: string): string {
-  // Map HS codes to likely companies
-  const hsCodeMapping: Record<string, string[]> = {
-    '8471600000': ['LG Electronics', 'Samsung Electronics', 'HP Inc', 'Dell Technologies'],
-    '8528720000': ['Samsung Electronics', 'LG Electronics', 'Sony Electronics'],
-    '8518300000': ['Sony Electronics', 'Bose Corporation', 'Audio-Technica'],
-    '8471700000': ['Western Digital', 'Seagate Technology', 'Samsung Electronics'],
-    '9018390000': ['Medtronic', 'Abbott Laboratories', 'Johnson & Johnson']
+function inferCompanyFromCommodity(hsCode: string, commodityName?: string, country?: string): string {
+  // Enhanced company mapping based on HS code, commodity, and country
+  const companyMapping: Record<string, Record<string, string[]>> = {
+    '8471600000': { // Computer processing units
+      'South Korea': ['Samsung Electronics', 'LG Electronics'],
+      'China': ['Lenovo', 'Huawei Technologies'],
+      'Japan': ['Sony Corporation', 'Toshiba'],
+      'Taiwan': ['ASUS', 'Acer'],
+      'default': ['HP Inc', 'Dell Technologies']
+    },
+    '8528720000': { // LCD monitors and displays  
+      'South Korea': ['Samsung Electronics', 'LG Electronics'],
+      'China': ['TCL Corporation', 'Hisense'],
+      'Japan': ['Sony Electronics', 'Sharp Corporation'],
+      'Taiwan': ['AU Optronics', 'Innolux'],
+      'default': ['Dell Technologies', 'HP Inc']
+    },
+    '8518300000': { // Audio equipment and headphones
+      'Japan': ['Sony Electronics', 'Audio-Technica'],
+      'Germany': ['Sennheiser', 'Beyerdynamic'],
+      'China': ['Xiaomi Corporation', 'OnePlus'],
+      'Denmark': ['Bang & Olufsen'],
+      'default': ['Bose Corporation', 'Beats Electronics']
+    },
+    '8471700000': { // Computer storage units
+      'South Korea': ['Samsung Electronics'],
+      'Japan': ['Toshiba', 'Sony'],
+      'China': ['Lenovo'],
+      'Singapore': ['Seagate Technology'],
+      'default': ['Western Digital', 'Seagate Technology']
+    },
+    '9018390000': { // Medical instruments
+      'Germany': ['Siemens Healthineers', 'B. Braun'],
+      'United States': ['Medtronic', 'Abbott Laboratories'],
+      'Switzerland': ['Roche Diagnostics'],
+      'Japan': ['Olympus Corporation'],
+      'default': ['Johnson & Johnson', 'Medtronic']
+    }
   };
 
-  const companies = hsCodeMapping[hsCode];
-  if (companies && companies.length > 0) {
-    return companies[Math.floor(Math.random() * companies.length)];
+  const countryMapping = companyMapping[hsCode];
+  if (countryMapping) {
+    const companies = countryMapping[country || 'default'] || countryMapping['default'];
+    if (companies && companies.length > 0) {
+      // Use a deterministic selection based on the HS code for consistency
+      const index = parseInt(hsCode.slice(-2)) % companies.length;
+      return companies[index];
+    }
   }
 
-  // Fallback based on commodity name patterns
+  // Enhanced fallback based on commodity name patterns and country
+  if (country === 'South Korea' && (commodityName?.toLowerCase().includes('electronic') || commodityName?.toLowerCase().includes('display'))) {
+    return hsCode.endsWith('00') ? 'Samsung Electronics' : 'LG Electronics';
+  }
+  
+  if (country === 'Japan' && commodityName?.toLowerCase().includes('electronic')) {
+    return 'Sony Electronics';
+  }
+  
+  if (country === 'China' && commodityName?.toLowerCase().includes('computer')) {
+    return 'Lenovo';
+  }
+
+  // Generic fallbacks
   if (commodityName?.toLowerCase().includes('electronic')) {
     return 'Electronics Manufacturer';
   }
@@ -436,7 +484,7 @@ function inferCompanyFromCommodity(hsCode: string, commodityName?: string): stri
     return 'Technology Company';
   }
 
-  return 'Trade Company';
+  return `${country} Trade Company`;
 }
 
 function getAirportCity(airportCode: string): string {
