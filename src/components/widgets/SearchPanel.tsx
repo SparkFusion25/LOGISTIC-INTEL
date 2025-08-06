@@ -745,7 +745,7 @@ export default function SearchPanel() {
                 <CompanyFeedback
                   companyName={record.unified_company_name}
                   hsCode={record.hs_code}
-                  country={record.origin_country}
+                  country={record.unified_destination}
                   confidenceScore={record.confidence_score}
                   onFeedbackSubmitted={() => {
                     // Optionally refresh the search results or show confirmation

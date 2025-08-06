@@ -55,11 +55,10 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
         
-        if (invoice.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(
-            invoice.subscription as string
-          );
-          
+        // Get subscription ID from invoice lines
+        const subscriptionId = invoice.lines?.data?.[0]?.subscription;
+        if (subscriptionId && typeof subscriptionId === 'string') {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
           await handlePaymentSucceeded(invoice, subscription);
         }
         break;
@@ -110,6 +109,7 @@ async function handleSubscriptionCreated(
   }
 
   // Update user with subscription details
+  const sub = subscription as any;
   await supabase
     .from('users')
     .update({
@@ -117,8 +117,8 @@ async function handleSubscriptionCreated(
       stripe_subscription_id: subscription.id,
       subscription_status: subscription.status,
       subscription_plan: planId,
-      subscription_current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      subscription_current_period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : null,
+      subscription_current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', userId);
@@ -134,7 +134,7 @@ async function handlePaymentSucceeded(
   const { data: user } = await supabase
     .from('users')
     .select('id')
-    .eq('stripe_customer_id', invoice.customer)
+    .eq('stripe_customer_id', typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id)
     .single();
 
   if (!user) {
@@ -143,12 +143,13 @@ async function handlePaymentSucceeded(
   }
 
   // Update subscription details
+  const sub = subscription as any;
   await supabase
     .from('users')
     .update({
       subscription_status: subscription.status,
-      subscription_current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      subscription_current_period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : null,
+      subscription_current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', user.id);
@@ -161,7 +162,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const { data: user } = await supabase
     .from('users')
     .select('id')
-    .eq('stripe_customer_id', subscription.customer)
+    .eq('stripe_customer_id', typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id)
     .single();
 
   if (!user) {
@@ -170,12 +171,13 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   }
 
   // Update subscription details
+  const sub = subscription as any;
   await supabase
     .from('users')
     .update({
       subscription_status: subscription.status,
-      subscription_current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      subscription_current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      subscription_current_period_start: sub.current_period_start ? new Date(sub.current_period_start * 1000).toISOString() : null,
+      subscription_current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', user.id);
@@ -188,7 +190,7 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
   const { data: user } = await supabase
     .from('users')
     .select('id')
-    .eq('stripe_customer_id', subscription.customer)
+    .eq('stripe_customer_id', typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id)
     .single();
 
   if (!user) {
@@ -214,7 +216,7 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
   const { data: user } = await supabase
     .from('users')
     .select('id, email')
-    .eq('stripe_customer_id', invoice.customer)
+    .eq('stripe_customer_id', typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id)
     .single();
 
   if (!user) {
