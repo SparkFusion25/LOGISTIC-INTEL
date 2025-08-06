@@ -486,8 +486,17 @@ export default function SearchPanel() {
             disabled={isLoading}
             className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white rounded-md font-medium transition-colors"
           >
-            <Search className="w-4 h-4" />
-            {isLoading ? 'Searching...' : 'Search'}
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Searching...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4" />
+                Search
+              </>
+            )}
           </button>
         </div>
 

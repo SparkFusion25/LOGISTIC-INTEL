@@ -57,7 +57,7 @@ export default function EnrichedContactCard({
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [enrichmentSource, setEnrichmentSource] = useState<'cache' | 'apollo' | 'phantom' | 'mock' | null>(null);
+  const [enrichmentSource, setEnrichmentSource] = useState<'cache' | 'apollo' | 'phantom' | 'mock' | 'apollo_unavailable' | null>(null);
   const [lastEnriched, setLastEnriched] = useState<string | null>(null);
 
   useEffect(() => {
@@ -118,6 +118,64 @@ export default function EnrichedContactCard({
     if (score >= 60) return 'text-blue-600 bg-blue-100';
     if (score >= 40) return 'text-yellow-600 bg-yellow-100';
     return 'text-gray-600 bg-gray-100';
+  };
+
+  const handleViewContact = async (contact: Contact) => {
+    // Open contact details modal or navigate to contact page
+    try {
+      const response = await fetch(`/api/crm/contacts?id=${contact.id}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        // For now, show alert - in production would open modal/drawer
+        alert(`Contact Details:\nName: ${result.contact.contact_name}\nTitle: ${result.contact.title}\nEmail: ${result.contact.email}\nCompany: ${result.contact.company_name}`);
+      }
+    } catch (error) {
+      console.error('Error viewing contact:', error);
+      alert('Error loading contact details');
+    }
+  };
+
+  const handleAddToCRM = async (contact: Contact) => {
+    try {
+      const response = await fetch('/api/crm/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company_name: companyName,
+          contact_name: contact.name,
+          title: contact.title,
+          email: contact.email,
+          phone: contact.phone,
+          linkedin_url: contact.linkedin_url,
+          source: 'Apollo',
+          apollo_id: contact.id
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('✅ Contact added to CRM successfully!');
+      } else if (response.status === 409) {
+        alert('ℹ️ Contact already exists in CRM');
+      } else {
+        alert(`❌ Failed to add contact: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error adding to CRM:', error);
+      alert('❌ Error adding contact to CRM');
+    }
+  };
+
+  const handleSendEmail = (contact: Contact) => {
+    // Open email composer with pre-filled contact info
+    const subject = `Business inquiry - ${companyName}`;
+    const body = `Hello ${contact.name},\n\nI hope this email finds you well. I'm reaching out regarding potential logistics and supply chain opportunities with ${companyName}.\n\nBest regards`;
+    
+    // Use mailto for now - in production would open email composer modal
+    const mailtoUrl = `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoUrl, '_blank');
   };
 
   const getShippingIntelligence = () => {
@@ -232,18 +290,21 @@ export default function EnrichedContactCard({
               <div className="flex items-center justify-between text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-md">
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4" />
-                  <span>
-                    Enriched via {enrichmentSource === 'apollo' ? 'Apollo.io' : enrichmentSource === 'phantom' ? 'PhantomBuster' : 'Sample Data'}
-                  </span>
-                  {lastEnriched && (
-                    <span className="text-xs">
-                      • {new Date(lastEnriched).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-                {enrichmentSource === 'mock' && (
-                  <span className="text-yellow-600 text-xs">Configure Apollo API for live data</span>
-                )}
+                                        <span>
+                        {enrichmentSource === 'apollo' ? 'Enriched via Apollo.io' : 
+                         enrichmentSource === 'phantom' ? 'Enriched via PhantomBuster' : 
+                         enrichmentSource === 'cache' ? 'Cached data' :
+                         'Apollo.io API required'}
+                      </span>
+                      {lastEnriched && (
+                        <span className="text-xs">
+                          • {new Date(lastEnriched).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    {(!enrichmentSource || enrichmentSource === 'apollo_unavailable') && (
+                      <span className="text-red-600 text-xs">Configure APOLLO_API_KEY environment variable for live contact data</span>
+                    )}
               </div>
 
               {/* Contacts List */}
@@ -298,26 +359,29 @@ export default function EnrichedContactCard({
                         </div>
                       </div>
 
-                      <div className="flex gap-1 ml-2">
-                        <button
-                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                          title="View Contact Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
-                          title="Add to CRM"
-                        >
-                          <UserPlus className="w-4 h-4" />
-                        </button>
-                        <button
-                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                          title="Send Email"
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </button>
-                      </div>
+                                        <div className="flex gap-1 ml-2">
+                    <button
+                      onClick={() => handleViewContact(contact)}
+                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                      title="View Contact Details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleAddToCRM(contact)}
+                      className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                      title="Add to CRM"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleSendEmail(contact)}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Send Email"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                  </div>
                     </div>
                   </div>
                 ))}

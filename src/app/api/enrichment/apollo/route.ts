@@ -80,23 +80,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Fallback to mock data for demo purposes
-    const mockResult = await generateMockEnrichmentData(companyName, location, industry);
-    
-    // Cache mock data
-    await cacheEnrichmentResult(cacheKey, mockResult);
-    
-    // Store in CRM
-    await storeContactsInCRM(mockResult.contacts, companyName);
-
+    // If Apollo fails, return empty instead of mock data
     return NextResponse.json({
-      success: true,
-      source: 'mock',
+      success: false,
+      source: 'apollo_unavailable',
       companyName,
-      contacts: mockResult.contacts,
-      organization: mockResult.organization,
+      contacts: [],
+      organization: null,
       enrichedAt: new Date().toISOString(),
-      note: 'Using sample data - configure Apollo.io API key for live enrichment'
+      error: 'Apollo.io API key not configured or request failed. Configure APOLLO_API_KEY environment variable for live contact enrichment.'
     });
 
   } catch (error) {
@@ -193,59 +185,7 @@ async function enrichWithApollo(
   }
 }
 
-async function generateMockEnrichmentData(companyName: string, location?: string, industry?: string) {
-  // Generate realistic mock data based on company name and industry
-  const mockTitles = [
-    'Logistics Director', 'Supply Chain Manager', 'Operations Manager', 
-    'VP of Logistics', 'Import/Export Manager', 'Trade Compliance Manager',
-    'Procurement Director', 'Shipping Manager', 'Warehouse Director'
-  ];
-
-  const mockDomains = ['gmail.com', 'company.com', 'logistics.com', 'supply.com'];
-  const normalizedName = companyName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  
-  const contacts = [];
-  const numContacts = Math.floor(Math.random() * 3) + 2; // 2-4 contacts
-
-  for (let i = 0; i < numContacts; i++) {
-    const firstName = ['John', 'Sarah', 'Michael', 'Lisa', 'David', 'Emily', 'Robert', 'Jennifer'][Math.floor(Math.random() * 8)];
-    const lastName = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis'][Math.floor(Math.random() * 8)];
-    const title = mockTitles[Math.floor(Math.random() * mockTitles.length)];
-    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${normalizedName}.com`;
-    const linkedinUrl = `https://linkedin.com/in/${firstName.toLowerCase()}-${lastName.toLowerCase()}-${Math.floor(Math.random() * 999)}`;
-
-    contacts.push({
-      id: `mock_${i}_${Date.now()}`,
-      first_name: firstName,
-      last_name: lastName,
-      name: `${firstName} ${lastName}`,
-      title,
-      email,
-      linkedin_url: linkedinUrl,
-      phone_numbers: [`+1${Math.floor(Math.random() * 9000000000) + 1000000000}`],
-      organization: {
-        id: `mock_org_${normalizedName}`,
-        name: companyName,
-        website_url: `https://${normalizedName}.com`,
-        industry: industry || 'Manufacturing',
-        organization_size_range: '100-500',
-        headquarters_address: location || 'United States'
-      }
-    });
-  }
-
-  return {
-    contacts,
-    organization: {
-      id: `mock_org_${normalizedName}`,
-      name: companyName,
-      website_url: `https://${normalizedName}.com`,
-      industry: industry || 'Manufacturing',
-      organization_size_range: '100-500',
-      headquarters_address: location || 'United States'
-    }
-  };
-}
+// Mock data generation function removed - using real Apollo API only
 
 async function getCachedEnrichment(cacheKey: string) {
   try {
