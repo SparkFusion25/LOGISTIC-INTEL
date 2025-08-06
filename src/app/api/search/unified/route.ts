@@ -24,6 +24,27 @@ interface UnComtradeRecord {
   qty: number;
 }
 
+interface TransformedTradeRecord {
+  id: string;
+  mode: 'air' | 'ocean';
+  mode_icon: string;
+  unified_company_name: string;
+  unified_destination: string;
+  unified_value: number;
+  unified_weight: number;
+  unified_date: string;
+  unified_carrier: string;
+  hs_code: string;
+  description: string;
+  transport_mode: string;
+  origin_country: string;
+  confidence_score: number;
+  confidence_sources: string[];
+  apollo_verified: boolean;
+  comtrade_data: boolean;
+  bts_intelligence: null;
+}
+
 export async function GET(request: NextRequest) {
   try {
     console.log('🚨 REAL UN COMTRADE API - NO MOCK DATA ALLOWED');
@@ -80,7 +101,7 @@ export async function GET(request: NextRequest) {
     console.log(`✅ UN Comtrade returned ${rawData.data.length} REAL records`);
 
     // Transform UN Comtrade data to our format
-    const transformedRecords = rawData.data.map((record: UnComtradeRecord, index: number) => ({
+    const transformedRecords: TransformedTradeRecord[] = rawData.data.map((record: UnComtradeRecord, index: number) => ({
       id: `comtrade_${record.period}_${record.cmdCode}_${index}`,
       mode: record.motCode === 5 ? 'air' as const : 'ocean' as const,
       mode_icon: record.motCode === 5 ? '✈️' : '🚢',
@@ -105,7 +126,7 @@ export async function GET(request: NextRequest) {
     let filteredRecords = transformedRecords;
     
     if (commodity) {
-      filteredRecords = filteredRecords.filter(r => 
+      filteredRecords = filteredRecords.filter((r: TransformedTradeRecord) => 
         r.description.toLowerCase().includes(commodity.toLowerCase()) ||
         r.unified_company_name.toLowerCase().includes(commodity.toLowerCase())
       );
@@ -114,9 +135,9 @@ export async function GET(request: NextRequest) {
     // Calculate summary
     const summary = {
       total_records: filteredRecords.length,
-      total_value: filteredRecords.reduce((sum, r) => sum + r.unified_value, 0),
-      companies_count: new Set(filteredRecords.map(r => r.unified_company_name)).size,
-      air_shippers: filteredRecords.filter(r => r.mode === 'air').length,
+      total_value: filteredRecords.reduce((sum: number, r: TransformedTradeRecord) => sum + r.unified_value, 0),
+      companies_count: new Set(filteredRecords.map((r: TransformedTradeRecord) => r.unified_company_name)).size,
+      air_shippers: filteredRecords.filter((r: TransformedTradeRecord) => r.mode === 'air').length,
       data_source: 'UN Comtrade API (Live)',
       api_url: comtradeUrl
     };
