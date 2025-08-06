@@ -13,6 +13,7 @@ import { LogOut, Search, Users, Mail, BarChart3, Target, Package, Settings, Home
     { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/dashboard/campaigns', label: 'Campaigns', icon: Target },
     { href: '/dashboard/campaigns/analytics', label: 'Campaign Analytics', icon: TrendingUp },
+    { href: '/dashboard/campaigns/follow-ups', label: 'Follow-Up Automation', icon: Zap },
     { href: '/dashboard/widgets/quote', label: 'Quote Generator', icon: Package },
   ];
 
