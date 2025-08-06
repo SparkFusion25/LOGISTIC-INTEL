@@ -73,8 +73,35 @@ export default function CRMManager() {
   const [showPhantomBuster, setShowPhantomBuster] = useState(false)
   const [activeTab, setActiveTab] = useState<'contacts' | 'activities' | 'phantombuster'>('contacts')
 
-  // Mock data
-  const mockContacts: Contact[] = [
+  // Real data state
+  const [realContacts, setRealContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch real contacts from API
+  useEffect(() => {
+    fetchContacts();
+  }, []);
+
+  const fetchContacts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/crm/contacts');
+      const data = await response.json();
+      if (data.success) {
+        setRealContacts(data.contacts || []);
+      } else {
+        setRealContacts(sampleContacts); // Fallback to sample data
+      }
+    } catch (error) {
+      console.error('Failed to fetch contacts:', error);
+      setRealContacts(sampleContacts); // Fallback to sample data
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sample data for demo/fallback
+  const sampleContacts: Contact[] = [
     {
       id: '1',
       name: 'Sarah Chen',
@@ -152,10 +179,10 @@ export default function CRMManager() {
   ]
 
   useEffect(() => {
-    setContacts(mockContacts)
+    setContacts(realContacts)
     setActivities(mockActivities)
     setPhantomJobs(mockPhantomJobs)
-  }, [])
+  }, [realContacts])
 
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

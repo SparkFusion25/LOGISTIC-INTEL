@@ -97,7 +97,11 @@ export async function POST(request: NextRequest) {
         tags: contactData.tags || [],
         notes: contactData.notes || '',
         enriched_at: new Date().toISOString(),
-        apollo_id: contactData.apollo_id || null
+        apollo_id: contactData.apollo_id || null,
+        // New fields for shipment linking
+        unified_id: contactData.unified_id || null,
+        hs_code: contactData.hs_code || null,
+        added_by_user: contactData.added_by_user || null
       })
       .select()
       .single();

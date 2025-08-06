@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle, ChevronDown, Menu, Plane, Waves, Brain, Zap, Users } from 'lucide-react';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import EnrichedContactCard from '@/components/widgets/EnrichedContactCard';
+import CompanyTrendChart from '@/components/insights/CompanyTrendChart';
 import ConfidenceIndicator from '@/components/ui/ConfidenceIndicator';
 import CompanyFeedback from '@/components/ui/CompanyFeedback';
 import { ConfidenceEngine } from '@/lib/confidenceEngine';
@@ -295,6 +296,75 @@ export default function SearchPanel() {
       newExpanded.add(companyName);
     }
     setExpandedContacts(newExpanded);
+  };
+
+  const addToCRM = async (record: UnifiedTradeRecord) => {
+    try {
+      const contactData = {
+        company_name: record.unified_company_name,
+        contact_name: 'Lead Contact', // Default name, will be enriched
+        title: 'Contact Person',
+        email: '', // Will be enriched by Apollo
+        source: 'Trade Search',
+        unified_id: record.id,
+        hs_code: record.hs_code,
+        tags: ['trade-lead', record.mode],
+        notes: `Added from ${record.mode} shipment search. Value: ${record.unified_value ? `$${record.unified_value}` : 'Unknown'}, Date: ${record.unified_date}`
+      };
+
+      const response = await fetch('/api/crm/contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contactData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Show success notification
+        alert(`${record.unified_company_name} has been added to your CRM!`);
+        
+        // Try to enrich the contact with Apollo
+        if (result.contact?.id) {
+          enrichContactWithApollo(result.contact.id, record.unified_company_name);
+        }
+      } else {
+        if (result.error === 'Contact already exists in CRM') {
+          alert('This company is already in your CRM.');
+        } else {
+          throw new Error(result.error);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to add to CRM:', error);
+      alert('Failed to add contact to CRM. Please try again.');
+    }
+  };
+
+  const enrichContactWithApollo = async (contactId: string, companyName: string) => {
+    try {
+      const response = await fetch('/api/enrichment/apollo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName,
+          contactId,
+          maxContacts: 3
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log(`Enriched ${companyName} with ${result.contactsAdded} Apollo contacts`);
+      }
+    } catch (error) {
+      console.error('Apollo enrichment failed:', error);
+      // Don't show error to user, enrichment is optional
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -735,6 +805,14 @@ export default function SearchPanel() {
                     <Users className="w-4 h-4" />
                     {expandedContacts.has(record.unified_company_name) ? 'Hide' : 'Show'} Contacts
                   </button>
+                  
+                  <button
+                    onClick={() => addToCRM(record)}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add to CRM
+                  </button>
                 </div>
               </div>
             </div>
@@ -755,9 +833,9 @@ export default function SearchPanel() {
               </div>
             )}
 
-            {/* Expanded Contact Card */}
+            {/* Expanded Contact Card and Company Trends */}
             {expandedContacts.has(record.unified_company_name) && (
-              <div className="border-t border-gray-200 bg-gray-50 p-4">
+              <div className="border-t border-gray-200 bg-gray-50 p-4 space-y-6">
                 <EnrichedContactCard
                   companyName={record.unified_company_name}
                   location={record.unified_destination}
@@ -766,6 +844,11 @@ export default function SearchPanel() {
                   isLikelyAirShipper={record.bts_intelligence?.is_likely_air_shipper || record.company_profile?.likely_air_shipper || false}
                   btsRouteMatches={record.bts_intelligence?.route_matches || record.company_profile?.bts_route_matches || []}
                   onStartCampaign={(contacts) => handleStartCampaign(contacts, record.unified_company_name)}
+                />
+                
+                {/* Company Shipment Trend Chart */}
+                <CompanyTrendChart 
+                  companyName={record.unified_company_name}
                 />
               </div>
             )}

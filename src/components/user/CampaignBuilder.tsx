@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Plus, 
   Mail, 
@@ -55,17 +55,21 @@ interface Campaign {
   startDate?: string
 }
 
-const STEP_TEMPLATES = {
-  email: {
-    intro: {
-      subject: "Quick question about {{company}} logistics",
-      content: "Hi {{firstName}},\n\nI noticed {{company}} has been expanding operations. I'm curious - what's your biggest challenge with freight logistics right now?\n\nBest,\n{{senderName}}"
+  const STEP_TEMPLATES = {
+    email: {
+      intro: {
+        subject: "Trade intelligence opportunity for {{company_name}}",
+        content: "Hi {{firstName}},\n\nI noticed {{company_name}} has been importing {{hs_code}} products. Based on our trade intelligence data, companies in your industry are optimizing their supply chain operations.\n\nWould you be interested in discussing how to reduce costs and improve efficiency for your {{hs_code}} imports?\n\nBest regards,\n{{senderName}}"
+      },
+      followup: {
+        subject: "Re: {{hs_code}} import optimization for {{company_name}}",
+        content: "Hi {{firstName}},\n\nFollowing up on my previous email about trade optimization. We've helped similar companies importing {{hs_code}} products save 15-25% on logistics costs.\n\nGiven {{company_name}}'s import volume, this could translate to significant savings. Would you be open to a 10-minute call to explore this?\n\nBest regards,\n{{senderName}}"
+      },
+      trade_insight: {
+        subject: "Market intelligence for {{company_name}}'s {{hs_code}} imports",
+        content: "Hi {{firstName}},\n\nOur trade intelligence platform shows {{company_name}} as an active importer of {{hs_code}} products. We're seeing interesting market trends that could impact your sourcing strategy.\n\nWould you like a complimentary market analysis for your {{hs_code}} supply chain?\n\nBest regards,\n{{senderName}}"
+      }
     },
-    followup: {
-      subject: "Re: Freight solutions for {{company}}",
-      content: "Hi {{firstName}},\n\nFollowing up on my previous email about freight solutions. Many companies like {{company}} are seeing 20-30% cost savings.\n\nWould you be open to a 10-minute call this week?\n\nBest,\n{{senderName}}"
-    }
-  },
   linkedin: {
     connect: "Hi {{firstName}}, I'd like to connect as I work with logistics companies like {{company}} on freight optimization.",
     message: "Thanks for connecting! I help companies like {{company}} reduce freight costs by 20-30%. Would you be open to a brief call?"
@@ -84,34 +88,25 @@ export default function CampaignBuilder() {
     status: 'draft'
   })
 
-  // Mock campaigns data
-  const mockCampaigns: Campaign[] = [
-    {
-      id: '1',
-      name: 'Logistics Decision Makers Outreach',
-      description: 'Target VPs and Directors at logistics companies',
-      status: 'active',
-      steps: [
-        { id: '1', type: 'email', order: 1, subject: 'Quick question about freight', content: 'Hi there...' },
-        { id: '2', type: 'delay', order: 2, delay: 3, delayUnit: 'days' },
-        { id: '3', type: 'linkedin', order: 3, content: 'Thanks for connecting...' },
-        { id: '4', type: 'delay', order: 4, delay: 5, delayUnit: 'days' },
-        { id: '5', type: 'email', order: 5, subject: 'Follow up', content: 'Following up...' }
-      ],
-      contacts: 150,
-      stats: {
-        sent: 150,
-        opened: 89,
-        clicked: 23,
-        replied: 12,
-        openRate: 59.3,
-        clickRate: 15.3,
-        replyRate: 8.0
-      },
-      createdAt: '2024-01-10',
-      startDate: '2024-01-12'
+  // Fetch real campaigns from API
+  const [realCampaigns, setRealCampaigns] = useState<Campaign[]>([]);
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
+  const fetchCampaigns = async () => {
+    try {
+      const response = await fetch('/api/campaigns/management');
+      const data = await response.json();
+      if (data.success) {
+        setRealCampaigns(data.campaigns || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch campaigns:', error);
+      setRealCampaigns([]); // Fallback to empty array
     }
-  ]
+  };
 
   const addStep = (type: CampaignStep['type']) => {
     const newStep: CampaignStep = {
@@ -192,6 +187,110 @@ export default function CampaignBuilder() {
       default: return 'bg-gray-100 text-gray-800'
     }
   }
+
+  const sendCampaign = async (campaign: Campaign) => {
+    try {
+      // First, get contacts from CRM
+      const contactsResponse = await fetch('/api/crm/contacts?limit=100');
+      const contactsData = await contactsResponse.json();
+      
+      if (!contactsData.success || !contactsData.contacts?.length) {
+        alert('No contacts found in CRM. Please add some contacts first.');
+        return;
+      }
+
+      const contacts = contactsData.contacts;
+      let sentCount = 0;
+
+      // Send emails for each email step in the campaign
+      for (const step of campaign.steps.filter(s => s.type === 'email')) {
+        for (const contact of contacts) {
+          try {
+            // Replace template variables
+            const personalizedSubject = replaceTemplateVariables(step.subject || '', contact);
+            const personalizedContent = replaceTemplateVariables(step.content || '', contact);
+
+            // Send email via Gmail
+            const emailResponse = await fetch('/api/email/send', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                to: contact.email || `${contact.contact_name}@${contact.company_name.toLowerCase().replace(/\s+/g, '')}.com`,
+                subject: personalizedSubject,
+                html: personalizedContent.replace(/\n/g, '<br>'),
+                campaign_id: campaign.id,
+                contact_id: contact.id
+              }),
+            });
+
+            const emailResult = await emailResponse.json();
+            
+            if (emailResult.success) {
+              sentCount++;
+              
+              // Log the outreach
+              await logOutreach({
+                campaign_id: campaign.id,
+                crm_contact_id: contact.id,
+                unified_id: contact.unified_id,
+                contact_email: contact.email || 'pending',
+                contact_name: contact.contact_name,
+                subject: personalizedSubject,
+                content: personalizedContent,
+                status: 'sent',
+                channel: 'email'
+              });
+            }
+          } catch (error) {
+            console.error(`Failed to send email to ${contact.contact_name}:`, error);
+          }
+        }
+      }
+
+      alert(`Campaign sent successfully to ${sentCount} contacts!`);
+      
+      // Update campaign status
+      const updatedCampaigns = realCampaigns.map(c => 
+        c.id === campaign.id 
+          ? { ...c, status: 'active' as const, stats: { ...c.stats, sent: sentCount } }
+          : c
+      );
+      setRealCampaigns(updatedCampaigns);
+
+    } catch (error) {
+      console.error('Campaign send failed:', error);
+      alert('Failed to send campaign. Please try again.');
+    }
+  };
+
+  const replaceTemplateVariables = (template: string, contact: any) => {
+    return template
+      .replace(/\{\{company_name\}\}/g, contact.company_name || 'your company')
+      .replace(/\{\{firstName\}\}/g, contact.contact_name?.split(' ')[0] || 'there')
+      .replace(/\{\{hs_code\}\}/g, contact.hs_code || 'your products')
+      .replace(/\{\{senderName\}\}/g, 'LogisticIntel Team');
+  };
+
+  const logOutreach = async (logData: any) => {
+    try {
+      await fetch('/api/outreach-logs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...logData,
+          sent_at: new Date().toISOString(),
+          opened: false,
+          clicked: false
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to log outreach:', error);
+    }
+  };
 
   if (showBuilder) {
     return (
@@ -329,13 +428,19 @@ export default function CampaignBuilder() {
                         onClick={() => updateStep(step.id, STEP_TEMPLATES.email.intro)}
                         className="text-xs text-blue-600 hover:text-blue-800"
                       >
-                        Use Intro Template
+                        Trade Intro Template
                       </button>
                       <button
                         onClick={() => updateStep(step.id, STEP_TEMPLATES.email.followup)}
                         className="text-xs text-blue-600 hover:text-blue-800"
                       >
-                        Use Follow-up Template
+                        Follow-up Template
+                      </button>
+                      <button
+                        onClick={() => updateStep(step.id, STEP_TEMPLATES.email.trade_insight)}
+                        className="text-xs text-purple-600 hover:text-purple-800"
+                      >
+                        Market Intelligence Template
                       </button>
                     </div>
                   </div>
@@ -495,9 +600,9 @@ export default function CampaignBuilder() {
       <div className="glass-card p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">Your Campaigns</h3>
         
-        {mockCampaigns.length > 0 ? (
+        {realCampaigns.length > 0 ? (
           <div className="space-y-4">
-            {mockCampaigns.map((campaign) => (
+            {realCampaigns.map((campaign) => (
               <div key={campaign.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex-1">
@@ -516,6 +621,15 @@ export default function CampaignBuilder() {
                   </div>
 
                   <div className="flex items-center space-x-3">
+                    {campaign.status === 'draft' && (
+                      <button 
+                        className="btn-primary"
+                        onClick={() => sendCampaign(campaign)}
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Campaign
+                      </button>
+                    )}
                     {campaign.status === 'active' && (
                       <button className="btn-secondary">
                         <Pause className="w-4 h-4 mr-2" />

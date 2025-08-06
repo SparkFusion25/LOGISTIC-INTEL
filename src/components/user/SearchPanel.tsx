@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Filter, Download, MapPin, Ship, Package, Building } from 'lucide-react'
 
 interface SearchFilters {
@@ -48,36 +48,57 @@ export default function SearchPanel() {
   const [loading, setLoading] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
 
-  // Mock trade data
-  const mockResults: TradeResult[] = [
+  // Fetch real trade data from API
+  const fetchTradeData = async () => {
+    setLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.company) queryParams.set('company', filters.company);
+      if (filters.origin) queryParams.set('origin_country', filters.origin);
+      if (filters.destination) queryParams.set('destination_country', filters.destination);
+      if (filters.commodity) queryParams.set('commodity', filters.commodity);
+      if (filters.hsCode) queryParams.set('hs_code', filters.hsCode);
+      if (filters.carrier) queryParams.set('carrier', filters.carrier);
+      
+      const response = await fetch(`/api/search/unified?${queryParams.toString()}`);
+      const data = await response.json();
+      
+      if (data.success && data.records) {
+        // Transform data to match TradeResult interface
+        const transformedResults: TradeResult[] = data.records.map((record: any) => ({
+          id: record.unified_id || record.id,
+          company: record.company_name || record.unified_company_name || 'Unknown Company',
+          origin: `${record.origin_country || 'Unknown'}`,
+          destination: `${record.destination_city || record.destination_country || 'Unknown'}`,
+          commodity: record.description || record.commodity_description || 'Unknown Commodity',
+          hsCode: record.hs_code || 'N/A',
+          carrier: record.carrier || record.unified_carrier || 'Unknown Carrier',
+          port: record.destination_port || record.origin_port || 'Unknown Port',
+          volume: `${record.weight_kg || 0} kg`,
+          date: record.shipment_date || record.unified_date || 'Unknown Date',
+          value: record.value_usd ? `$${(record.value_usd / 1000).toFixed(0)}K` : 'Unknown'
+        }));
+        setResults(transformedResults);
+      } else {
+        setResults([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch trade data:', error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    fetchTradeData();
+  }, []);
+
+  // Sample data for demo (fallback if no real data)
+  const sampleResults: TradeResult[] = [
     {
-      id: '1',
-      company: 'Global Trade Corp',
-      origin: 'Shanghai, China',
-      destination: 'Los Angeles, USA',
-      commodity: 'Electronics',
-      hsCode: '8471.30.01',
-      carrier: 'COSCO',
-      port: 'Port of LA',
-      volume: '2,450 TEU',
-      date: '2024-01-15',
-      value: '$2.4M'
-    },
-    {
-      id: '2',
-      company: 'European Logistics',
-      origin: 'Hamburg, Germany',
-      destination: 'New York, USA',
-      commodity: 'Machinery',
-      hsCode: '8479.89.94',
-      carrier: 'Hapag-Lloyd',
-      port: 'Port of NY/NJ',
-      volume: '1,200 TEU',
-      date: '2024-01-12',
-      value: '$1.8M'
-    },
-    {
-      id: '3',
+      id: 'sample-1',
       company: 'Asia Pacific Trading',
       origin: 'Busan, South Korea',
       destination: 'Long Beach, USA',
@@ -92,17 +113,7 @@ export default function SearchPanel() {
   ]
 
   const handleSearch = async () => {
-    setLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setResults(mockResults.filter(result => {
-        return (!filters.origin || result.origin.toLowerCase().includes(filters.origin.toLowerCase())) &&
-               (!filters.destination || result.destination.toLowerCase().includes(filters.destination.toLowerCase())) &&
-               (!filters.hsCode || result.hsCode.includes(filters.hsCode)) &&
-               (!filters.carrier || result.carrier.toLowerCase().includes(filters.carrier.toLowerCase()))
-      }))
-      setLoading(false)
-    }, 1500)
+    await fetchTradeData();
   }
 
   const handleFilterChange = (key: keyof SearchFilters, value: string) => {
