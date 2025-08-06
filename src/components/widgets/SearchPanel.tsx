@@ -24,8 +24,10 @@ interface SearchModeOption {
 
 interface UnifiedTradeRecord {
   id: string;
+  unified_id: string;
   mode: 'air' | 'ocean';
   mode_icon: string;
+  shipment_type: 'air' | 'ocean';
   unified_company_name: string;
   unified_destination: string;
   unified_value: number;
@@ -744,9 +746,9 @@ export default function SearchPanel() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-lg">{record.mode_icon || (record.mode === 'air' ? '✈️' : '🚢')}</span>
                     <span className={`text-xs px-2 py-1 rounded-full ${
-                      record.mode === 'air' ? 'bg-blue-100 text-blue-800' : 'bg-teal-100 text-teal-800'
+                      (record.mode === 'air' || record.shipment_type === 'air') ? 'bg-blue-100 text-blue-800' : 'bg-teal-100 text-teal-800'
                     }`}>
-                      {(record.mode || 'unknown').toUpperCase()}
+                      {(record.mode || record.shipment_type || 'unknown').toUpperCase()}
                     </span>
                                           <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-gray-900">{record.unified_company_name || 'Unknown Company'}</h3>
