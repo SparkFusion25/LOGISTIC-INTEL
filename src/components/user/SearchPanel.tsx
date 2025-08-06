@@ -121,9 +121,25 @@ export default function SearchPanel() {
   }
 
   const exportResults = () => {
+    if (!results || results.length === 0) {
+      alert('No results to export');
+      return;
+    }
+    
     const csvContent = [
       ['Company', 'Origin', 'Destination', 'Commodity', 'HS Code', 'Carrier', 'Port', 'Volume', 'Date', 'Value'],
-      ...results.map(r => [r.company, r.origin, r.destination, r.commodity, r.hsCode, r.carrier, r.port, r.volume, r.date, r.value])
+      ...results.map(r => [
+        r?.company || '', 
+        r?.origin || '', 
+        r?.destination || '', 
+        r?.commodity || '', 
+        r?.hsCode || '', 
+        r?.carrier || '', 
+        r?.port || '', 
+        r?.volume || '', 
+        r?.date || '', 
+        r?.value || ''
+      ])
     ].map(row => row.join(',')).join('\n')
     
     const blob = new Blob([csvContent], { type: 'text/csv' })

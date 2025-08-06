@@ -160,28 +160,36 @@ export async function GET(request: NextRequest) {
     console.log(`✅ Found ${rawData.length} trade records`);
 
     // Transform data to expected format
-    const transformedData: UnifiedTradeRecord[] = rawData.map((record: any, index: number) => ({
-      unified_id: record.unified_id || `${record.shipment_type}_${index}`,
-      shipment_type: record.shipment_type,
-      unified_company_name: record.company_name || 'Unknown Company',
-      unified_destination: record.destination_city || record.destination_country || 'Unknown',
-      unified_value: record.value_usd || 0,
-      unified_weight: record.weight_kg || 0,
-      unified_date: record.shipment_date || record.arrival_date || new Date().toISOString().split('T')[0],
-      unified_carrier: record.carrier || 'Unknown Carrier',
-      hs_code: record.hs_code || '',
-      description: record.description || 'No description available',
-      origin_country: record.origin_country || 'Unknown',
-      destination_country: record.destination_country || 'Unknown',
-      destination_city: record.destination_city || 'Unknown',
+    const transformedData: UnifiedTradeRecord[] = rawData.map((record: any, index: number) => {
+      const mode = (record.shipment_type === 'air') ? 'air' : 'ocean';
+      const modeIcon = mode === 'air' ? '✈️' : '🚢';
       
-      // Add confidence scoring based on data completeness
-      confidence_score: calculateConfidenceScore(record),
-      confidence_sources: getConfidenceSources(record),
-      apollo_verified: false, // Will be updated when Apollo enrichment runs
-      comtrade_data: false, // This is direct shipment data, not Comtrade
-      bts_intelligence: null // Will be populated by BTS matching if available
-    }));
+      return {
+        id: record.unified_id || `${record.shipment_type}_${index}`,
+        unified_id: record.unified_id || `${record.shipment_type}_${index}`,
+        mode: mode,
+        mode_icon: modeIcon,
+        shipment_type: record.shipment_type,
+        unified_company_name: record.company_name || 'Unknown Company',
+        unified_destination: record.destination_city || record.destination_country || 'Unknown',
+        unified_value: record.value_usd || 0,
+        unified_weight: record.weight_kg || 0,
+        unified_date: record.shipment_date || record.arrival_date || new Date().toISOString().split('T')[0],
+        unified_carrier: record.carrier || 'Unknown Carrier',
+        hs_code: record.hs_code || '',
+        description: record.description || 'No description available',
+        origin_country: record.origin_country || 'Unknown',
+        destination_country: record.destination_country || 'Unknown',
+        destination_city: record.destination_city || 'Unknown',
+        
+        // Add confidence scoring based on data completeness
+        confidence_score: calculateConfidenceScore(record),
+        confidence_sources: getConfidenceSources(record),
+        apollo_verified: false, // Will be updated when Apollo enrichment runs
+        comtrade_data: false, // This is direct shipment data, not Comtrade
+        bts_intelligence: null // Will be populated by BTS matching if available
+      };
+    });
 
     // Get total count for pagination
     const { count: totalCount } = await supabase

@@ -110,16 +110,16 @@ const ShipmentTrendMini: React.FC<ShipmentTrendMiniProps> = ({ companyName, clas
 
       {/* Mini Sparkline */}
       <div className="flex items-end space-x-0.5 h-4">
-        {trend.months_data.slice(-4).map((month, index) => {
-          const maxCount = Math.max(...trend.months_data.map(m => m.shipment_count));
-          const height = maxCount > 0 ? (month.shipment_count / maxCount * 12) + 2 : 2;
+        {(trend.months_data || []).slice(-4).map((month, index) => {
+          const maxCount = Math.max(...(trend.months_data || []).map(m => m?.shipment_count || 0));
+          const height = maxCount > 0 ? ((month?.shipment_count || 0) / maxCount * 12) + 2 : 2;
           
           return (
             <div
               key={index}
               className="w-1 bg-blue-400 rounded-sm"
               style={{ height: `${height}px` }}
-              title={`${month.shipment_count} shipments`}
+              title={`${month?.shipment_count || 0} shipments`}
             ></div>
           );
         })}

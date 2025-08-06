@@ -724,30 +724,43 @@ export default function SearchPanel() {
 
       {/* Results Display */}
       <div className="space-y-4">
-        {searchResults.map((record) => (
+        {!searchResults || searchResults.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {isLoading ? 'Searching...' : 'No results found'}
+            </h3>
+            <p className="text-gray-500">
+              {isLoading ? 'Please wait while we search the database' : 'Try adjusting your search criteria'}
+            </p>
+          </div>
+        ) : (
+          searchResults.map((record) => (
           <div key={record.id} className="border border-gray-200 rounded-lg overflow-hidden">
             {/* Main Result Row */}
             <div className="p-4 hover:bg-gray-50 transition-colors">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">{record.mode_icon}</span>
+                    <span className="text-lg">{record.mode_icon || (record.mode === 'air' ? '✈️' : '🚢')}</span>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       record.mode === 'air' ? 'bg-blue-100 text-blue-800' : 'bg-teal-100 text-teal-800'
                     }`}>
-                      {record.mode.toUpperCase()}
+                      {(record.mode || 'unknown').toUpperCase()}
                     </span>
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-gray-900">{record.unified_company_name}</h3>
-                      <ShipmentTrendMini companyName={record.unified_company_name} />
-                    </div>
+                                          <div className="flex items-center gap-3">
+                        <h3 className="font-semibold text-gray-900">{record.unified_company_name || 'Unknown Company'}</h3>
+                        {record.unified_company_name && (
+                          <ShipmentTrendMini companyName={record.unified_company_name} />
+                        )}
+                      </div>
                     <div className="flex flex-wrap gap-1">
-                      {getCompanyMatchBadges(record)}
+                      {record && getCompanyMatchBadges(record)}
                     </div>
                   </div>
 
                   {/* Confidence Indicator */}
-                  {record.confidence_score && (
+                  {record?.confidence_score && (
                     <div className="mb-3">
                       <ConfidenceIndicator 
                         score={record.confidence_score}
@@ -857,21 +870,9 @@ export default function SearchPanel() {
               </div>
             )}
           </div>
-        ))}
+        ))
+        )}
       </div>
-
-      {/* No Results State */}
-      {!isLoading && searchResults.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <Globe className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-medium mb-2">No Trade Intelligence Found</h3>
-          <p className="text-sm">
-            {currentMode === 'all' 
-              ? "No trade records found. Try adjusting your search criteria or filters."
-              : `No ${currentMode} freight records found. Try different search parameters.`}
-          </p>
-        </div>
-      )}
 
       {/* Data Source Information */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
