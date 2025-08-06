@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { ConfidenceEngine, type ConfidenceFactors } from '@/lib/confidenceEngine';
 
 // Create Supabase client
 const supabase = createClient(
@@ -141,23 +142,50 @@ async function searchRealOceanData(filters: UnifiedSearchFilters) {
     // Search Census API for Ocean transport (mode 20)
     const censusResults = await fetchCensusData(filters, '20');
     
-    // Transform to unified format
-    const transformedData = censusResults.map((record, index) => ({
-      id: `ocean_${record.YEAR}_${record.MONTH}_${index}`,
-      mode: 'ocean' as const,
-      mode_icon: '🚢',
-      unified_company_name: record.CONSIGNEE_NAME || inferCompanyFromCommodity(record.COMMODITY, record.COMMODITY_NAME, record.COUNTRY),
-      unified_destination: `${record.STATE}, USA`,
-      unified_value: record.VALUE,
-      unified_weight: record.WEIGHT,
-      unified_date: `${record.YEAR}-${String(record.MONTH).padStart(2, '0')}-01`,
-      unified_carrier: 'Ocean Carrier',
-      hs_code: record.COMMODITY,
-      description: record.COMMODITY_NAME || 'Trade commodity',
-      transport_mode: record.TRANSPORT_MODE,
-      origin_country: record.COUNTRY,
-      bts_intelligence: null
-    }));
+    // Transform to unified format with confidence scoring
+    const transformedData = [];
+    
+    for (const [index, record] of censusResults.entries()) {
+      // Use confidence engine for ocean freight
+      const confidenceFactors: ConfidenceFactors = {
+        hs_code: record.COMMODITY,
+        commodity_name: record.COMMODITY_NAME,
+        country: record.COUNTRY,
+        consignee_name: record.CONSIGNEE_NAME,
+        consignee_zip: record.consignee_zip,
+        port_of_origin: record.port_of_origin,
+        port_of_arrival: record.port_of_arrival,
+        customs_district: record.CUSTOMS_DISTRICT
+      };
+
+      const companyMatch = await ConfidenceEngine.getBestCompanyMatch(confidenceFactors);
+
+      // Only include results with minimum confidence threshold
+      if (companyMatch.confidence_score < 40) {
+        continue; // Skip low-confidence matches
+      }
+
+      transformedData.push({
+        id: `ocean_${record.YEAR}_${record.MONTH}_${index}`,
+        mode: 'ocean' as const,
+        mode_icon: '🚢',
+        unified_company_name: companyMatch.company_name,
+        unified_destination: `${record.STATE}, USA`,
+        unified_value: record.VALUE,
+        unified_weight: record.WEIGHT,
+        unified_date: `${record.YEAR}-${String(record.MONTH).padStart(2, '0')}-01`,
+        unified_carrier: 'Ocean Carrier',
+        hs_code: record.COMMODITY,
+        description: record.COMMODITY_NAME || 'Trade commodity',
+        transport_mode: record.TRANSPORT_MODE,
+        origin_country: record.COUNTRY,
+        // Enhanced confidence data
+        confidence_score: companyMatch.confidence_score,
+        confidence_sources: companyMatch.confidence_sources,
+        apollo_verified: companyMatch.apollo_verified,
+        bts_intelligence: null
+      });
+    }
 
     return {
       data: transformedData.slice(filters.offset!, filters.offset! + filters.limit!),
@@ -302,11 +330,30 @@ async function matchAirData(censusData: CensusTradeRecord[], btsData: BTSRecord[
 
     const btsRoute = matchingRoutes[0]; // Take first match
 
+    // Use confidence engine for intelligent company matching
+    const confidenceFactors: ConfidenceFactors = {
+      hs_code: censusRecord.COMMODITY,
+      commodity_name: censusRecord.COMMODITY_NAME,
+      country: censusRecord.COUNTRY,
+      consignee_name: censusRecord.CONSIGNEE_NAME,
+      consignee_zip: censusRecord.consignee_zip,
+      port_of_origin: censusRecord.port_of_origin,
+      port_of_arrival: censusRecord.port_of_arrival,
+      customs_district: censusRecord.CUSTOMS_DISTRICT
+    };
+
+    const companyMatch = await ConfidenceEngine.getBestCompanyMatch(confidenceFactors);
+
+    // Only include results with minimum confidence threshold
+    if (companyMatch.confidence_score < 40) {
+      continue; // Skip low-confidence matches
+    }
+
     matchedData.push({
       id: `air_${censusRecord.YEAR}_${censusRecord.MONTH}_${censusRecord.COMMODITY}`,
       mode: 'air' as const,
       mode_icon: '✈️',
-      unified_company_name: censusRecord.CONSIGNEE_NAME || inferCompanyFromCommodity(censusRecord.COMMODITY, censusRecord.COMMODITY_NAME, censusRecord.COUNTRY),
+      unified_company_name: companyMatch.company_name,
       unified_destination: `${censusRecord.STATE}, USA`,
       unified_value: censusRecord.VALUE,
       unified_weight: censusRecord.WEIGHT,
@@ -316,6 +363,10 @@ async function matchAirData(censusData: CensusTradeRecord[], btsData: BTSRecord[
       description: censusRecord.COMMODITY_NAME || 'Air freight commodity',
       transport_mode: censusRecord.TRANSPORT_MODE,
       origin_country: censusRecord.COUNTRY,
+      // Enhanced confidence data
+      confidence_score: companyMatch.confidence_score,
+      confidence_sources: companyMatch.confidence_sources,
+      apollo_verified: companyMatch.apollo_verified,
       bts_route: btsRoute ? {
         origin_airport: btsRoute.ORIGIN,
         dest_airport: btsRoute.DEST,

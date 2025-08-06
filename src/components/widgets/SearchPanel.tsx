@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle, ChevronDown, Menu, Plane, Waves, Brain, Zap, Users } from 'lucide-react';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import EnrichedContactCard from '@/components/widgets/EnrichedContactCard';
+import ConfidenceIndicator from '@/components/ui/ConfidenceIndicator';
+import CompanyFeedback from '@/components/ui/CompanyFeedback';
+import { ConfidenceEngine } from '@/lib/confidenceEngine';
 
 type SearchMode = 'all' | 'air' | 'ocean';
 
@@ -206,6 +209,15 @@ export default function SearchPanel() {
         setSearchResults(enrichedResults);
         setSummary(result.summary);
         setTotalResults(result.total || 0);
+
+        // Log search analytics
+        const avgConfidence = enrichedResults.reduce((sum, r) => sum + (r.confidence_score || 0), 0) / enrichedResults.length || 0;
+        await ConfidenceEngine.logSearch(
+          filters.companyName || filters.commodity || 'general search',
+          { mode: currentMode, ...filters },
+          enrichedResults.length,
+          avgConfidence
+        );
       } else {
         console.error('Search failed:', result.error);
         setSearchResults([]);
@@ -647,6 +659,18 @@ export default function SearchPanel() {
                     </div>
                   </div>
 
+                  {/* Confidence Indicator */}
+                  {record.confidence_score && (
+                    <div className="mb-3">
+                      <ConfidenceIndicator 
+                        score={record.confidence_score}
+                        sources={record.confidence_sources || []}
+                        apolloVerified={record.apollo_verified || false}
+                        className="mb-2"
+                      />
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600">
                     <div>
                       <span className="font-medium">Commodity:</span> {record.hs_code}
@@ -701,6 +725,22 @@ export default function SearchPanel() {
                 </div>
               </div>
             </div>
+
+            {/* Company Feedback Section */}
+            {record.confidence_score && (
+              <div className="border-t border-gray-100 p-4 bg-gray-50">
+                <CompanyFeedback
+                  companyName={record.unified_company_name}
+                  hsCode={record.hs_code}
+                  country={record.origin_country}
+                  confidenceScore={record.confidence_score}
+                  onFeedbackSubmitted={() => {
+                    // Optionally refresh the search results or show confirmation
+                    console.log('Feedback submitted for', record.unified_company_name);
+                  }}
+                />
+              </div>
+            )}
 
             {/* Expanded Contact Card */}
             {expandedContacts.has(record.unified_company_name) && (
