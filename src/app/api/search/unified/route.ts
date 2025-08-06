@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (company) {
-      query = query.ilike('company_name_lower', `%${company.toLowerCase()}%`);
+      query = query.ilike('company_name', `%${company.toLowerCase()}%`);
     }
 
     if (originCountry) {
