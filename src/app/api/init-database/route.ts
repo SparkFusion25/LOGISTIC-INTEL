@@ -21,308 +21,241 @@ export async function POST() {
       console.log('📊 No existing tables found, proceeding with full initialization...');
     }
 
-    // Execute the SQL schema
+    // Execute the simplified schema based on user requirements
     const schemaSQL = `
-      -- Enable necessary extensions
-      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-      CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
       -- Drop existing tables if they exist (for clean setup)
-      DROP TABLE IF EXISTS outreach_history CASCADE;
-      DROP TABLE IF EXISTS follow_up_executions CASCADE;
-      DROP TABLE IF EXISTS follow_up_rules CASCADE;
-      DROP TABLE IF EXISTS persona_profiles CASCADE;
-      DROP TABLE IF EXISTS campaigns CASCADE;
+      DROP TABLE IF EXISTS outreach_logs CASCADE;
+      DROP TABLE IF EXISTS personas CASCADE;
       DROP TABLE IF EXISTS contacts CASCADE;
+      DROP TABLE IF EXISTS campaigns CASCADE;
       DROP TABLE IF EXISTS users CASCADE;
-      DROP TABLE IF EXISTS admin_users CASCADE;
-      DROP TABLE IF EXISTS widgets CASCADE;
-      DROP TABLE IF EXISTS email_activity CASCADE;
-      DROP TABLE IF EXISTS api_endpoints CASCADE;
-      DROP TABLE IF EXISTS feedback CASCADE;
 
-      -- Users table (for main platform users)
-      CREATE TABLE users (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          email VARCHAR(255) UNIQUE NOT NULL,
-          name VARCHAR(255),
-          company VARCHAR(255),
-          title VARCHAR(255),
-          phone VARCHAR(50),
-          role VARCHAR(50) DEFAULT 'trial' CHECK (role IN ('trial', 'pro', 'enterprise')),
-          plan_status VARCHAR(50) DEFAULT 'active' CHECK (plan_status IN ('active', 'inactive', 'suspended')),
-          signup_date TIMESTAMP DEFAULT NOW(),
-          last_login TIMESTAMP,
-          usage_count INTEGER DEFAULT 0,
-          active_widgets TEXT[],
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+      -- Users table
+      CREATE TABLE IF NOT EXISTS users (
+        id uuid primary key default gen_random_uuid(),
+        email text not null,
+        name text,
+        created_at timestamp default now()
       );
 
-      -- Admin users table (for admin panel access)
-      CREATE TABLE admin_users (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          email VARCHAR(255) UNIQUE NOT NULL,
-          name VARCHAR(255) NOT NULL,
-          role VARCHAR(50) DEFAULT 'admin' CHECK (role IN ('admin', 'super_admin', 'moderator')),
-          password_hash TEXT NOT NULL,
-          last_login TIMESTAMP,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+      -- Campaigns
+      CREATE TABLE IF NOT EXISTS campaigns (
+        id uuid primary key default gen_random_uuid(),
+        user_id uuid references users(id),
+        name text,
+        tradelane text,
+        industry text,
+        status text default 'draft',
+        created_at timestamp default now()
       );
 
-      -- Contacts table (CRM)
-      CREATE TABLE contacts (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-          name VARCHAR(255) NOT NULL,
-          email VARCHAR(255),
-          company VARCHAR(255),
-          title VARCHAR(255),
-          phone VARCHAR(50),
-          linkedin_url VARCHAR(500),
-          stage VARCHAR(50) DEFAULT 'Prospect' CHECK (stage IN ('Prospect', 'Contacted', 'Nurturing', 'Converted')),
-          source VARCHAR(50) DEFAULT 'Manual' CHECK (source IN ('Search', 'Manual', 'Campaign', 'Import')),
-          notes TEXT,
-          last_contacted TIMESTAMP,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+      -- Contacts (CRM)
+      CREATE TABLE IF NOT EXISTS contacts (
+        id uuid primary key default gen_random_uuid(),
+        campaign_id uuid references campaigns(id),
+        full_name text,
+        email text,
+        phone text,
+        company text,
+        title text,
+        linkedin text,
+        created_at timestamp default now()
       );
 
-      -- Campaigns table
-      CREATE TABLE campaigns (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-          name VARCHAR(255) NOT NULL,
-          description TEXT,
-          type VARCHAR(50) DEFAULT 'email' CHECK (type IN ('email', 'linkedin', 'mixed')),
-          status VARCHAR(50) DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'paused', 'completed')),
-          total_steps INTEGER DEFAULT 1,
-          trade_lane VARCHAR(255),
-          industry VARCHAR(255),
-          target_persona JSONB,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+      -- Outreach Logs
+      CREATE TABLE IF NOT EXISTS outreach_logs (
+        id uuid primary key default gen_random_uuid(),
+        contact_id uuid references contacts(id),
+        channel text, -- "email", "linkedin", "phone"
+        action text,  -- "viewed", "clicked", "replied"
+        timestamp timestamp default now()
       );
 
-      -- Outreach History table
-      CREATE TABLE outreach_history (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
-          campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
-          platform VARCHAR(50) NOT NULL CHECK (platform IN ('gmail', 'outlook', 'linkedin')),
-          type VARCHAR(50) NOT NULL CHECK (type IN ('sent', 'opened', 'replied', 'clicked', 'bounced')),
-          subject VARCHAR(500),
-          snippet TEXT,
-          full_content TEXT,
-          engagement_status VARCHAR(50) DEFAULT 'sent' CHECK (engagement_status IN ('sent', 'delivered', 'opened', 'clicked', 'replied', 'bounced')),
-          thread_id VARCHAR(255),
-          gmail_message_id VARCHAR(255),
-          linkedin_url VARCHAR(500),
-          timestamp TIMESTAMP DEFAULT NOW(),
-          created_at TIMESTAMP DEFAULT NOW()
-      );
-
-      -- Persona Profiles table
-      CREATE TABLE persona_profiles (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-          name VARCHAR(255) NOT NULL,
-          industry VARCHAR(255),
-          trade_lane JSONB,
-          demographics JSONB,
-          pain_points TEXT[],
-          motivations TEXT[],
-          communication_style VARCHAR(50) CHECK (communication_style IN ('formal', 'casual', 'technical', 'relationship-focused')),
-          buying_stage VARCHAR(50) CHECK (buying_stage IN ('cold', 'warm', 'hot')),
-          preferred_channels TEXT[],
-          key_messages TEXT[],
-          objections TEXT[],
-          success_metrics TEXT[],
-          confidence INTEGER CHECK (confidence >= 0 AND confidence <= 100),
-          based_on_contacts INTEGER DEFAULT 0,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-      );
-
-      -- Follow-up Rules table
-      CREATE TABLE follow_up_rules (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-          contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
-          campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
-          name VARCHAR(255) NOT NULL,
-          method VARCHAR(50) NOT NULL CHECK (method IN ('Gmail', 'Outlook', 'LinkedIn')),
-          template_id VARCHAR(255),
-          template_name VARCHAR(255),
-          delay INTEGER NOT NULL,
-          delay_unit VARCHAR(20) NOT NULL CHECK (delay_unit IN ('hours', 'days', 'weeks')),
-          smart_timing BOOLEAN DEFAULT false,
-          conditions JSONB DEFAULT '{}',
-          status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'paused', 'completed')),
-          next_execution TIMESTAMP,
-          last_executed TIMESTAMP,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-      );
-
-      -- Follow-up Executions table
-      CREATE TABLE follow_up_executions (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          rule_id UUID REFERENCES follow_up_rules(id) ON DELETE CASCADE,
-          contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
-          status VARCHAR(50) DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'sent', 'opened', 'replied', 'failed')),
-          scheduled_for TIMESTAMP NOT NULL,
-          executed_at TIMESTAMP,
-          subject VARCHAR(500),
-          template_used VARCHAR(255),
-          error_message TEXT,
-          created_at TIMESTAMP DEFAULT NOW()
-      );
-
-      -- Widgets table
-      CREATE TABLE widgets (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          name VARCHAR(100) UNIQUE NOT NULL,
-          display_name VARCHAR(255) NOT NULL,
-          description TEXT,
-          usage_count INTEGER DEFAULT 0,
-          active_users INTEGER DEFAULT 0,
-          last_used TIMESTAMP,
-          status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'maintenance')),
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-      );
-
-      -- Email Activity table (for admin monitoring)
-      CREATE TABLE email_activity (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-          campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
-          subject VARCHAR(500),
-          recipient VARCHAR(255),
-          status VARCHAR(50) CHECK (status IN ('sent', 'delivered', 'opened', 'clicked', 'replied', 'bounced')),
-          domain VARCHAR(255),
-          timestamp TIMESTAMP DEFAULT NOW(),
-          created_at TIMESTAMP DEFAULT NOW()
-      );
-
-      -- API Endpoints table (for monitoring)
-      CREATE TABLE api_endpoints (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          name VARCHAR(255) NOT NULL,
-          url VARCHAR(500) NOT NULL,
-          status VARCHAR(50) DEFAULT 'unknown' CHECK (status IN ('up', 'down', 'degraded', 'unknown')),
-          uptime_percentage DECIMAL(5,2) DEFAULT 0,
-          avg_response_time INTEGER DEFAULT 0,
-          last_error TEXT,
-          last_checked TIMESTAMP,
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
-      );
-
-      -- Feedback table
-      CREATE TABLE feedback (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-          type VARCHAR(50) NOT NULL CHECK (type IN ('bug', 'feature_request', 'support', 'feedback')),
-          title VARCHAR(255) NOT NULL,
-          description TEXT,
-          status VARCHAR(50) DEFAULT 'new' CHECK (status IN ('new', 'in_progress', 'resolved', 'closed')),
-          priority VARCHAR(50) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
-          assigned_to VARCHAR(255),
-          created_at TIMESTAMP DEFAULT NOW(),
-          updated_at TIMESTAMP DEFAULT NOW()
+      -- Personas
+      CREATE TABLE IF NOT EXISTS personas (
+        id uuid primary key default gen_random_uuid(),
+        user_id uuid references users(id),
+        industry text,
+        segment text,
+        tone text,
+        key_challenges text,
+        preferred_channels text,
+        created_at timestamp default now()
       );
     `;
 
-    // Execute the schema creation
-    const { error: schemaError } = await supabase.rpc('exec_sql', { 
-      query: schemaSQL 
-    });
+    // Try to execute the schema using direct SQL execution
+    try {
+      // Split SQL into individual statements and execute them
+      const statements = schemaSQL
+        .split(';')
+        .map(stmt => stmt.trim())
+        .filter(stmt => stmt.length > 0);
 
-    if (schemaError) {
-      console.error('❌ Schema creation error:', schemaError);
-      // Try alternative approach - execute parts separately
-      const tables = [
-        'users', 'admin_users', 'contacts', 'campaigns', 'outreach_history',
-        'persona_profiles', 'follow_up_rules', 'follow_up_executions',
-        'widgets', 'email_activity', 'api_endpoints', 'feedback'
-      ];
-
-      for (const table of tables) {
-        console.log(`🔧 Creating table: ${table}`);
-        // Individual table creation would go here
+      for (const statement of statements) {
+        if (statement.length > 0) {
+          const { error } = await supabase.rpc('exec_sql', { sql: statement });
+          if (error) {
+            console.log('⚠️ SQL Statement error (continuing):', error);
+          }
+        }
       }
+    } catch (error) {
+      console.log('⚠️ Schema execution completed with warnings:', error);
     }
 
-    console.log('✅ Database schema created successfully');
+    console.log('✅ Database schema creation attempted');
 
-    // Insert default data
-    console.log('📊 Inserting default data...');
-
-    // Insert default admin user
-    const { error: adminError } = await supabase
-      .from('admin_users')
-      .upsert({
-        email: 'admin@logisticintel.com',
-        name: 'Demo Administrator',
-        role: 'super_admin',
-        password_hash: 'admin123'  // In production, this should be properly hashed
-      });
-
-    if (adminError) {
-      console.error('❌ Admin user creation error:', adminError);
-    }
-
-    // Insert default widgets
-    const widgets = [
-      { name: 'tariff_calculator', display_name: 'Tariff Calculator', description: 'Calculate import tariffs and duties', usage_count: 1250, active_users: 340 },
-      { name: 'quote_generator', display_name: 'Quote Generator', description: 'Generate shipping quotes for air/ocean freight', usage_count: 890, active_users: 245 },
-      { name: 'campaign_builder', display_name: 'Campaign Builder', description: 'Create email and LinkedIn outreach campaigns', usage_count: 567, active_users: 127 },
-      { name: 'crm_lookup', display_name: 'CRM Lookup', description: 'Search and manage trade contacts', usage_count: 423, active_users: 98 },
-      { name: 'market_benchmark', display_name: 'Market Benchmark', description: 'Compare freight rates and market data', usage_count: 234, active_users: 67 },
-      { name: 'trade_search', display_name: 'Trade Search', description: 'Search global trade intelligence data', usage_count: 789, active_users: 156 }
-    ];
-
-    const { error: widgetsError } = await supabase
-      .from('widgets')
-      .upsert(widgets);
-
-    if (widgetsError) {
-      console.error('❌ Widgets insertion error:', widgetsError);
-    }
-
-    // Insert API endpoints
-    const apiEndpoints = [
-      { name: 'Comtrade API', url: 'https://comtradeapi.un.org', status: 'up', uptime_percentage: 99.2, avg_response_time: 450 },
-      { name: 'US Census API', url: 'https://api.census.gov', status: 'up', uptime_percentage: 98.7, avg_response_time: 320 },
-      { name: 'DataForSEO API', url: 'https://api.dataforseo.com', status: 'degraded', uptime_percentage: 95.1, avg_response_time: 1200 },
-      { name: 'Flexport API', url: 'https://api.flexport.com', status: 'up', uptime_percentage: 97.8, avg_response_time: 680 },
-      { name: 'Freightos API', url: 'https://api.freightos.com', status: 'up', uptime_percentage: 99.5, avg_response_time: 290 }
-    ];
-
-    const { error: apiError } = await supabase
-      .from('api_endpoints')
-      .upsert(apiEndpoints);
-
-    if (apiError) {
-      console.error('❌ API endpoints insertion error:', apiError);
-    }
+    // Insert sample data
+    console.log('📊 Inserting sample data...');
 
     // Insert sample users
-    const sampleUsers = [
-      { email: 'john@acme.com', name: 'John Smith', company: 'ACME Corp', title: 'Supply Chain Director', role: 'enterprise', plan_status: 'active', usage_count: 245, active_widgets: ['tariff_calculator', 'quote_generator', 'campaign_builder'] },
-      { email: 'sarah@globaltrade.com', name: 'Sarah Chen', company: 'Global Trade Inc', title: 'Procurement Manager', role: 'pro', plan_status: 'active', usage_count: 198, active_widgets: ['tariff_calculator', 'crm_lookup'] },
-      { email: 'mike@logistics.com', name: 'Mike Johnson', company: 'Logistics Pro', title: 'Operations Manager', role: 'trial', plan_status: 'active', usage_count: 176, active_widgets: ['quote_generator'] }
-    ];
-
-    const { error: usersError } = await supabase
+    const { data: insertedUsers, error: usersError } = await supabase
       .from('users')
-      .upsert(sampleUsers);
+      .upsert([
+        { email: 'john@acme.com', name: 'John Smith' },
+        { email: 'sarah@globaltrade.com', name: 'Sarah Chen' },
+        { email: 'mike@logistics.com', name: 'Mike Johnson' }
+      ], { onConflict: 'email' })
+      .select();
 
     if (usersError) {
       console.error('❌ Sample users insertion error:', usersError);
+    } else {
+      console.log('✅ Sample users inserted:', insertedUsers?.length || 0);
+    }
+
+    // Get user IDs for campaigns
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, email');
+
+    if (users && users.length > 0) {
+      // Insert sample campaigns
+      const { data: insertedCampaigns, error: campaignsError } = await supabase
+        .from('campaigns')
+        .upsert([
+          {
+            user_id: users[0].id,
+            name: 'China Electronics Q1 2024',
+            tradelane: 'China → USA',
+            industry: 'Electronics',
+            status: 'active'
+          },
+          {
+            user_id: users[1].id,
+            name: 'Asia-Pacific Partnership Drive',
+            tradelane: 'Asia → USA',
+            industry: 'Logistics',
+            status: 'active'
+          }
+        ])
+        .select();
+
+      if (campaignsError) {
+        console.error('❌ Sample campaigns insertion error:', campaignsError);
+      } else {
+        console.log('✅ Sample campaigns inserted:', insertedCampaigns?.length || 0);
+
+        // Insert sample contacts
+        if (insertedCampaigns && insertedCampaigns.length > 0) {
+          const { data: insertedContacts, error: contactsError } = await supabase
+            .from('contacts')
+            .upsert([
+              {
+                campaign_id: insertedCampaigns[0].id,
+                full_name: 'Sarah Chen',
+                email: 'sarah.chen@techglobal.com',
+                phone: '+1-408-555-0123',
+                company: 'TechGlobal Solutions',
+                title: 'Supply Chain Director',
+                linkedin: 'https://linkedin.com/in/sarahchen-techglobal'
+              },
+              {
+                campaign_id: insertedCampaigns[0].id,
+                full_name: 'Michael Wong',
+                email: 'michael.wong@electronics-plus.com',
+                phone: '+1-650-555-0456',
+                company: 'Electronics Plus',
+                title: 'Procurement Manager',
+                linkedin: 'https://linkedin.com/in/mwong-electronics'
+              },
+              {
+                campaign_id: insertedCampaigns[1].id,
+                full_name: 'Jennifer Liu',
+                email: 'jennifer.liu@smart-devices.com',
+                phone: '+1-415-555-0789',
+                company: 'Smart Devices Inc',
+                title: 'Logistics Manager',
+                linkedin: 'https://linkedin.com/in/jliu-smartdevices'
+              }
+            ])
+            .select();
+
+          if (contactsError) {
+            console.error('❌ Sample contacts insertion error:', contactsError);
+          } else {
+            console.log('✅ Sample contacts inserted:', insertedContacts?.length || 0);
+
+            // Insert sample outreach logs
+            if (insertedContacts && insertedContacts.length > 0) {
+              const { error: logsError } = await supabase
+                .from('outreach_logs')
+                .insert([
+                  {
+                    contact_id: insertedContacts[0].id,
+                    channel: 'email',
+                    action: 'replied'
+                  },
+                  {
+                    contact_id: insertedContacts[1].id,
+                    channel: 'linkedin',
+                    action: 'viewed'
+                  },
+                  {
+                    contact_id: insertedContacts[2].id,
+                    channel: 'email',
+                    action: 'clicked'
+                  }
+                ]);
+
+              if (logsError) {
+                console.error('❌ Sample outreach logs insertion error:', logsError);
+              } else {
+                console.log('✅ Sample outreach logs inserted');
+              }
+            }
+          }
+        }
+      }
+
+      // Insert sample personas
+      const { error: personasError } = await supabase
+        .from('personas')
+        .upsert([
+          {
+            user_id: users[0].id,
+            industry: 'Electronics',
+            segment: 'Supply Chain Directors',
+            tone: 'Professional',
+            key_challenges: 'Cost optimization, Supply chain visibility, Compliance',
+            preferred_channels: 'Email, LinkedIn'
+          },
+          {
+            user_id: users[1].id,
+            industry: 'Logistics',
+            segment: 'Freight Forwarders',
+            tone: 'Relationship-focused',
+            key_challenges: 'Capacity management, Rate optimization, Technology adoption',
+            preferred_channels: 'Phone, Email'
+          }
+        ]);
+
+      if (personasError) {
+        console.error('❌ Sample personas insertion error:', personasError);
+      } else {
+        console.log('✅ Sample personas inserted');
+      }
     }
 
     console.log('✅ Database initialization completed successfully!');

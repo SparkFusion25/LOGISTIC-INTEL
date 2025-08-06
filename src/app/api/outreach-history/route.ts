@@ -9,10 +9,9 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('contactId');
-    const platform = searchParams.get('platform'); // 'gmail', 'linkedin', 'outlook', or 'all'
+    const channel = searchParams.get('platform'); // 'email', 'linkedin', 'phone', or 'all'
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -25,74 +24,68 @@ export async function GET(request: NextRequest) {
 
     // Build the query
     let query = supabase
-      .from('outreach_history')
+      .from('outreach_logs')
       .select(`
         id,
         contact_id,
-        platform,
-        type,
-        subject,
-        snippet,
-        full_content,
+        channel,
+        action,
         timestamp,
-        engagement_status,
-        thread_id,
-        campaign_id,
-        linkedin_url,
-        gmail_message_id,
         contact:contacts(
           id,
-          name,
+          full_name,
           email,
           company
-        ),
-        campaign:campaigns(
-          id,
-          name
         )
       `)
       .eq('contact_id', contactId)
       .order('timestamp', { ascending: false })
       .range(offset, offset + limit - 1);
 
-    // Filter by platform if specified
-    if (platform && platform !== 'all') {
-      query = query.eq('platform', platform);
+    // Apply channel filter if specified
+    if (channel && channel !== 'all') {
+      // Map platform names to channel names
+      const channelMap: { [key: string]: string } = {
+        'gmail': 'email',
+        'outlook': 'email',
+        'linkedin': 'linkedin',
+        'phone': 'phone'
+      };
+      
+      const mappedChannel = channelMap[channel] || channel;
+      query = query.eq('channel', mappedChannel);
     }
 
-    const { data: outreachHistory, error } = await query;
+    const { data: outreachLogs, error, count } = await query;
 
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('Database error:', error);
       return NextResponse.json(
         { error: 'Failed to fetch outreach history' },
         { status: 500 }
       );
     }
 
-    // Transform the data for frontend consumption
-    const transformedData = outreachHistory?.map((item: any) => ({
+    // Transform data to match expected format
+    const transformedData = outreachLogs?.map((item: any) => ({
       id: item.id,
       contactId: item.contact_id,
-      platform: item.platform,
-      type: item.type,
-      subject: item.subject,
-      snippet: item.snippet,
-      fullContent: item.full_content,
+      platform: item.channel, // Map channel back to platform
+      type: item.action,
+      subject: `${item.action} via ${item.channel}`,
+      snippet: `Contact was ${item.action} via ${item.channel}`,
+      fullContent: `${item.action} interaction via ${item.channel} on ${new Date(item.timestamp).toLocaleString()}`,
       timestamp: item.timestamp,
-      engagementStatus: item.engagement_status,
-      threadId: item.thread_id,
-      campaignId: item.campaign_id,
-      campaignName: item.campaign?.name,
-      linkedinUrl: item.linkedin_url,
-      gmailMessageId: item.gmail_message_id,
-      contact: item.contact,
+      engagementStatus: item.action,
+      contact: item.contact
     })) || [];
+
+    const hasMore = (count || 0) > offset + limit;
 
     return NextResponse.json({
       data: transformedData,
-      total: transformedData.length,
-      hasMore: transformedData.length === limit
+      total: count || 0,
+      hasMore
     });
 
   } catch (error) {
@@ -106,57 +99,42 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-
     const body = await request.json();
     const {
       contactId,
-      platform,
-      type,
-      subject,
-      snippet,
-      fullContent,
-      engagementStatus,
-      threadId,
-      campaignId,
-      linkedinUrl,
-      gmailMessageId
+      channel,
+      action
     } = body;
 
-    if (!contactId || !platform || !type) {
+    if (!contactId || !channel || !action) {
       return NextResponse.json(
-        { error: 'contactId, platform, and type are required' },
+        { error: 'contactId, channel, and action are required' },
         { status: 400 }
       );
     }
 
     const { data, error } = await supabase
-      .from('outreach_history')
+      .from('outreach_logs')
       .insert({
         contact_id: contactId,
-        platform,
-        type,
-        subject,
-        snippet,
-        full_content: fullContent,
-        engagement_status: engagementStatus || 'sent',
-        thread_id: threadId,
-        campaign_id: campaignId,
-        linkedin_url: linkedinUrl,
-        gmail_message_id: gmailMessageId,
-        timestamp: new Date().toISOString()
+        channel,
+        action
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('Database error:', error);
       return NextResponse.json(
-        { error: 'Failed to create outreach history entry' },
+        { error: 'Failed to create outreach log entry' },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ data });
+    return NextResponse.json({
+      success: true,
+      data
+    }, { status: 201 });
 
   } catch (error) {
     console.error('API error:', error);
