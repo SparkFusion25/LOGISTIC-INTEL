@@ -291,10 +291,10 @@ export default function EnrichedContactCard({
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4" />
                                         <span>
-                        {enrichmentSource === 'apollo' ? 'Enriched via Apollo.io' : 
+                        {enrichmentSource === 'apollo' ? 'Enriched via Apollo Intel API' : 
                          enrichmentSource === 'phantom' ? 'Enriched via PhantomBuster' : 
                          enrichmentSource === 'cache' ? 'Cached data' :
-                         'Apollo.io API required'}
+                         'Apollo Intel API required'}
                       </span>
                       {lastEnriched && (
                         <span className="text-xs">
@@ -302,9 +302,9 @@ export default function EnrichedContactCard({
                         </span>
                       )}
                     </div>
-                    {(!enrichmentSource || enrichmentSource === 'apollo_unavailable') && (
-                      <span className="text-red-600 text-xs">Configure APOLLO_API_KEY environment variable for live contact data</span>
-                    )}
+                                {(!enrichmentSource || enrichmentSource === 'apollo_unavailable') && (
+              <span className="text-red-600 text-xs">Configure VITE_APOLLO_INTEL_KEY environment variable for live contact data</span>
+            )}
               </div>
 
               {/* Contacts List */}

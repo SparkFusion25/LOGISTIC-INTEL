@@ -213,7 +213,7 @@ export class ConfidenceEngine {
    */
   private static async checkApolloContact(companyName: string): Promise<boolean> {
     try {
-      if (!process.env.VITE_APOLLO_API_KEY) {
+      if (!process.env.VITE_APOLLO_INTEL_KEY) {
         return false;
       }
 
