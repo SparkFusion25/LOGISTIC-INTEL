@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🔄 Parsing BTS T-100 data...');
-    const parsedRecords = await parseBTSData(downloadResult.data, targetYear, targetMonth);
+    const parsedRecords = await parseBTSData(downloadResult.data!, targetYear, targetMonth);
     
     console.log(`📊 Parsed ${parsedRecords.length} BTS records`);
 
