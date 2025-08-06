@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 
 interface SearchFilters {
   company?: string;
+  companyName?: string;
   name?: string;
   city?: string;
   commodity?: string;
+  originCountry?: string;
+  destinationCountry?: string;
+  hsCode?: string;
+  mode?: string;
+  // Index signature to prevent TypeScript errors for dynamic keys
+  [key: string]: string | undefined;
 }
 
 interface TradeEntry {

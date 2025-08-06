@@ -72,21 +72,27 @@ interface BTSRouteMatch {
 }
 
 interface SearchFilters {
-  mode: SearchMode;
-  company: string;
-  commodity: string;
-  origin_country: string;
-  destination_country: string;
-  destination_city: string;
-  destination_state: string;
-  destination_zip: string;
-  hs_code: string;
-  carrier: string;
-  date_from: string;
-  date_to: string;
-  min_value: string;
-  max_value: string;
-  air_shipper_only: boolean;
+  mode?: SearchMode;
+  companyName?: string;
+  company?: string;
+  commodity?: string;
+  originCountry?: string;
+  origin_country?: string;
+  destinationCountry?: string;
+  destination_country?: string;
+  destination_city?: string;
+  destination_state?: string;
+  destination_zip?: string;
+  hsCode?: string;
+  hs_code?: string;
+  carrier?: string;
+  date_from?: string;
+  date_to?: string;
+  min_value?: string;
+  max_value?: string;
+  air_shipper_only?: boolean;
+  // Index signature to prevent TypeScript errors for dynamic keys
+  [key: string]: string | boolean | SearchMode | undefined;
 }
 
 interface SearchSummary {

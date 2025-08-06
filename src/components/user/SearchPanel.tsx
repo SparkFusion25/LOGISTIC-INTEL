@@ -4,13 +4,19 @@ import { useState } from 'react'
 import { Search, Filter, Download, MapPin, Ship, Package, Building } from 'lucide-react'
 
 interface SearchFilters {
-  origin: string
-  destination: string
-  hsCode: string
-  carrier: string
-  port: string
-  dateRange: string
-  commodity: string
+  origin?: string
+  destination?: string
+  hsCode?: string
+  carrier?: string
+  port?: string
+  dateRange?: string
+  commodity?: string
+  companyName?: string
+  originCountry?: string
+  destinationCountry?: string
+  mode?: string
+  // Index signature to prevent TypeScript errors for dynamic keys
+  [key: string]: string | undefined
 }
 
 interface TradeResult {
