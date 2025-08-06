@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 import { LogOut, Search, Users, Mail, BarChart3, Target, Package, Settings, Home, Zap, TrendingUp, Globe } from 'lucide-react';
+import AuthButton from '@/components/AuthButton';
 
   const navItems = [
     { href: '/dashboard', label: 'Overview', icon: Home },
@@ -120,9 +121,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <TrendingUp className="w-4 h-4 text-indigo-600" />
                 <span>Intelligence Platform</span>
               </div>
-              <div className="text-sm text-gray-600">
-                Welcome back, <span className="font-semibold text-indigo-700">Valesco</span>
-              </div>
+              <AuthButton />
             </div>
           </div>
         </header>
