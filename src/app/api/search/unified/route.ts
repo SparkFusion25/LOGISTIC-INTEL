@@ -145,7 +145,8 @@ async function searchRealOceanData(filters: UnifiedSearchFilters) {
     // Transform to unified format with confidence scoring
     const transformedData = [];
     
-    for (const [index, record] of censusResults.entries()) {
+    for (let index = 0; index < censusResults.length; index++) {
+      const record = censusResults[index];
       // Use confidence engine for ocean freight
       const confidenceFactors: ConfidenceFactors = {
         hs_code: record.COMMODITY,
