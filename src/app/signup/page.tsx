@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Globe, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import Logo from '@/components/ui/Logo'
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -63,11 +64,8 @@ export default function SignUp() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-blue-500 rounded-xl flex items-center justify-center">
-                <Globe className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">Logistic Intel</h1>
+            <div className="flex items-center justify-center mb-4">
+              <Logo size="xl" variant="default" showText={true} />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Create Account</h2>
             <p className="text-gray-600">Join thousands of logistics professionals</p>

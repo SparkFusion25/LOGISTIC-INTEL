@@ -3,8 +3,15 @@ import './globals.css'
 import Providers from '@/components/Providers'
 
 export const metadata: Metadata = {
-  title: 'Logistic Intel - Admin Portal',
-  description: 'Admin portal for managing Logistic Intel platform users, campaigns, and analytics',
+  title: 'Logistic Intel - Trade Intelligence Platform',
+  description: 'Global trade intelligence and CRM platform for logistics professionals',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '16x16', type: 'image/x-icon' }
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({

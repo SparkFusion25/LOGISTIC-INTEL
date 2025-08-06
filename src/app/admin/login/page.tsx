@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { adminAuth } from '@/lib/supabase'
+import Logo from '@/components/ui/Logo'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
@@ -68,12 +69,10 @@ export default function AdminLogin() {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-                <Shield className="w-8 h-8 text-white" />
-              </div>
+              <Logo size="xl" variant="default" showText={true} />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Portal</h1>
-            <p className="text-gray-600 mt-2">Logistic Intel Administration</p>
+            <h1 className="text-2xl font-bold text-gray-900">Admin Portal</h1>
+            <p className="text-gray-600 mt-2">System Administration</p>
           </div>
 
           {/* Demo credentials banner */}

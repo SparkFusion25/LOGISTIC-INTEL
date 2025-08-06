@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, AlertCircle, Globe, Copy, Check, Users } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Copy, Check, Users } from 'lucide-react'
 import AuthButton from '@/components/AuthButton'
+import Logo from '@/components/ui/Logo'
 
 export default function UserLogin() {
   const [email, setEmail] = useState('')
@@ -72,11 +73,8 @@ export default function UserLogin() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-blue-500 rounded-xl flex items-center justify-center">
-                <Globe className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">Logistic Intel</h1>
+            <div className="flex items-center justify-center mb-4">
+              <Logo size="xl" variant="default" showText={true} />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome Back</h2>
             <p className="text-gray-600">Sign in to your trade intelligence dashboard</p>

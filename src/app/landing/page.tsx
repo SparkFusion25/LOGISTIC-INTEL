@@ -30,6 +30,7 @@ import {
   Award,
   Sparkles
 } from 'lucide-react'
+import Logo from '@/components/ui/Logo'
 
 const LogisticIntelLanding = () => {
   const router = useRouter()
@@ -232,12 +233,7 @@ const LogisticIntelLanding = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Grid3x3 className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent">
-                Logistic Intel
-              </span>
+              <Logo size="md" variant="white" showText={true} />
             </div>
             
             <div className="hidden md:flex items-center space-x-8">

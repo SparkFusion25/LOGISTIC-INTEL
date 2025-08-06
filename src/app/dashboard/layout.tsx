@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
-import { LogOut, Search, Users, Mail, BarChart3, Target, Package, Settings, Home, Zap, TrendingUp, Globe } from 'lucide-react';
+import { LogOut, Search, Users, Mail, BarChart3, Target, Package, Settings, Home, Zap, TrendingUp } from 'lucide-react';
 import AuthButton from '@/components/AuthButton';
+import Logo from '@/components/ui/Logo';
 
   const navItems = [
     { href: '/dashboard', label: 'Overview', icon: Home },
@@ -33,15 +34,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <aside className="w-64 bg-white shadow-xl border-r border-gray-200 flex flex-col">
         {/* Logo Header */}
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-700 to-indigo-800">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <Globe className="w-5 h-5 text-indigo-700" />
-            </div>
-            <div>
-              <div className="text-xl font-bold text-white tracking-wide">LOGISTIC INTEL</div>
-              <div className="text-xs text-indigo-200">Trade Intelligence Platform</div>
-            </div>
-          </div>
+          <Logo 
+            size="lg" 
+            variant="white" 
+            showText={true}
+            className="text-white"
+          />
+          <div className="text-xs text-indigo-200 mt-2">Trade Intelligence Platform</div>
         </div>
 
         {/* Navigation */}
