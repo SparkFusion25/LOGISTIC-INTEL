@@ -5,6 +5,7 @@ import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package,
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import EnrichedContactCard from '@/components/widgets/EnrichedContactCard';
 import CompanyTrendChart from '@/components/insights/CompanyTrendChart';
+import ShipmentTrendMini from '@/components/insights/ShipmentTrendMini';
 import ConfidenceIndicator from '@/components/ui/ConfidenceIndicator';
 import CompanyFeedback from '@/components/ui/CompanyFeedback';
 import { ConfidenceEngine } from '@/lib/confidenceEngine';
@@ -736,7 +737,10 @@ export default function SearchPanel() {
                     }`}>
                       {record.mode.toUpperCase()}
                     </span>
-                    <h3 className="font-semibold text-gray-900">{record.unified_company_name}</h3>
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-semibold text-gray-900">{record.unified_company_name}</h3>
+                      <ShipmentTrendMini companyName={record.unified_company_name} />
+                    </div>
                     <div className="flex flex-wrap gap-1">
                       {getCompanyMatchBadges(record)}
                     </div>

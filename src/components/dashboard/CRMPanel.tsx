@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Mail, Trash2, Linkedin, UserCheck, Filter, RefreshCw, Users, TrendingUp, Clock, ExternalLink, Eye, X, Brain } from 'lucide-react';
 import OutreachHistory from '@/components/crm/OutreachHistory';
 import PersonaEngine from '@/components/insights/PersonaEngine';
+import CompanyTrendChart from '@/components/insights/CompanyTrendChart';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import ResponsiveCard from '@/components/ui/ResponsiveCard';
 
@@ -398,7 +399,14 @@ export default function CRMPanel() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)] space-y-6">
+              {/* Company Trend Chart */}
+              <CompanyTrendChart 
+                companyName={selectedLead.company}
+                className="mb-6"
+              />
+              
+              {/* Outreach History */}
               <OutreachHistory contactId={selectedLead.id} />
             </div>
           </div>
