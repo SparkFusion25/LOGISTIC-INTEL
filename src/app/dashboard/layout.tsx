@@ -5,15 +5,16 @@ import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 import { LogOut, Search, Users, Mail, BarChart3, Target, Package, Settings, Home, Zap, TrendingUp, Globe } from 'lucide-react';
 
-const navItems = [
-  { href: '/dashboard', label: 'Overview', icon: Home },
-  { href: '/dashboard/search', label: 'Search', icon: Search },
-  { href: '/dashboard/crm', label: 'CRM', icon: Users },
-  { href: '/dashboard/email', label: 'Email', icon: Mail },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/dashboard/campaigns', label: 'Campaigns', icon: Target },
-  { href: '/dashboard/widgets/quote', label: 'Quote Generator', icon: Package },
-];
+  const navItems = [
+    { href: '/dashboard', label: 'Overview', icon: Home },
+    { href: '/dashboard/search', label: 'Search', icon: Search },
+    { href: '/dashboard/crm', label: 'CRM', icon: Users },
+    { href: '/dashboard/email', label: 'Email', icon: Mail },
+    { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/dashboard/campaigns', label: 'Campaigns', icon: Target },
+    { href: '/dashboard/campaigns/analytics', label: 'Campaign Analytics', icon: TrendingUp },
+    { href: '/dashboard/widgets/quote', label: 'Quote Generator', icon: Package },
+  ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
