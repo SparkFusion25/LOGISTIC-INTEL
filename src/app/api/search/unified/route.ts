@@ -1,33 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 /**
- * 🚨 REAL UN COMTRADE API INTEGRATION ONLY - NO MOCK DATA
- * This endpoint fetches live trade data from UN Comtrade API
- * All parameters are dynamic based on user input
+ * 🚀 UNIFIED TRADE SEARCH - REAL SUPABASE DATA
+ * This endpoint searches the trade_data_view with uploaded XML data
+ * Replaces all mock data with real shipment records
  */
 
-interface UnComtradeRecord {
-  period: number;
-  reporterCode: number;
-  reporterDesc: string;
-  partnerCode: number;
-  partnerDesc: string;
-  cmdCode: string;
-  cmdDesc: string;
-  motCode: number;
-  motDesc: string;
-  flowCode: number;
-  flowDesc: string;
-  primaryValue: number;
-  netWgt: number;
-  grossWgt: number;
-  qty: number;
-}
+// Create Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-interface TransformedTradeRecord {
-  id: string;
-  mode: 'air' | 'ocean';
-  mode_icon: string;
+interface UnifiedTradeRecord {
+  unified_id: string;
+  shipment_type: 'ocean' | 'air';
   unified_company_name: string;
   unified_destination: string;
   unified_value: number;
@@ -36,299 +24,309 @@ interface TransformedTradeRecord {
   unified_carrier: string;
   hs_code: string;
   description: string;
-  transport_mode: string;
   origin_country: string;
+  destination_country: string;
+  destination_city: string;
   confidence_score: number;
   confidence_sources: string[];
   apollo_verified: boolean;
   comtrade_data: boolean;
-  bts_intelligence: null;
+  bts_intelligence: any;
 }
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🚨 REAL UN COMTRADE API - NO MOCK DATA ALLOWED');
+    console.log('🚀 UNIFIED SEARCH - QUERYING REAL TRADE DATA');
     
     const { searchParams } = new URL(request.url);
     
-    // Extract user filters - ALL DYNAMIC
+    // Extract search filters
     const mode = searchParams.get('mode') || 'all'; // air, ocean, all
+    const company = searchParams.get('company') || '';
     const originCountry = searchParams.get('origin_country') || '';
+    const destinationCountry = searchParams.get('destination_country') || '';
+    const destinationCity = searchParams.get('destination_city') || '';
     const commodity = searchParams.get('commodity') || '';
     const hsCode = searchParams.get('hs_code') || '';
+    const dateFrom = searchParams.get('date_from') || '';
+    const dateTo = searchParams.get('date_to') || '';
+    const carrier = searchParams.get('carrier') || '';
+    const minValue = parseFloat(searchParams.get('min_value') || '0');
+    const maxValue = parseFloat(searchParams.get('max_value') || '999999999');
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    console.log('🔍 User search filters:', { mode, originCountry, commodity, hsCode, limit, offset });
-
-    // Build UN Comtrade API URL with DYNAMIC parameters
-    const comtradeUrl = buildUnComtradeUrl({
-      mode,
-      originCountry,
-      commodity,
-      hsCode,
-      limit,
-      offset
+    console.log('🔍 Search filters:', {
+      mode, company, originCountry, destinationCountry, destinationCity,
+      commodity, hsCode, dateFrom, dateTo, carrier, minValue, maxValue, limit, offset
     });
 
-    console.log('📡 UN Comtrade API URL:', comtradeUrl);
+    // Build Supabase query
+    let query = supabase
+      .from('trade_data_view')
+      .select('*');
 
-    // Fetch REAL data from UN Comtrade API
-    const response = await fetch(comtradeUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'LogisticIntel/1.0 Production Platform'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`UN Comtrade API error: ${response.status} ${response.statusText}`);
+    // Apply filters
+    if (mode !== 'all') {
+      query = query.eq('shipment_type', mode);
     }
 
-    const rawData = await response.json();
-    console.log('📊 Raw UN Comtrade API Response:', {
-      dataLength: rawData?.data?.length || 0,
-      structure: Object.keys(rawData || {}),
-      sampleRecord: rawData?.data?.[0] || null
-    });
-
-    // Validate API response
-    if (!rawData || !rawData.data || !Array.isArray(rawData.data)) {
-      throw new Error('Invalid UN Comtrade API response format');
+    if (company) {
+      query = query.ilike('company_name_lower', `%${company.toLowerCase()}%`);
     }
 
-    console.log(`✅ UN Comtrade returned ${rawData.data.length} REAL records`);
+    if (originCountry) {
+      query = query.ilike('origin_country', `%${originCountry}%`);
+    }
 
-    // Transform UN Comtrade data to our format
-    const transformedRecords: TransformedTradeRecord[] = rawData.data.map((record: UnComtradeRecord, index: number) => ({
-      id: `comtrade_${record.period}_${record.cmdCode}_${index}`,
-      mode: record.motCode === 5 ? 'air' as const : 'ocean' as const,
-      mode_icon: record.motCode === 5 ? '✈️' : '🚢',
-      unified_company_name: inferCompanyFromComtrade(record),
-      unified_destination: record.reporterDesc || 'United States',
-      unified_value: record.primaryValue || 0,
-      unified_weight: record.netWgt || 0,
-      unified_date: `${record.period}-01-01`,
-      unified_carrier: record.motDesc || 'Unknown',
-      hs_code: record.cmdCode || '',
-      description: record.cmdDesc || 'Trade commodity',
-      transport_mode: record.motCode === 5 ? '40' : '20',
-      origin_country: record.partnerDesc || '',
+    if (destinationCountry) {
+      query = query.ilike('destination_country', `%${destinationCountry}%`);
+    }
+
+    if (destinationCity) {
+      query = query.ilike('destination_city', `%${destinationCity}%`);
+    }
+
+    if (commodity) {
+      query = query.ilike('description_lower', `%${commodity.toLowerCase()}%`);
+    }
+
+    if (hsCode) {
+      query = query.ilike('hs_code', `%${hsCode}%`);
+    }
+
+    if (carrier) {
+      query = query.ilike('carrier', `%${carrier}%`);
+    }
+
+    if (dateFrom) {
+      query = query.gte('shipment_date', dateFrom);
+    }
+
+    if (dateTo) {
+      query = query.lte('shipment_date', dateTo);
+    }
+
+    if (minValue > 0) {
+      query = query.gte('value_usd', minValue);
+    }
+
+    if (maxValue < 999999999) {
+      query = query.lte('value_usd', maxValue);
+    }
+
+    // Apply pagination and ordering
+    query = query
+      .order('shipment_date', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    console.log('📊 Executing Supabase query...');
+
+    // Execute query
+    const { data: rawData, error, count } = await query;
+
+    if (error) {
+      console.error('💥 Supabase query error:', error);
+      return NextResponse.json({
+        success: false,
+        error: 'Database query failed',
+        details: error.message,
+        filters: { mode, company, originCountry, destinationCountry, commodity, hsCode }
+      }, { status: 500 });
+    }
+
+    if (!rawData || rawData.length === 0) {
+      console.log('⚠️ No trade data found with current filters');
+      return NextResponse.json({
+        success: true,
+        message: 'No shipment records found matching your search criteria',
+        data: [],
+        pagination: {
+          total: 0,
+          offset,
+          limit,
+          hasMore: false
+        },
+        filters: { mode, company, originCountry, destinationCountry, commodity, hsCode },
+        suggestions: [
+          'Try broader search terms',
+          'Check spelling of company names',
+          'Expand date range',
+          'Try different HS codes'
+        ]
+      });
+    }
+
+    console.log(`✅ Found ${rawData.length} trade records`);
+
+    // Transform data to expected format
+    const transformedData: UnifiedTradeRecord[] = rawData.map((record: any, index: number) => ({
+      unified_id: record.unified_id || `${record.shipment_type}_${index}`,
+      shipment_type: record.shipment_type,
+      unified_company_name: record.company_name || 'Unknown Company',
+      unified_destination: record.destination_city || record.destination_country || 'Unknown',
+      unified_value: record.value_usd || 0,
+      unified_weight: record.weight_kg || 0,
+      unified_date: record.shipment_date || record.arrival_date || new Date().toISOString().split('T')[0],
+      unified_carrier: record.carrier || 'Unknown Carrier',
+      hs_code: record.hs_code || '',
+      description: record.description || 'No description available',
+      origin_country: record.origin_country || 'Unknown',
+      destination_country: record.destination_country || 'Unknown',
+      destination_city: record.destination_city || 'Unknown',
+      
+      // Add confidence scoring based on data completeness
       confidence_score: calculateConfidenceScore(record),
-      confidence_sources: ['UN Comtrade API', record.motCode === 5 ? 'Air Transport' : 'Ocean Transport'],
-      apollo_verified: false,
-      comtrade_data: true,
-      bts_intelligence: null
+      confidence_sources: getConfidenceSources(record),
+      apollo_verified: false, // Will be updated when Apollo enrichment runs
+      comtrade_data: false, // This is direct shipment data, not Comtrade
+      bts_intelligence: null // Will be populated by BTS matching if available
     }));
 
-    // Apply additional filtering
-    let filteredRecords = transformedRecords;
-    
-    if (commodity) {
-      filteredRecords = filteredRecords.filter((r: TransformedTradeRecord) => 
-        r.description.toLowerCase().includes(commodity.toLowerCase()) ||
-        r.unified_company_name.toLowerCase().includes(commodity.toLowerCase())
-      );
-    }
-
-    // Calculate summary
-    const summary = {
-      total_records: filteredRecords.length,
-      total_value: filteredRecords.reduce((sum: number, r: TransformedTradeRecord) => sum + r.unified_value, 0),
-      companies_count: new Set(filteredRecords.map((r: TransformedTradeRecord) => r.unified_company_name)).size,
-      air_shippers: filteredRecords.filter((r: TransformedTradeRecord) => r.mode === 'air').length,
-      data_source: 'UN Comtrade API (Live)',
-      api_url: comtradeUrl
-    };
-
-    console.log('📈 Final Summary:', summary);
+    // Get total count for pagination
+    const { count: totalCount } = await supabase
+      .from('trade_data_view')
+      .select('*', { count: 'exact', head: true });
 
     return NextResponse.json({
       success: true,
-      data: filteredRecords,
-      total: filteredRecords.length,
-      summary,
-      mode,
-      data_source: 'live_un_comtrade',
-      api_response_count: rawData.data.length,
-      filters_applied: { mode, originCountry, commodity, hsCode, limit, offset }
+      message: `Found ${transformedData.length} shipment records`,
+      data: transformedData,
+      pagination: {
+        total: totalCount || 0,
+        offset,
+        limit,
+        hasMore: (offset + limit) < (totalCount || 0)
+      },
+      filters: {
+        mode, company, originCountry, destinationCountry, destinationCity,
+        commodity, hsCode, dateFrom, dateTo, carrier
+      },
+      metadata: {
+        source: 'trade_data_view',
+        queryTime: new Date().toISOString(),
+        dataTypes: Array.from(new Set(transformedData.map(r => r.shipment_type))),
+        dateRange: {
+          earliest: Math.min(...transformedData.map(r => new Date(r.unified_date).getTime())),
+          latest: Math.max(...transformedData.map(r => new Date(r.unified_date).getTime()))
+        }
+      }
     });
 
   } catch (error) {
-    console.error('💥 UN Comtrade API Integration Error:', error);
-    
+    console.error('💥 Unified search error:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to fetch real UN Comtrade data',
+      error: 'Search failed',
       details: (error as Error).message,
-      data: [], // NO MOCK FALLBACK
-      total: 0
+      message: 'Unable to search trade data. Please try again or contact support.'
     }, { status: 500 });
   }
 }
 
-/**
- * Build UN Comtrade API URL with dynamic parameters
- * NO HARDCODED VALUES - ALL FROM USER INPUT
- */
-function buildUnComtradeUrl(params: {
-  mode: string;
-  originCountry: string;
-  commodity: string;
-  hsCode: string;
-  limit: number;
-  offset: number;
-}): string {
-  const baseUrl = 'https://comtradeapi.un.org/data/v1/get/C/A/HS';
-  const urlParams = new URLSearchParams();
-
-  // Fixed parameters for US trade data
-  urlParams.append('reporterCode', '840'); // United States
-  urlParams.append('period', new Date().getFullYear().toString());
-  urlParams.append('flowCode', '1'); // Exports
-  urlParams.append('includeDesc', 'true');
-
-  // Mode of Transport (CRITICAL for Air/Ocean filtering)
-  if (params.mode === 'air') {
-    urlParams.append('motCode', '5'); // Air transport
-    console.log('🛩️ Air mode: motCode=5 applied');
-  } else if (params.mode === 'ocean') {
-    urlParams.append('motCode', '1'); // Ocean transport  
-    console.log('🚢 Ocean mode: motCode=1 applied');
-  }
-  // For 'all' mode, don't set motCode to get both
-
-  // Partner countries - convert country names to M49 codes
-  const partnerCodes = getPartnerCodes(params.originCountry);
-  urlParams.append('partnerCode', partnerCodes.join(','));
-  console.log(`🌍 Partner countries: ${partnerCodes.join(',')} (from: ${params.originCountry || 'default major partners'})`);
-
-  // Commodity code if specified
-  if (params.hsCode) {
-    urlParams.append('cmdCode', params.hsCode);
-    console.log(`📦 Commodity filter: ${params.hsCode}`);
-  }
-
-  // Pagination
-  urlParams.append('max', Math.min(params.limit, 250).toString()); // UN Comtrade max is 250
-  if (params.offset > 0) {
-    urlParams.append('offset', params.offset.toString());
-  }
-
-  return `${baseUrl}?${urlParams.toString()}`;
-}
-
-/**
- * Get partner country codes based on user input
- * Returns M49 codes for UN Comtrade API
- */
-function getPartnerCodes(originCountry: string): string[] {
-  const countryCodeMap: Record<string, string> = {
-    'china': '156',
-    'south korea': '410',
-    'korea': '410',
-    'japan': '392',
-    'germany': '276',
-    'united kingdom': '826',
-    'uk': '826',
-    'canada': '124',
-    'mexico': '484',
-    'taiwan': '158',
-    'singapore': '702',
-    'india': '356',
-    'netherlands': '528',
-    'italy': '380',
-    'france': '250',
-    'australia': '036',
-    'brazil': '076'
-  };
-
-  if (originCountry) {
-    const code = countryCodeMap[originCountry.toLowerCase()];
-    if (code) {
-      return [code];
-    }
-  }
-
-  // Default to major trading partners (15+ countries)
-  return [
-    '156', // China
-    '410', // South Korea
-    '392', // Japan
-    '276', // Germany
-    '826', // United Kingdom
-    '124', // Canada
-    '484', // Mexico
-    '158', // Taiwan
-    '702', // Singapore
-    '356', // India
-    '528', // Netherlands
-    '380', // Italy
-    '250', // France
-    '036', // Australia
-    '076'  // Brazil
-  ];
-}
-
-/**
- * Infer company name from UN Comtrade record
- * Uses actual trade data patterns
- */
-function inferCompanyFromComtrade(record: UnComtradeRecord): string {
-  const country = record.partnerDesc || '';
-  const commodity = record.cmdDesc || '';
-  const hsCode = record.cmdCode || '';
-
-  // High-value electronics from specific countries
-  if (hsCode.startsWith('8528') && country.includes('Korea')) {
-    return hsCode.endsWith('00') ? 'Samsung Electronics Co Ltd' : 'LG Display Co Ltd';
-  }
+function calculateConfidenceScore(record: any): number {
+  let score = 0;
   
-  if (hsCode.startsWith('8471') && country.includes('Korea')) {
-    return 'LG Electronics Inc';
-  }
-
-  if (hsCode.startsWith('8518') && country.includes('Japan')) {
-    return 'Sony Corporation';
-  }
-
-  if (hsCode.startsWith('8471') && country.includes('China')) {
-    return 'Lenovo Group Limited';
-  }
-
-  if (hsCode.startsWith('9018') && country.includes('Germany')) {
-    return 'Siemens Healthineers AG';
-  }
-
-  // Generic patterns based on commodity type
-  if (commodity.toLowerCase().includes('electronic')) {
-    return `${country} Electronics Exporter`;
-  }
-  if (commodity.toLowerCase().includes('computer')) {
-    return `${country} Technology Corp`;
-  }
-  if (commodity.toLowerCase().includes('medical')) {
-    return `${country} Medical Equipment Co`;
-  }
-
-  return `${country} Trading Company`;
-}
-
-/**
- * Calculate confidence score based on UN Comtrade data quality
- */
-function calculateConfidenceScore(record: UnComtradeRecord): number {
-  let score = 50; // Base score for UN Comtrade data
-
-  // Higher confidence for complete records
-  if (record.primaryValue > 0) score += 15;
-  if (record.netWgt > 0) score += 10;
-  if (record.cmdDesc && record.cmdDesc.length > 10) score += 10;
-  if (record.partnerDesc) score += 10;
+  // Company name quality
+  if (record.company_name && record.company_name.length > 3) score += 20;
   
-  // Mode of transport clarity
-  if (record.motCode === 5 || record.motCode === 1) score += 5;
-
+  // Geographic data
+  if (record.origin_country) score += 15;
+  if (record.destination_country) score += 15;
+  if (record.destination_city) score += 10;
+  
+  // Commodity data
+  if (record.hs_code && record.hs_code.length >= 4) score += 20;
+  if (record.description && record.description.length > 10) score += 10;
+  
+  // Financial data
+  if (record.value_usd && record.value_usd > 0) score += 10;
+  
   return Math.min(score, 100);
+}
+
+function getConfidenceSources(record: any): string[] {
+  const sources = [];
+  
+  if (record.company_name) sources.push('Company Name');
+  if (record.hs_code) sources.push('HS Code');
+  if (record.value_usd) sources.push('Trade Value');
+  if (record.origin_country && record.destination_country) sources.push('Geographic Data');
+  if (record.carrier) sources.push('Carrier Information');
+  if (record.shipment_date) sources.push('Date Information');
+  
+  return sources;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    // Handle bulk search or advanced filtering
+    const {
+      companies = [],
+      hsCodes = [],
+      countries = [],
+      dateRange = {},
+      valueRange = {},
+      mode = 'all'
+    } = body;
+
+    console.log('🔍 Bulk search request:', { companies, hsCodes, countries, mode });
+
+    let query = supabase.from('trade_data_view').select('*');
+
+    if (mode !== 'all') {
+      query = query.eq('shipment_type', mode);
+    }
+
+    // Bulk company search
+    if (companies.length > 0) {
+      const companyFilters = companies.map((c: string) => 
+        `company_name_lower.ilike.%${c.toLowerCase()}%`
+      ).join(',');
+      query = query.or(companyFilters);
+    }
+
+    // Bulk HS code search
+    if (hsCodes.length > 0) {
+      query = query.in('hs_code', hsCodes);
+    }
+
+    // Bulk country search
+    if (countries.length > 0) {
+      const countryFilters = countries.map((c: string) => 
+        `origin_country.ilike.%${c}%,destination_country.ilike.%${c}%`
+      ).join(',');
+      query = query.or(countryFilters);
+    }
+
+    // Date range
+    if (dateRange.from) query = query.gte('shipment_date', dateRange.from);
+    if (dateRange.to) query = query.lte('shipment_date', dateRange.to);
+
+    // Value range
+    if (valueRange.min) query = query.gte('value_usd', valueRange.min);
+    if (valueRange.max) query = query.lte('value_usd', valueRange.max);
+
+    const { data, error } = await query.limit(500);
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: data || [],
+      count: data?.length || 0,
+      searchCriteria: body
+    });
+
+  } catch (error) {
+    console.error('Bulk search error:', error);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 500 }
+    );
+  }
 }
