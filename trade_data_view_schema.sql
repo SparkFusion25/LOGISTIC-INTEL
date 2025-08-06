@@ -27,7 +27,7 @@ SELECT
   
   -- Commodity data
   hs_code,
-  commodity_description as description,
+  COALESCE(commodity_description, description, product_description) as description,
   
   -- Financial data
   value_usd::numeric as value_usd,
@@ -39,22 +39,24 @@ SELECT
   departure_date,
   
   -- Logistics data
-  vessel_name as carrier,
+  COALESCE(vessel_name, carrier_name) as carrier,
   container_count,
   weight_kg,
   
   -- Metadata
   created_at,
   updated_at,
+  raw_xml_filename,
   
   -- Search helpers
   LOWER(COALESCE(consignee_name, shipper_name, '')) as company_name_lower,
-  LOWER(COALESCE(commodity_description, '')) as description_lower,
+  LOWER(COALESCE(commodity_description, description, product_description, '')) as description_lower,
   EXTRACT(YEAR FROM COALESCE(arrival_date, shipment_date, created_at::date)) as year,
   EXTRACT(MONTH FROM COALESCE(arrival_date, shipment_date, created_at::date)) as month
 
 FROM public.ocean_shipments
-WHERE consignee_name IS NOT NULL OR shipper_name IS NOT NULL
+WHERE (consignee_name IS NOT NULL OR shipper_name IS NOT NULL)
+  AND (consignee_name != '' OR shipper_name != '')
 
 UNION ALL
 
@@ -73,19 +75,19 @@ SELECT
   origin_country,
   destination_country,
   destination_city,
-  destination_airport as destination_port,
-  origin_airport as origin_port,
+  COALESCE(destination_airport, arrival_airport) as destination_port,
+  COALESCE(origin_airport, departure_airport) as origin_port,
   
   -- Commodity data
   hs_code,
-  commodity_description as description,
+  COALESCE(commodity_description, description, product_description) as description,
   
   -- Financial data
   value_usd::numeric as value_usd,
   freight_amount::numeric as freight_amount,
   
   -- Temporal data
-  COALESCE(arrival_date, shipment_date, created_at::date) as shipment_date,
+  COALESCE(arrival_date, shipment_date, flight_date, created_at::date) as shipment_date,
   arrival_date,
   departure_date,
   
@@ -97,15 +99,17 @@ SELECT
   -- Metadata
   created_at,
   updated_at,
+  raw_xml_filename,
   
   -- Search helpers
   LOWER(COALESCE(consignee_name, shipper_name, '')) as company_name_lower,
-  LOWER(COALESCE(commodity_description, '')) as description_lower,
-  EXTRACT(YEAR FROM COALESCE(arrival_date, shipment_date, created_at::date)) as year,
-  EXTRACT(MONTH FROM COALESCE(arrival_date, shipment_date, created_at::date)) as month
+  LOWER(COALESCE(commodity_description, description, product_description, '')) as description_lower,
+  EXTRACT(YEAR FROM COALESCE(arrival_date, shipment_date, flight_date, created_at::date)) as year,
+  EXTRACT(MONTH FROM COALESCE(arrival_date, shipment_date, flight_date, created_at::date)) as month
 
 FROM public.airfreight_shipments
 WHERE (consignee_name IS NOT NULL OR shipper_name IS NOT NULL)
+  AND (consignee_name != '' OR shipper_name != '')
   AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'airfreight_shipments');
 
 -- Create indexes for performance
