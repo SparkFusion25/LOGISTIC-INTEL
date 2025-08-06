@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Mail, Trash2, Linkedin, UserCheck, Filter, RefreshCw, Users, TrendingUp, Clock, ExternalLink } from 'lucide-react';
+import { Mail, Trash2, Linkedin, UserCheck, Filter, RefreshCw, Users, TrendingUp, Clock, ExternalLink, Eye, X } from 'lucide-react';
+import OutreachHistory from '@/components/crm/OutreachHistory';
 
 interface CRMLead {
   id: string;
@@ -21,6 +22,8 @@ interface CRMLead {
 export default function CRMPanel() {
   const [leads, setLeads] = useState<CRMLead[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
+  const [showOutreachHistory, setShowOutreachHistory] = useState(false);
   const [filters, setFilters] = useState({ 
     stage: '', 
     company: '', 
@@ -294,6 +297,16 @@ export default function CRMPanel() {
                         </a>
                       )}
                       <button 
+                        onClick={() => {
+                          setSelectedLead(lead);
+                          setShowOutreachHistory(true);
+                        }}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white p-1 rounded flex items-center justify-center transition-colors"
+                        title="View Outreach History"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </button>
+                      <button 
                         onClick={() => deleteLead(lead.id)}
                         className="bg-red-600 hover:bg-red-700 text-white p-1 rounded flex items-center justify-center transition-colors"
                         title="Delete Lead"
@@ -321,6 +334,36 @@ export default function CRMPanel() {
           </div>
         </div>
       </div>
+
+      {/* Outreach History Modal */}
+      {showOutreachHistory && selectedLead && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Outreach History - {selectedLead.name}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {selectedLead.company} • {selectedLead.email}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowOutreachHistory(false);
+                  setSelectedLead(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <OutreachHistory contactId={selectedLead.id} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
