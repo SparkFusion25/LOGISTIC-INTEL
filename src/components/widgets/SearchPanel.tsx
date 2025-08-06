@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle, ChevronDown, Menu, Plane, Waves, Brain } from 'lucide-react';
+import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle, ChevronDown, Menu, Plane, Waves, Brain, Zap, Users } from 'lucide-react';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import MobileOptimizedForm from '@/components/ui/MobileOptimizedForm';
+import EnrichedContactCard from '@/components/widgets/EnrichedContactCard';
 
 type SearchMode = 'all' | 'air' | 'ocean';
 
@@ -39,11 +40,29 @@ interface UnifiedTradeRecord {
     air_match_score: number;
     ocean_match?: boolean;
     ocean_match_score?: number;
+    likely_air_shipper?: boolean;
+    air_confidence_score?: number;
+    bts_route_matches?: any[];
   };
   match_info?: {
     match_score: number;
     match_type: string;
   };
+  // BTS-specific fields
+  bts_intelligence?: {
+    is_likely_air_shipper: boolean;
+    confidence_score: number;
+    route_matches: BTSRouteMatch[];
+    last_analysis: string;
+  };
+}
+
+interface BTSRouteMatch {
+  origin_airport: string;
+  dest_airport: string;
+  carrier: string;
+  dest_city: string;
+  freight_kg: number;
 }
 
 interface SearchFilters {
@@ -61,6 +80,7 @@ interface SearchFilters {
   date_to: string;
   min_value: string;
   max_value: string;
+  air_shipper_only: boolean;
 }
 
 interface SearchSummary {
@@ -76,6 +96,12 @@ interface SearchSummary {
     ocean: number;
   };
   value_per_kg: number;
+  air_shipper_breakdown?: {
+    likely_air_shippers: number;
+    high_confidence: number;
+    medium_confidence: number;
+    low_confidence: number;
+  };
 }
 
 export default function SearchPanel() {
@@ -85,6 +111,7 @@ export default function SearchPanel() {
   const [currentMode, setCurrentMode] = useState<SearchMode>('all');
   const [summary, setSummary] = useState<SearchSummary | null>(null);
   const [totalResults, setTotalResults] = useState(0);
+  const [expandedContacts, setExpandedContacts] = useState<Set<string>>(new Set());
 
   const [filters, setFilters] = useState<SearchFilters>({
     mode: 'all',
@@ -100,7 +127,8 @@ export default function SearchPanel() {
     date_from: '',
     date_to: '',
     min_value: '',
-    max_value: ''
+    max_value: '',
+    air_shipper_only: false
   });
 
   const searchModes: SearchModeOption[] = [
@@ -108,7 +136,7 @@ export default function SearchPanel() {
       key: 'all',
       label: 'All Data',
       icon: <Globe className="w-4 h-4" />,
-      description: 'Combined air + ocean intelligence',
+      description: 'Combined air + ocean + BTS intelligence',
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50',
       borderColor: 'border-indigo-200'
@@ -117,7 +145,7 @@ export default function SearchPanel() {
       key: 'air',
       label: 'Airfreight',
       icon: <Plane className="w-4 h-4" />,
-      description: 'Air cargo data from US Census',
+      description: 'BTS T-100 + Census airfreight data',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       borderColor: 'border-blue-200'
@@ -154,6 +182,7 @@ export default function SearchPanel() {
     setIsLoading(true);
     
     try {
+      // First get unified search results
       const queryParams = new URLSearchParams();
       
       // Add mode
@@ -161,8 +190,8 @@ export default function SearchPanel() {
       
       // Add filters
       Object.entries(filters).forEach(([key, value]) => {
-        if (value && value.trim() && key !== 'mode') {
-          queryParams.append(key, value.trim());
+        if (value && value.toString().trim() && key !== 'mode') {
+          queryParams.append(key, value.toString().trim());
         }
       });
 
@@ -174,7 +203,10 @@ export default function SearchPanel() {
       const result = await response.json();
 
       if (result.success) {
-        setSearchResults(result.data || []);
+        // Enrich results with BTS intelligence
+        const enrichedResults = await enrichWithBTSIntelligence(result.data || []);
+        
+        setSearchResults(enrichedResults);
         setSummary(result.summary);
         setTotalResults(result.total || 0);
       } else {
@@ -193,6 +225,50 @@ export default function SearchPanel() {
     }
   };
 
+  const enrichWithBTSIntelligence = async (records: UnifiedTradeRecord[]) => {
+    try {
+      // Get BTS intelligence for all companies
+      const companyNames = [...new Set(records.map(r => r.unified_company_name))];
+      const btsPromises = companyNames.map(async (companyName) => {
+        try {
+          const response = await fetch(`/api/search/air-intelligence?company=${encodeURIComponent(companyName)}`);
+          const data = await response.json();
+          return { companyName, intelligence: data.success ? data.intelligence : null };
+        } catch (error) {
+          return { companyName, intelligence: null };
+        }
+      });
+
+      const btsResults = await Promise.all(btsPromises);
+      const btsMap = new Map(btsResults.map(r => [r.companyName, r.intelligence]));
+
+      // Enrich records with BTS data
+      return records.map(record => ({
+        ...record,
+        bts_intelligence: btsMap.get(record.unified_company_name) || null,
+        company_profile: {
+          ...record.company_profile,
+          likely_air_shipper: btsMap.get(record.unified_company_name)?.is_likely_air_shipper || false,
+          air_confidence_score: btsMap.get(record.unified_company_name)?.confidence_score || 0,
+          bts_route_matches: btsMap.get(record.unified_company_name)?.route_matches || []
+        }
+      }));
+    } catch (error) {
+      console.error('BTS enrichment error:', error);
+      return records;
+    }
+  };
+
+  const toggleContactCard = (companyName: string) => {
+    const newExpanded = new Set(expandedContacts);
+    if (newExpanded.has(companyName)) {
+      newExpanded.delete(companyName);
+    } else {
+      newExpanded.add(companyName);
+    }
+    setExpandedContacts(newExpanded);
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -208,6 +284,15 @@ export default function SearchPanel() {
 
   const getCompanyMatchBadges = (record: UnifiedTradeRecord) => {
     const badges = [];
+    
+    // BTS Intelligence Badge
+    if (record.bts_intelligence?.is_likely_air_shipper) {
+      badges.push(
+        <span key="bts" className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+          🚀 BTS Confirmed ({record.bts_intelligence.confidence_score}%)
+        </span>
+      );
+    }
     
     if (record.company_profile) {
       if (record.company_profile.air_match) {
@@ -228,13 +313,19 @@ export default function SearchPanel() {
 
     if (record.match_info) {
       badges.push(
-        <span key="combined" className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+        <span key="combined" className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
           🌐 Combined Match ({record.match_info.match_score}/10)
         </span>
       );
     }
 
     return badges;
+  };
+
+  const handleStartCampaign = (contacts: any[], companyName: string) => {
+    console.log(`Starting campaign for ${companyName} with ${contacts.length} contacts:`, contacts);
+    // TODO: Integrate with campaign builder
+    alert(`Campaign started for ${companyName} with ${contacts.length} contacts`);
   };
 
   const currentModeConfig = searchModes.find(mode => mode.key === currentMode) || searchModes[0];
@@ -246,10 +337,10 @@ export default function SearchPanel() {
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Search className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
-            Trade Intelligence Search
+            Live Trade Intelligence + BTS Air Cargo
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Discover global trade patterns across air and ocean freight
+            Real-time trade patterns with enriched contact intelligence
           </p>
         </div>
 
@@ -292,6 +383,11 @@ export default function SearchPanel() {
               <div className="text-xs text-gray-500">
                 {formatCurrency(summary.total_value_usd)} total value
               </div>
+              {summary.air_shipper_breakdown && (
+                <div className="text-xs text-indigo-600">
+                  {summary.air_shipper_breakdown.likely_air_shippers} air shippers detected
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -353,6 +449,21 @@ export default function SearchPanel() {
           </div>
         </div>
 
+        {/* Air Shipper Filter */}
+        <div className="flex items-center gap-4 mb-4">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={filters.air_shipper_only}
+              onChange={(e) => setFilters({...filters, air_shipper_only: e.target.checked})}
+              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              🚀 Show only likely air shippers (BTS confirmed)
+            </span>
+          </label>
+        </div>
+
         {/* Advanced Filters Toggle */}
         <div className="flex items-center justify-between mb-4">
           <button
@@ -399,7 +510,7 @@ export default function SearchPanel() {
                   <label className="block text-xs font-semibold text-gray-500 mb-1">Carrier</label>
                   <input
                     type="text"
-                    placeholder="FedEx, COSCO, MSC"
+                    placeholder="FedEx, COSCO, Korean Air Cargo"
                     value={filters.carrier}
                     onChange={(e) => setFilters({...filters, carrier: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
@@ -494,128 +605,123 @@ export default function SearchPanel() {
             <div className="text-2xl font-bold text-purple-600">{summary.unique_companies}</div>
             <div className="text-sm text-purple-800">Companies</div>
           </div>
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <div className="text-2xl font-bold text-orange-600">{summary.unique_commodities}</div>
-            <div className="text-sm text-orange-800">Commodities</div>
+          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+            <div className="text-2xl font-bold text-indigo-600">
+              {summary.air_shipper_breakdown?.likely_air_shippers || 0}
+            </div>
+            <div className="text-sm text-indigo-800">Air Shippers</div>
           </div>
         </div>
       )}
 
-      {/* Results Table */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <ResponsiveTable
-          columns={[
-            {
-              key: 'mode_indicator',
-              label: 'Mode',
-              render: (value, record) => (
-                <div className="flex items-center gap-1">
-                  <span className="text-lg">{record.mode_icon}</span>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    record.mode === 'air' ? 'bg-blue-100 text-blue-800' : 'bg-teal-100 text-teal-800'
-                  }`}>
-                    {record.mode.toUpperCase()}
-                  </span>
-                </div>
-              )
-            },
-            {
-              key: 'unified_company_name',
-              label: 'Company',
-              sortable: true,
-              render: (value, record) => (
-                <div>
-                  <div className="font-medium text-gray-900">{value}</div>
-                  {record.company_profile?.primary_industry && (
-                    <div className="text-xs text-gray-500">{record.company_profile.primary_industry}</div>
+      {/* Results Display */}
+      <div className="space-y-4">
+        {searchResults.map((record) => (
+          <div key={record.id} className="border border-gray-200 rounded-lg overflow-hidden">
+            {/* Main Result Row */}
+            <div className="p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">{record.mode_icon}</span>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      record.mode === 'air' ? 'bg-blue-100 text-blue-800' : 'bg-teal-100 text-teal-800'
+                    }`}>
+                      {record.mode.toUpperCase()}
+                    </span>
+                    <h3 className="font-semibold text-gray-900">{record.unified_company_name}</h3>
+                    <div className="flex flex-wrap gap-1">
+                      {getCompanyMatchBadges(record)}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600">
+                    <div>
+                      <span className="font-medium">Commodity:</span> {record.hs_code}
+                    </div>
+                    <div>
+                      <span className="font-medium">Destination:</span> {record.unified_destination || 'N/A'}
+                    </div>
+                    <div>
+                      <span className="font-medium">Value:</span> 
+                      <span className="text-green-600 font-medium ml-1">
+                        {formatCurrency(record.unified_value || 0)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Carrier:</span> {record.unified_carrier || 'N/A'}
+                    </div>
+                  </div>
+
+                  {/* BTS Route Intelligence */}
+                  {record.bts_intelligence?.route_matches && record.bts_intelligence.route_matches.length > 0 && (
+                    <div className="mt-2 text-sm">
+                      <div className="flex items-center gap-2 text-purple-700">
+                        <MapPin className="w-4 h-4" />
+                        <span className="font-medium">
+                          BTS Air Routes: {record.bts_intelligence.route_matches.length} matches
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {record.bts_intelligence.route_matches.slice(0, 2).map((route, index) => (
+                          <div key={index}>
+                            {route.origin_airport} → {route.dest_airport} via {route.carrier} 
+                            ({(route.freight_kg / 1000).toFixed(0)}K kg)
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {getCompanyMatchBadges(record)}
-                  </div>
                 </div>
-              )
-            },
-            {
-              key: 'commodity_info',
-              label: 'Commodity',
-              mobileHidden: true,
-              render: (value, record) => (
-                <div>
-                  <div className="font-medium text-sm">{record.hs_code}</div>
-                  <div className="text-xs text-gray-600 line-clamp-2">
-                    {record.description || record.hs_description || record.commodity_description || 'N/A'}
-                  </div>
-                </div>
-              )
-            },
-            {
-              key: 'unified_destination',
-              label: 'Destination',
-              render: (value) => (
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-gray-400" />
-                  <span className="text-sm">{value || 'N/A'}</span>
-                </div>
-              )
-            },
-            {
-              key: 'unified_value',
-              label: 'Value',
-              sortable: true,
-              render: (value) => (
-                <span className="font-medium text-green-600">
-                  {formatCurrency(value || 0)}
-                </span>
-              )
-            },
-            {
-              key: 'trade_details',
-              label: 'Details',
-              mobileHidden: true,
-              render: (value, record) => (
-                <div className="text-xs text-gray-600">
-                  <div>{formatWeight(record.unified_weight || 0)}</div>
-                  <div>{record.unified_carrier || 'N/A'}</div>
-                  <div>{new Date(record.unified_date).toLocaleDateString()}</div>
-                </div>
-              )
-            },
-            {
-              key: 'actions',
-              label: 'Actions',
-              render: (value, record) => (
-                <div className="flex items-center gap-2">
+
+                <div className="flex items-center gap-2 ml-4">
                   <button
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white p-1 rounded flex items-center justify-center transition-colors"
-                    title="View Details"
+                    onClick={() => toggleContactCard(record.unified_company_name)}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      expandedContacts.has(record.unified_company_name)
+                        ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                   >
-                    <Eye className="w-3 h-3" />
-                  </button>
-                  <button
-                    className="bg-purple-600 hover:bg-purple-700 text-white p-1 rounded flex items-center justify-center transition-colors"
-                    title="Enrich Contacts"
-                  >
-                    <Brain className="w-3 h-3" />
+                    <Users className="w-4 h-4" />
+                    {expandedContacts.has(record.unified_company_name) ? 'Hide' : 'Show'} Contacts
                   </button>
                 </div>
-              )
-            }
-          ]}
-          data={searchResults}
-          searchable={false}
-          loading={isLoading}
-          emptyMessage={
-            currentMode === 'all' 
-              ? "No trade records found. Try adjusting your search criteria or filters."
-              : `No ${currentMode} freight records found. Try different search parameters.`
-          }
-          onRowClick={(record) => {
-            console.log('Trade record clicked:', record);
-          }}
-        />
+              </div>
+            </div>
+
+            {/* Expanded Contact Card */}
+            {expandedContacts.has(record.unified_company_name) && (
+              <div className="border-t border-gray-200 bg-gray-50 p-4">
+                <EnrichedContactCard
+                  companyName={record.unified_company_name}
+                  location={record.unified_destination}
+                  industry={record.company_profile?.primary_industry}
+                  airShipperConfidence={record.bts_intelligence?.confidence_score || record.company_profile?.air_confidence_score || 0}
+                  isLikelyAirShipper={record.bts_intelligence?.is_likely_air_shipper || record.company_profile?.likely_air_shipper || false}
+                  btsRouteMatches={record.bts_intelligence?.route_matches || record.company_profile?.bts_route_matches || []}
+                  onStartCampaign={(contacts) => handleStartCampaign(contacts, record.unified_company_name)}
+                />
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
-      {/* Mode-specific Information */}
+      {/* No Results State */}
+      {!isLoading && searchResults.length === 0 && (
+        <div className="text-center py-12 text-gray-500">
+          <Globe className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <h3 className="text-lg font-medium mb-2">No Trade Intelligence Found</h3>
+          <p className="text-sm">
+            {currentMode === 'all' 
+              ? "No trade records found. Try adjusting your search criteria or filters."
+              : `No ${currentMode} freight records found. Try different search parameters.`}
+          </p>
+        </div>
+      )}
+
+      {/* Data Source Information */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
           <div className={`${currentModeConfig.color}`}>
@@ -623,33 +729,16 @@ export default function SearchPanel() {
           </div>
           <div>
             <h3 className="font-medium text-gray-900 mb-1">
-              {currentModeConfig.label} Data Source
+              Live Data Sources
             </h3>
             <p className="text-sm text-gray-600 mb-2">{currentModeConfig.description}</p>
             
-            {currentMode === 'air' && (
-              <div className="text-xs text-gray-500">
-                <div>• Data from US Census Bureau aircraft trade statistics</div>
-                <div>• Updated monthly with latest airfreight manifests</div>
-                <div>• Includes HS codes, values, weights, and carrier information</div>
-              </div>
-            )}
-            
-            {currentMode === 'ocean' && (
-              <div className="text-xs text-gray-500">
-                <div>• Data from ocean freight manifests and bills of lading</div>
-                <div>• Includes container counts, vessel names, and port information</div>
-                <div>• Real-time updates from major shipping lines</div>
-              </div>
-            )}
-            
-            {currentMode === 'all' && (
-              <div className="text-xs text-gray-500">
-                <div>• Combined intelligence from both air and ocean freight</div>
-                <div>• Advanced matching algorithms identify multi-modal companies</div>
-                <div>• Cross-reference HS codes, destinations, and company names</div>
-              </div>
-            )}
+            <div className="text-xs text-gray-500 space-y-1">
+              <div>• <strong>BTS T-100:</strong> Live airfreight data from US Bureau of Transportation Statistics</div>
+              <div>• <strong>Census Trade Data:</strong> US import/export manifests with HS code classification</div>
+              <div>• <strong>Contact Enrichment:</strong> Apollo.io + PhantomBuster for verified contact details</div>
+              <div>• <strong>Intelligence Matching:</strong> Smart algorithms connecting air and ocean shipping patterns</div>
+            </div>
           </div>
         </div>
       </div>
