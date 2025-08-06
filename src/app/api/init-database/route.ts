@@ -59,6 +59,7 @@ export async function POST() {
         company text,
         title text,
         linkedin text,
+        persona jsonb, -- Store AI-generated persona data
         created_at timestamp default now()
       );
 

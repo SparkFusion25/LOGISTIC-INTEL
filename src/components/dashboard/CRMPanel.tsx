@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Mail, Trash2, Linkedin, UserCheck, Filter, RefreshCw, Users, TrendingUp, Clock, ExternalLink, Eye, X } from 'lucide-react';
+import { Mail, Trash2, Linkedin, UserCheck, Filter, RefreshCw, Users, TrendingUp, Clock, ExternalLink, Eye, X, Brain } from 'lucide-react';
 import OutreachHistory from '@/components/crm/OutreachHistory';
+import PersonaEngine from '@/components/insights/PersonaEngine';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import ResponsiveCard from '@/components/ui/ResponsiveCard';
 
@@ -26,6 +27,7 @@ export default function CRMPanel() {
   const [loading, setLoading] = useState(false);
   const [selectedLead, setSelectedLead] = useState<CRMLead | null>(null);
   const [showOutreachHistory, setShowOutreachHistory] = useState(false);
+  const [showPersonaEngine, setShowPersonaEngine] = useState(false);
   const [filters, setFilters] = useState({ 
     stage: '', 
     company: '', 
@@ -80,6 +82,32 @@ export default function CRMPanel() {
 
   const sendEmail = (email: string) => {
     window.open(`/dashboard/email?to=${email}`, '_blank');
+  };
+
+  const handlePersonaEngineOpen = (lead: CRMLead) => {
+    setSelectedLead(lead);
+    setShowPersonaEngine(true);
+  };
+
+  const handlePersonaEngineClose = () => {
+    setShowPersonaEngine(false);
+    setSelectedLead(null);
+  };
+
+  const handlePersonaEnrich = async (contactId: string) => {
+    // Refresh lead data after enrichment
+    await fetchLeads();
+  };
+
+  const handleGenerateEmail = (contactId: string) => {
+    const lead = leads.find(l => l.id === contactId);
+    if (lead) {
+      window.open(`/dashboard/email?to=${lead.email}&persona=true`, '_blank');
+    }
+  };
+
+  const handleScheduleFollowUp = (contactId: string) => {
+    window.open(`/dashboard/campaigns/follow-ups?contactId=${contactId}`, '_blank');
   };
 
   const getStageColor = (stage: string) => {
@@ -302,6 +330,13 @@ export default function CRMPanel() {
                         </a>
                       )}
                       <button 
+                        onClick={() => handlePersonaEngineOpen(lead)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white p-1 rounded flex items-center justify-center transition-colors"
+                        title="View Contact Intelligence"
+                      >
+                        <Brain className="w-3 h-3" />
+                      </button>
+                      <button 
                         onClick={() => {
                           setSelectedLead(lead);
                           setShowOutreachHistory(true);
@@ -369,6 +404,28 @@ export default function CRMPanel() {
           </div>
         </div>
       )}
+
+      {/* PersonaEngine Modal */}
+      <PersonaEngine
+        contact={selectedLead ? {
+          id: selectedLead.id,
+          full_name: selectedLead.name,
+          title: selectedLead.title,
+          company: selectedLead.company,
+          email: selectedLead.email,
+          phone: selectedLead.phone,
+          linkedin: selectedLead.linkedin,
+          created_at: selectedLead.createdAt,
+          domain: selectedLead.company.toLowerCase().replace(/\s+/g, '') + '.com', // Mock domain
+          region: 'North America', // Mock region
+          department: 'Operations' // Mock department
+        } : null}
+        isOpen={showPersonaEngine}
+        onClose={handlePersonaEngineClose}
+        onEnrich={handlePersonaEnrich}
+        onGenerateEmail={handleGenerateEmail}
+        onScheduleFollowUp={handleScheduleFollowUp}
+      />
     </div>
   );
 }
