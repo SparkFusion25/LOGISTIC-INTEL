@@ -57,7 +57,7 @@ export default function EnrichedContactCard({
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [enrichmentSource, setEnrichmentSource] = useState<'cache' | 'apollo' | 'mock' | null>(null);
+  const [enrichmentSource, setEnrichmentSource] = useState<'cache' | 'apollo' | 'phantom' | 'mock' | null>(null);
   const [lastEnriched, setLastEnriched] = useState<string | null>(null);
 
   useEffect(() => {

@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     // Try Apollo.io enrichment
     const apolloResult = await enrichWithApollo(companyName, companyWebsite, location, zipCode, industry, maxContacts);
     
-    if (apolloResult.success) {
+    if (apolloResult.success && apolloResult.data) {
       // Cache the results
       await cacheEnrichmentResult(cacheKey, apolloResult.data);
       

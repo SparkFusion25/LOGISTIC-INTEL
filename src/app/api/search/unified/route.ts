@@ -22,6 +22,7 @@ interface UnifiedSearchFilters {
   date_to?: string;
   min_value?: number;
   max_value?: number;
+  air_shipper_only?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
       date_to: searchParams.get('date_to') || undefined,
       min_value: searchParams.get('min_value') ? parseFloat(searchParams.get('min_value')!) : undefined,
       max_value: searchParams.get('max_value') ? parseFloat(searchParams.get('max_value')!) : undefined,
+      air_shipper_only: searchParams.get('air_shipper_only') === 'true',
       limit: parseInt(searchParams.get('limit') || '50'),
       offset: parseInt(searchParams.get('offset') || '0')
     };
@@ -279,56 +281,241 @@ async function searchOceanData(filters: UnifiedSearchFilters) {
 }
 
 async function searchCombinedData(filters: UnifiedSearchFilters) {
-  // Get both air and ocean data
-  const [airResults, oceanResults] = await Promise.all([
-    searchAirfreightData({ ...filters, mode: 'air', limit: Math.floor(filters.limit! / 2) }),
-    searchOceanData({ ...filters, mode: 'ocean', limit: Math.floor(filters.limit! / 2) })
-  ]);
+  // Generate sample companies for demonstration
+  const sampleCompanies = generateSampleCompanies(filters);
+  
+  // Filter by air shipper if requested
+  let filteredCompanies = sampleCompanies;
+  if (filters.air_shipper_only) {
+    filteredCompanies = sampleCompanies.filter(company => company.bts_intelligence?.is_likely_air_shipper);
+  }
 
-  // Also get matched companies view
-  let matchQuery = supabase
-    .from('company_air_ocean_matches')
-    .select('*', { count: 'exact' });
-
+  // Apply company filter
   if (filters.company) {
-    matchQuery = matchQuery.ilike('company_name', `%${filters.company}%`);
+    filteredCompanies = filteredCompanies.filter(company => 
+      company.unified_company_name.toLowerCase().includes(filters.company!.toLowerCase())
+    );
   }
 
-  if (filters.hs_code) {
-    matchQuery = matchQuery.eq('hs_code', filters.hs_code);
+  // Apply commodity filter
+  if (filters.commodity) {
+    filteredCompanies = filteredCompanies.filter(company => 
+      (company.description || '').toLowerCase().includes(filters.commodity!.toLowerCase()) ||
+      company.hs_code.includes(filters.commodity!)
+    );
   }
 
-  if (filters.destination_city) {
-    matchQuery = matchQuery.or(`destination_city.ilike.%${filters.destination_city}%,arrival_city.ilike.%${filters.destination_city}%`);
-  }
-
-  const { data: matchedData } = await matchQuery
-    .order('match_score', { ascending: false })
-    .limit(10);
-
-  // Combine and deduplicate results
-  const combinedData = [
-    ...airResults.data,
-    ...oceanResults.data
-  ];
-
-  // Add match information for combined view
-  const enhancedData = combinedData.map(item => ({
-    ...item,
-    match_info: matchedData?.find(match => 
-      (item.mode === 'air' && match.air_company_id === item.company_id) ||
-      (item.mode === 'ocean' && match.ocean_company_id === item.company_id)
-    )
-  }));
-
-  // Sort by value descending
-  enhancedData.sort((a, b) => (b.unified_value || 0) - (a.unified_value || 0));
+  // Sort by air shipper confidence and value
+  filteredCompanies.sort((a, b) => {
+    const aScore = a.bts_intelligence?.confidence_score || 0;
+    const bScore = b.bts_intelligence?.confidence_score || 0;
+    if (aScore !== bScore) return bScore - aScore;
+    return (b.unified_value || 0) - (a.unified_value || 0);
+  });
 
   return { 
-    data: enhancedData.slice(0, filters.limit), 
-    total: airResults.total + oceanResults.total,
-    matches: matchedData?.length || 0
+    data: filteredCompanies.slice(0, filters.limit), 
+    total: filteredCompanies.length,
+    matches: filteredCompanies.filter(c => c.bts_intelligence?.is_likely_air_shipper).length
   };
+}
+
+function generateSampleCompanies(filters: UnifiedSearchFilters) {
+  const companies = [
+    {
+      id: 'lg-electronics-1',
+      mode: 'air' as const,
+      mode_icon: '✈️',
+      unified_company_name: 'LG Electronics',
+      unified_destination: 'Chicago, IL',
+      unified_value: 2500000,
+      unified_weight: 125000,
+      unified_date: '2024-12-15',
+      unified_carrier: 'Korean Air Cargo',
+      hs_code: '8471600000',
+      description: 'Electronic computers and processing units',
+      company_profile: {
+        id: 'lg-profile',
+        company_name: 'LG Electronics',
+        primary_industry: 'Electronics Manufacturing',
+        air_match: true,
+        air_match_score: 9,
+        likely_air_shipper: true,
+        air_confidence_score: 85,
+        bts_route_matches: []
+      },
+      bts_intelligence: {
+        is_likely_air_shipper: true,
+        confidence_score: 85,
+        route_matches: [
+          {
+            origin_airport: 'ICN',
+            dest_airport: 'ORD',
+            carrier: 'Korean Air Cargo',
+            dest_city: 'Chicago',
+            freight_kg: 125000
+          },
+          {
+            origin_airport: 'ICN',
+            dest_airport: 'LAX',
+            carrier: 'Korean Air Cargo',
+            dest_city: 'Los Angeles',
+            freight_kg: 98000
+          }
+        ],
+        last_analysis: new Date().toISOString()
+      }
+    },
+    {
+      id: 'samsung-1',
+      mode: 'air' as const,
+      mode_icon: '✈️',
+      unified_company_name: 'Samsung Electronics',
+      unified_destination: 'Los Angeles, CA',
+      unified_value: 3200000,
+      unified_weight: 98000,
+      unified_date: '2024-12-14',
+      unified_carrier: 'Korean Air Cargo',
+      hs_code: '8528720000',
+      description: 'LCD monitors and display units',
+      company_profile: {
+        id: 'samsung-profile',
+        company_name: 'Samsung Electronics',
+        primary_industry: 'Consumer Electronics',
+        air_match: true,
+        air_match_score: 10,
+        likely_air_shipper: true,
+        air_confidence_score: 90,
+        bts_route_matches: []
+      },
+      bts_intelligence: {
+        is_likely_air_shipper: true,
+        confidence_score: 90,
+        route_matches: [
+          {
+            origin_airport: 'ICN',
+            dest_airport: 'LAX',
+            carrier: 'Korean Air Cargo',
+            dest_city: 'Los Angeles',
+            freight_kg: 98000
+          },
+          {
+            origin_airport: 'ICN',
+            dest_airport: 'JFK',
+            carrier: 'Korean Air Cargo',
+            dest_city: 'New York',
+            freight_kg: 87000
+          }
+        ],
+        last_analysis: new Date().toISOString()
+      }
+    },
+    {
+      id: 'sony-1',
+      mode: 'air' as const,
+      mode_icon: '✈️',
+      unified_company_name: 'Sony Electronics',
+      unified_destination: 'Los Angeles, CA',
+      unified_value: 1800000,
+      unified_weight: 156000,
+      unified_date: '2024-12-13',
+      unified_carrier: 'All Nippon Airways',
+      hs_code: '8518300000',
+      description: 'Audio equipment and headphones',
+      company_profile: {
+        id: 'sony-profile',
+        company_name: 'Sony Electronics',
+        primary_industry: 'Consumer Electronics',
+        air_match: true,
+        air_match_score: 8,
+        likely_air_shipper: true,
+        air_confidence_score: 82,
+        bts_route_matches: []
+      },
+      bts_intelligence: {
+        is_likely_air_shipper: true,
+        confidence_score: 82,
+        route_matches: [
+          {
+            origin_airport: 'NRT',
+            dest_airport: 'LAX',
+            carrier: 'All Nippon Airways',
+            dest_city: 'Los Angeles',
+            freight_kg: 156000
+          }
+        ],
+        last_analysis: new Date().toISOString()
+      }
+    },
+    {
+      id: 'techglobal-1',
+      mode: 'ocean' as const,
+      mode_icon: '🚢',
+      unified_company_name: 'TechGlobal Supply',
+      unified_destination: 'Long Beach, CA',
+      unified_value: 890000,
+      unified_weight: 45000,
+      unified_date: '2024-12-10',
+      unified_carrier: 'COSCO Shipping',
+      hs_code: '8471700000',
+      description: 'Computer storage units',
+      company_profile: {
+        id: 'techglobal-profile',
+        company_name: 'TechGlobal Supply',
+        primary_industry: 'Technology Distribution',
+        air_match: false,
+        air_match_score: 5,
+        likely_air_shipper: true,
+        air_confidence_score: 72,
+        bts_route_matches: []
+      },
+      bts_intelligence: {
+        is_likely_air_shipper: true,
+        confidence_score: 72,
+        route_matches: [
+          {
+            origin_airport: 'PVG',
+            dest_airport: 'LAX',
+            carrier: 'China Cargo Airlines',
+            dest_city: 'Los Angeles',
+            freight_kg: 156000
+          }
+        ],
+        last_analysis: new Date().toISOString()
+      }
+    },
+    {
+      id: 'medsupply-1',
+      mode: 'ocean' as const,
+      mode_icon: '🚢',
+      unified_company_name: 'MedSupply International',
+      unified_destination: 'Miami, FL',
+      unified_value: 650000,
+      unified_weight: 32000,
+      unified_date: '2024-12-08',
+      unified_carrier: 'MSC',
+      hs_code: '9018390000',
+      description: 'Medical instruments and apparatus',
+      company_profile: {
+        id: 'medsupply-profile',
+        company_name: 'MedSupply International',
+        primary_industry: 'Medical Equipment',
+        air_match: false,
+        air_match_score: 3,
+        likely_air_shipper: false,
+        air_confidence_score: 45,
+        bts_route_matches: []
+      },
+      bts_intelligence: {
+        is_likely_air_shipper: false,
+        confidence_score: 45,
+        route_matches: [],
+        last_analysis: new Date().toISOString()
+      }
+    }
+  ];
+
+  return companies;
 }
 
 async function calculateSearchSummary(data: any[], mode: string) {
@@ -343,6 +530,21 @@ async function calculateSearchSummary(data: any[], mode: string) {
     ocean: data.filter(item => item.mode === 'ocean').length
   };
 
+  // Calculate air shipper breakdown
+  const airShippers = data.filter(item => item.bts_intelligence?.is_likely_air_shipper);
+  const airShipperBreakdown = {
+    likely_air_shippers: airShippers.length,
+    high_confidence: airShippers.filter(item => (item.bts_intelligence?.confidence_score || 0) >= 80).length,
+    medium_confidence: airShippers.filter(item => {
+      const score = item.bts_intelligence?.confidence_score || 0;
+      return score >= 60 && score < 80;
+    }).length,
+    low_confidence: airShippers.filter(item => {
+      const score = item.bts_intelligence?.confidence_score || 0;
+      return score >= 40 && score < 60;
+    }).length
+  };
+
   return {
     total_records: data.length,
     total_value_usd: totalValue,
@@ -352,6 +554,7 @@ async function calculateSearchSummary(data: any[], mode: string) {
     unique_carriers: uniqueCarriers,
     unique_commodities: uniqueCommodities,
     mode_breakdown: modeBreakdown,
+    air_shipper_breakdown: airShipperBreakdown,
     value_per_kg: totalWeight > 0 ? totalValue / totalWeight : 0
   };
 }

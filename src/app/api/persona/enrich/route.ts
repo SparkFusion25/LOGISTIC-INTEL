@@ -190,13 +190,14 @@ function calculateEngagementScore(outreachHistory: any[]): number {
 }
 
 function generatePersonaSummary(contact: ContactEnrichmentData, industry: any, seniority: string): string {
-  const seniorityDescriptions = {
+  const seniorityDescriptions: Record<string, string> = {
     high: 'a senior decision-maker with significant influence over procurement and strategic partnerships',
     medium: 'a mid-level professional involved in operational decisions and vendor evaluation',
     low: 'an operational team member who may influence vendor selection and day-to-day logistics'
   };
 
-  return `${contact.full_name} is ${seniorityDescriptions[seniority]} at ${contact.company}, specializing in ${industry.industry}. As a ${contact.title}, they likely focus on optimizing supply chain efficiency, managing vendor relationships, and ensuring cost-effective logistics solutions. Their role involves balancing operational requirements with strategic business objectives, making them a key contact for trade intelligence and logistics partnerships.`;
+  const description = seniorityDescriptions[seniority] || 'a professional';
+  return `${contact.full_name} is ${description} at ${contact.company}, specializing in ${industry.industry}. As a ${contact.title}, they likely focus on optimizing supply chain efficiency, managing vendor relationships, and ensuring cost-effective logistics solutions. Their role involves balancing operational requirements with strategic business objectives, making them a key contact for trade intelligence and logistics partnerships.`;
 }
 
 function generateTopChallenges(industry: any, seniority: string): string[] {
@@ -231,7 +232,7 @@ function generateTopChallenges(industry: any, seniority: string): string[] {
     ]
   };
 
-  const specificChallenges = industryChallenges[industry.industry] || [];
+  const specificChallenges = (industryChallenges as any)[industry.industry] || [];
   
   return [...baseChallenges.slice(0, 3), ...specificChallenges.slice(0, 2)];
 }
@@ -272,15 +273,16 @@ function generateSmartQuestions(industry: any, seniority: string): string[] {
     ]
   };
 
-  return [...baseQuestions, ...seniorityQuestions[seniority]];
+  const questions = (seniorityQuestions as any)[seniority] || [];
+  return [...baseQuestions, ...questions];
 }
 
 function calculateBuyingLikelihood(seniority: string, engagementScore: number, industry: any): number {
   let baseScore = 30; // Base likelihood
   
   // Seniority impact
-  const seniorityScores = { high: 40, medium: 25, low: 10 };
-  baseScore += seniorityScores[seniority];
+  const seniorityScores: Record<string, number> = { high: 40, medium: 25, low: 10 };
+  baseScore += seniorityScores[seniority] || 0;
   
   // Engagement impact
   baseScore += Math.floor(engagementScore * 0.3);

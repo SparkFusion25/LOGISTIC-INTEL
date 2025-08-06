@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle, ChevronDown, Menu, Plane, Waves, Brain, Zap, Users } from 'lucide-react';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
-import MobileOptimizedForm from '@/components/ui/MobileOptimizedForm';
 import EnrichedContactCard from '@/components/widgets/EnrichedContactCard';
 
 type SearchMode = 'all' | 'air' | 'ocean';
@@ -228,7 +227,7 @@ export default function SearchPanel() {
   const enrichWithBTSIntelligence = async (records: UnifiedTradeRecord[]) => {
     try {
       // Get BTS intelligence for all companies
-      const companyNames = [...new Set(records.map(r => r.unified_company_name))];
+      const companyNames = Array.from(new Set(records.map(r => r.unified_company_name)));
       const btsPromises = companyNames.map(async (companyName) => {
         try {
           const response = await fetch(`/api/search/air-intelligence?company=${encodeURIComponent(companyName)}`);
@@ -247,7 +246,13 @@ export default function SearchPanel() {
         ...record,
         bts_intelligence: btsMap.get(record.unified_company_name) || null,
         company_profile: {
-          ...record.company_profile,
+          id: record.company_profile?.id || 'unknown',
+          company_name: record.company_profile?.company_name || record.unified_company_name,
+          primary_industry: record.company_profile?.primary_industry || 'Unknown',
+          air_match: record.company_profile?.air_match || false,
+          air_match_score: record.company_profile?.air_match_score || 0,
+          ocean_match: record.company_profile?.ocean_match,
+          ocean_match_score: record.company_profile?.ocean_match_score,
           likely_air_shipper: btsMap.get(record.unified_company_name)?.is_likely_air_shipper || false,
           air_confidence_score: btsMap.get(record.unified_company_name)?.confidence_score || 0,
           bts_route_matches: btsMap.get(record.unified_company_name)?.route_matches || []
@@ -394,7 +399,7 @@ export default function SearchPanel() {
       </div>
 
       {/* Search Form */}
-      <MobileOptimizedForm onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
+      <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
@@ -588,7 +593,7 @@ export default function SearchPanel() {
             </div>
           </div>
         )}
-      </MobileOptimizedForm>
+      </form>
 
       {/* Summary Stats */}
       {summary && (

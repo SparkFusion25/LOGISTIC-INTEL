@@ -60,6 +60,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse and store data
+    if (!downloadResult.data) {
+      return NextResponse.json({
+        success: false,
+        error: 'No data received from download',
+        details: 'Download result did not contain data'
+      }, { status: 500 });
+    }
+    
     const parseResult = await parseBTSData(downloadResult.data, year, month);
     
     if (!parseResult.success) {
@@ -138,7 +146,7 @@ async function downloadBTSData(year: number, month: number) {
 
     return {
       success: true,
-      data: downloadedData,
+      data: downloadedData!,
       sourceUrl,
       message: 'BTS T-100 data downloaded successfully'
     };
@@ -376,7 +384,7 @@ function getTopCarriers(data: any[]) {
   }, {} as Record<string, number>);
 
   return Object.entries(carrierTotals)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([,a], [,b]) => (b as number) - (a as number))
     .slice(0, 5)
-    .map(([carrier, total]) => ({ carrier, totalFreightKg: total }));
+    .map(([carrier, total]) => ({ carrier, totalFreightKg: total as number }));
 }

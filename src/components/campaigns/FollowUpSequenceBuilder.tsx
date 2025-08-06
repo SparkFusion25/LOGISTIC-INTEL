@@ -325,7 +325,7 @@ const FollowUpSequenceBuilder: React.FC<FollowUpSequenceBuilderProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-50 resize-none"
                   />
                   <div className="text-xs text-gray-500 mt-1">
-                    Available variables: {{name}}, {{company}}, {{title}}, {{email}}
+                    Available variables: {'{name}'}, {'{company}'}, {'{title}'}, {'{email}'}
                   </div>
                 </div>
 

@@ -16,6 +16,7 @@
     "@types/node": "20.17.6",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
+    "@types/xlsx": "^0.0.35",
     "autoprefixer": "10.4.16",
     "chart.js": "4.4.0",
     "clsx": "2.0.0",
