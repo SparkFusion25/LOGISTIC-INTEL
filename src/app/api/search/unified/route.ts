@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { ConfidenceEngine, type ConfidenceFactors } from '@/lib/confidenceEngine';
+import { UnComtradeAPI, type UnComtradeFilters, type UnComtradeRecord } from '@/lib/unComtradeAPI';
 
 // Create Supabase client
 const supabase = createClient(
@@ -59,6 +60,8 @@ interface BTSRecord {
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🚨 REAL UN COMTRADE API INTEGRATION - NO MOCK DATA');
+    
     const { searchParams } = new URL(request.url);
 
     const filters: UnifiedSearchFilters = {
@@ -77,26 +80,80 @@ export async function GET(request: NextRequest) {
       min_value: searchParams.get('min_value') ? parseFloat(searchParams.get('min_value')!) : undefined,
       max_value: searchParams.get('max_value') ? parseFloat(searchParams.get('max_value')!) : undefined,
       air_shipper_only: searchParams.get('air_shipper_only') === 'true',
-      limit: parseInt(searchParams.get('limit') || '25'),
+      limit: parseInt(searchParams.get('limit') || '100'), // Increased default for real data
       offset: parseInt(searchParams.get('offset') || '0')
     };
 
-    let searchResults;
-    let summary;
+    console.log('🔍 UN Comtrade unified search with filters:', filters);
 
-    // Get real data based on mode
-    switch (filters.mode) {
-      case 'air':
-        searchResults = await searchRealAirData(filters);
-        break;
-      case 'ocean':
-        searchResults = await searchRealOceanData(filters);
-        break;
-      case 'all':
-      default:
-        searchResults = await searchRealCombinedData(filters);
-        break;
+    // Build UN Comtrade API filters from user input - ALL DYNAMIC
+    const comtradeFilters: UnComtradeFilters = {
+      reporterCode: '840', // US exports
+      motCode: UnComtradeAPI.getModeOfTransportCode(filters.mode), // Air=5, Ocean=1, All=undefined
+      cmdCode: filters.hs_code || undefined,
+      period: new Date().getFullYear().toString(),
+      offset: filters.offset,
+      limit: Math.min(filters.limit, 250) // UN Comtrade API limit
+    };
+
+    // Add country filter if specified by user
+    if (filters.origin_country) {
+      const countryCode = UnComtradeAPI.getCountryCode(filters.origin_country);
+      if (countryCode) {
+        comtradeFilters.partnerCode = [countryCode];
+        console.log(`🌍 Country filter: ${filters.origin_country} → M49 code ${countryCode}`);
+      }
     }
+
+    console.log('📡 UN Comtrade API filters (ALL DYNAMIC):', comtradeFilters);
+
+    // Get REAL UN Comtrade data with pagination
+    const maxResults = Math.min(filters.limit * 3, 500); // Get extra for filtering
+    const comtradeRecords = await UnComtradeAPI.searchWithPagination(comtradeFilters, maxResults);
+    
+    console.log(`✅ UN Comtrade API returned ${comtradeRecords.length} REAL records`);
+    console.log('📊 Raw UN Comtrade sample:', comtradeRecords.slice(0, 2));
+
+    // Transform and enhance with confidence engine
+    const searchResults = [];
+    
+    for (let i = 0; i < Math.min(comtradeRecords.length, filters.limit); i++) {
+      const record = comtradeRecords[i];
+      
+      // Apply user filters
+      if (filters.min_value && record.primaryValue < filters.min_value) continue;
+      if (filters.max_value && record.primaryValue > filters.max_value) continue;
+      if (filters.commodity && !record.cmdDesc?.toLowerCase().includes(filters.commodity.toLowerCase())) continue;
+      
+      // Transform to unified format
+      const unifiedRecord = UnComtradeAPI.transformToUnifiedRecord(record, i);
+      
+      // Apply confidence engine for intelligent company matching
+      const confidenceFactors: ConfidenceFactors = {
+        hs_code: record.cmdCode,
+        commodity_name: record.cmdDesc,
+        country: record.partnerDesc,
+        consignee_name: undefined, // UN Comtrade doesn't have consignee data
+        port_of_origin: undefined,
+        port_of_arrival: undefined,
+        customs_district: undefined
+      };
+
+      const companyMatch = await ConfidenceEngine.getBestCompanyMatch(confidenceFactors);
+      
+      // Include all results but mark confidence
+      unifiedRecord.unified_company_name = companyMatch.company_name || `${record.partnerDesc} Exporter`;
+      unifiedRecord.confidence_score = companyMatch.confidence_score;
+      unifiedRecord.confidence_sources = companyMatch.confidence_sources;
+      unifiedRecord.apollo_verified = companyMatch.apollo_verified;
+      
+      searchResults.push(unifiedRecord);
+    }
+
+    console.log(`📊 FINAL RESULTS: ${searchResults.length} enhanced records from ${comtradeRecords.length} UN Comtrade records`);
+
+    // Calculate summary from real data
+    const searchResultsData = { data: searchResults, total: searchResults.length };
 
     // Calculate summary stats from real data
     summary = await calculateSearchSummary(searchResults.data, filters.mode);
