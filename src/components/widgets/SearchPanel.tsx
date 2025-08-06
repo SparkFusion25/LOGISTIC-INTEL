@@ -34,6 +34,10 @@ interface UnifiedTradeRecord {
   description?: string;
   hs_description?: string;
   commodity_description?: string;
+  // Enhanced confidence data from new UN Comtrade integration
+  confidence_score?: number;
+  confidence_sources?: string[];
+  apollo_verified?: boolean;
   company_profile?: {
     id: string;
     company_name: string;
@@ -211,7 +215,10 @@ export default function SearchPanel() {
         setTotalResults(result.total || 0);
 
         // Log search analytics
-        const avgConfidence = enrichedResults.reduce((sum, r) => sum + (r.confidence_score || 0), 0) / enrichedResults.length || 0;
+        const avgConfidence = enrichedResults.reduce((sum: number, r: UnifiedTradeRecord) => {
+          return sum + (r.confidence_score || 0);
+        }, 0) / (enrichedResults.length || 1);
+        
         await ConfidenceEngine.logSearch(
           filters.companyName || filters.commodity || 'general search',
           { mode: currentMode, ...filters },
