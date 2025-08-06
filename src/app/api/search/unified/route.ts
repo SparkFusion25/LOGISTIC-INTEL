@@ -146,7 +146,7 @@ async function searchRealOceanData(filters: UnifiedSearchFilters) {
       id: `ocean_${record.YEAR}_${record.MONTH}_${index}`,
       mode: 'ocean' as const,
       mode_icon: '🚢',
-      unified_company_name: inferCompanyFromCommodity(record.COMMODITY, record.COMMODITY_NAME, record.COUNTRY),
+      unified_company_name: record.CONSIGNEE_NAME || inferCompanyFromCommodity(record.COMMODITY, record.COMMODITY_NAME, record.COUNTRY),
       unified_destination: `${record.STATE}, USA`,
       unified_value: record.VALUE,
       unified_weight: record.WEIGHT,
@@ -227,12 +227,12 @@ async function fetchCensusData(filters: UnifiedSearchFilters, transportMode: str
 
     if (error) {
       console.error('Supabase Census data query error:', error);
-      return await fetchFromCensusAPI(transportMode, filters);
+      return [];
     }
 
     if (!data || data.length === 0) {
-      console.log('No cached Census data found, using fallback...');
-      return await fetchFromCensusAPI(transportMode, filters);
+      console.log('No Census data found in database. Please run data ingestion first.');
+      return [];
     }
 
     // Transform Supabase data to expected format
@@ -246,51 +246,18 @@ async function fetchCensusData(filters: UnifiedSearchFilters, transportMode: str
       STATE: record.state,
       COUNTRY: record.country,
       TRANSPORT_MODE: record.transport_mode,
+      CONSIGNEE_NAME: record.consignee_name, // Real company name from XML data
+      CUSTOMS_DISTRICT: record.customs_district,
       time: `${record.year}-${String(record.month).padStart(2, '0')}`
     }));
 
   } catch (error) {
     console.error('Census data fetch error:', error);
-    return await fetchFromCensusAPI(transportMode, filters);
+    return [];
   }
 }
 
-async function fetchFromCensusAPI(transportMode: string, filters: UnifiedSearchFilters): Promise<CensusTradeRecord[]> {
-  try {
-    // Try to fetch from our Census API endpoint
-    const params = new URLSearchParams({
-      transport_mode: transportMode,
-      year: '2024',
-      limit: '50'
-    });
-
-    const response = await fetch(`/api/census/trade-data?${params.toString()}`);
-    
-    if (response.ok) {
-      const result = await response.json();
-      if (result.success && result.data) {
-        return result.data.map((record: any) => ({
-          COMMODITY: record.commodity,
-          COMMODITY_NAME: record.commodity_name,
-          VALUE: record.value_usd,
-          WEIGHT: record.weight_kg,
-          YEAR: record.year,
-          MONTH: record.month,
-          STATE: record.state,
-          COUNTRY: record.country,
-          TRANSPORT_MODE: record.transport_mode,
-          time: `${record.year}-${String(record.month).padStart(2, '0')}`
-        }));
-      }
-    }
-
-    // Final fallback to generated data
-    return generateFallbackCensusData(transportMode, filters);
-  } catch (error) {
-    console.error('Census API fallback error:', error);
-    return generateFallbackCensusData(transportMode, filters);
-  }
-}
+// Removed: All fallback and mock data functions
 
 async function fetchBTSData(filters: UnifiedSearchFilters): Promise<BTSRecord[]> {
   try {
@@ -339,7 +306,7 @@ async function matchAirData(censusData: CensusTradeRecord[], btsData: BTSRecord[
       id: `air_${censusRecord.YEAR}_${censusRecord.MONTH}_${censusRecord.COMMODITY}`,
       mode: 'air' as const,
       mode_icon: '✈️',
-      unified_company_name: inferCompanyFromCommodity(censusRecord.COMMODITY, censusRecord.COMMODITY_NAME, censusRecord.COUNTRY),
+      unified_company_name: censusRecord.CONSIGNEE_NAME || inferCompanyFromCommodity(censusRecord.COMMODITY, censusRecord.COMMODITY_NAME, censusRecord.COUNTRY),
       unified_destination: `${censusRecord.STATE}, USA`,
       unified_value: censusRecord.VALUE,
       unified_weight: censusRecord.WEIGHT,
@@ -373,42 +340,7 @@ async function matchAirData(censusData: CensusTradeRecord[], btsData: BTSRecord[
   return matchedData;
 }
 
-function generateFallbackCensusData(transportMode: string, filters: UnifiedSearchFilters): CensusTradeRecord[] {
-  // Fallback data for when Census API is unavailable
-  const commodities = [
-    { code: '8471600000', name: 'Computer processing units', companies: ['LG Electronics', 'Samsung Electronics'] },
-    { code: '8528720000', name: 'LCD monitors and displays', companies: ['Sony Electronics', 'Samsung Electronics'] },
-    { code: '8518300000', name: 'Audio equipment and headphones', companies: ['Sony Electronics', 'Bose Corporation'] },
-    { code: '8471700000', name: 'Computer storage units', companies: ['Western Digital', 'Seagate Technology'] },
-    { code: '9018390000', name: 'Medical instruments', companies: ['Medtronic', 'Abbott Laboratories'] }
-  ];
-
-  const states = ['CA', 'NY', 'TX', 'FL', 'IL', 'WA'];
-  const countries = ['China', 'South Korea', 'Japan', 'Germany', 'Taiwan'];
-
-  const fallbackData: CensusTradeRecord[] = [];
-
-  commodities.forEach((commodity, i) => {
-    const isAir = transportMode === '40';
-    const baseValue = isAir ? 50000 + (i * 30000) : 25000 + (i * 15000);
-    const baseWeight = isAir ? 5000 + (i * 2000) : 15000 + (i * 5000);
-
-    fallbackData.push({
-      COMMODITY: commodity.code,
-      COMMODITY_NAME: commodity.name,
-      VALUE: baseValue * (1 + Math.random() * 0.5),
-      WEIGHT: baseWeight * (1 + Math.random() * 0.3),
-      YEAR: 2024,
-      MONTH: 12,
-      STATE: states[i % states.length],
-      COUNTRY: countries[i % countries.length],
-      TRANSPORT_MODE: transportMode,
-      time: '2024-12'
-    });
-  });
-
-  return fallbackData;
-}
+// Removed: All mock data generation - system now uses real data only
 
 function inferCompanyFromCommodity(hsCode: string, commodityName?: string, country?: string): string {
   // Enhanced company mapping based on HS code, commodity, and country

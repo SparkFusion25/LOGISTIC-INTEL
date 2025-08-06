@@ -73,6 +73,14 @@ const quickActions = [
     color: 'bg-orange-500',
     hoverColor: 'hover:bg-orange-600'
   },
+  {
+    title: 'Tariff Calculator',
+    description: 'Calculate duties, taxes, and landed costs',
+    icon: Target,
+    href: '/dashboard/widgets/tariff',
+    color: 'bg-purple-500',
+    hoverColor: 'hover:bg-purple-600'
+  },
 ];
 
 const recentActivity = [
