@@ -68,9 +68,9 @@ export default function UserLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-3 sm:p-4">
+      <div className="max-w-md w-full space-y-6 sm:space-y-8">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
@@ -164,7 +164,7 @@ export default function UserLogin() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                 placeholder="Enter your email"
               />
             </div>
@@ -181,7 +181,7 @@ export default function UserLogin() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-12 text-base"
                   placeholder="Enter your password"
                 />
                 <button

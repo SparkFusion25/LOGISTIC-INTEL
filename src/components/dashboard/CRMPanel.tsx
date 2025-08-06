@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Mail, Trash2, Linkedin, UserCheck, Filter, RefreshCw, Users, TrendingUp, Clock, ExternalLink, Eye, X } from 'lucide-react';
 import OutreachHistory from '@/components/crm/OutreachHistory';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
+import ResponsiveCard from '@/components/ui/ResponsiveCard';
 
 interface CRMLead {
   id: string;
@@ -114,22 +116,22 @@ export default function CRMPanel() {
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-200">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-800 to-indigo-900 text-white p-6 rounded-t-lg">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-indigo-800 to-indigo-900 text-white p-4 sm:p-6 rounded-t-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Users className="w-6 h-6" />
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             <div>
-              <h2 className="text-2xl font-bold">📇 CRM Dashboard</h2>
-              <p className="text-indigo-200 text-sm mt-1">Manage leads and track outreach progress</p>
+              <h2 className="text-xl sm:text-2xl font-bold">📇 CRM Dashboard</h2>
+              <p className="text-indigo-200 text-xs sm:text-sm mt-1">Manage leads and track outreach progress</p>
             </div>
           </div>
           <div className="flex items-center gap-4 text-indigo-200">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">{leads.length}</div>
+              <div className="text-xl sm:text-2xl font-bold text-white">{leads.length}</div>
               <div className="text-xs">Total Leads</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-300">{stats.Converted}</div>
+              <div className="text-xl sm:text-2xl font-bold text-green-300">{stats.Converted}</div>
               <div className="text-xs">Converted</div>
             </div>
           </div>
@@ -137,18 +139,21 @@ export default function CRMPanel() {
       </div>
 
       {/* Stats Cards */}
-      <div className="p-6 border-b border-gray-200 bg-gray-50">
-        <div className="grid grid-cols-4 gap-4 mb-4">
+      <div className="p-4 sm:p-6 border-b border-gray-200 bg-gray-50">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
           {Object.entries(stats).map(([stage, count]) => (
-            <div key={stage} className="bg-white p-3 rounded-lg border text-center">
-              <div className="text-lg font-bold text-gray-900">{count}</div>
-              <div className="text-xs text-gray-600">{stage}</div>
-            </div>
+            <ResponsiveCard
+              key={stage}
+              title={stage}
+              value={count.toString()}
+              size="sm"
+              className="text-center"
+            />
           ))}
         </div>
 
         {/* Filters */}
-        <div className="grid md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               <Filter className="w-4 h-4 inline mr-1" />

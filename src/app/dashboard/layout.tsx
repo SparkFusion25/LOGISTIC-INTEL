@@ -6,6 +6,7 @@ import { ReactNode } from 'react';
 import { LogOut, Search, Users, Mail, BarChart3, Target, Package, Settings, Home, Zap, TrendingUp } from 'lucide-react';
 import AuthButton from '@/components/AuthButton';
 import Logo from '@/components/ui/Logo';
+import MobileNavigation from '@/components/ui/MobileNavigation';
 
   const navItems = [
     { href: '/dashboard', label: 'Overview', icon: Home },
@@ -29,9 +30,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900">
-      {/* Premium Sidebar */}
-      <aside className="w-64 bg-white shadow-xl border-r border-gray-200 flex flex-col">
+    <>
+      {/* Mobile Navigation */}
+      <MobileNavigation 
+        navItems={navItems} 
+        onLogout={handleLogout}
+      />
+      
+      <div className="flex h-screen bg-gray-50 text-gray-900">
+        {/* Premium Sidebar - Hidden on Mobile */}
+        <aside className="hidden lg:flex w-64 bg-white shadow-xl border-r border-gray-200 flex-col">
         {/* Logo Header */}
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-700 to-indigo-800">
           <Logo 
@@ -95,10 +103,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Premium Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Premium Top Bar - Hidden on Mobile */}
+          <header className="hidden lg:block bg-white shadow-sm border-b border-gray-200 px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-gray-900 tracking-wide">
@@ -125,13 +133,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        {/* Dynamic Content Area */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="p-6">
-            {children}
+          {/* Dynamic Content Area */}
+          <div className="flex-1 overflow-y-auto bg-gray-50">
+            <div className="p-3 sm:p-6 pb-20 sm:pb-6">
+              {children}
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }

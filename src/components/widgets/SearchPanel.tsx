@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle } from 'lucide-react';
+import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle, ChevronDown, Menu } from 'lucide-react';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
 
 interface TradeIntelligenceRecord {
   id: string;

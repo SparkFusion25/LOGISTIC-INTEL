@@ -3,6 +3,7 @@
 import { BarChart3, DollarSign, Users, TrendingUp, Mail, Search, Target, Package, Globe, Zap, Clock, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import TradeNewsFeed from '@/components/dashboard/TradeNewsFeed';
+import ResponsiveCard from '@/components/ui/ResponsiveCard';
 
 const stats = [
   { 
@@ -109,11 +110,11 @@ export default function DashboardHome() {
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-xl p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Welcome back, Valesco! 👋</h2>
-            <p className="text-indigo-200">
+      <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-xl p-4 sm:p-6 text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4 sm:mb-0">
+            <h2 className="text-xl sm:text-2xl font-bold mb-2">Welcome back, Valesco! 👋</h2>
+            <p className="text-indigo-200 text-sm sm:text-base">
               Your trade intelligence platform is ready. Here's what's happening with your logistics operations.
             </p>
           </div>
@@ -129,26 +130,21 @@ export default function DashboardHome() {
           <BarChart3 className="w-5 h-5 text-indigo-600" />
           Key Performance Indicators
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {stats.map(({ title, value, icon: Icon, change, changeType, description }) => (
-            <div key={title} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="bg-indigo-100 text-indigo-700 p-2 rounded-lg">
-                  <Icon size={20} />
-                </div>
-                <div className={`flex items-center gap-1 text-sm font-medium ${
-                  changeType === 'positive' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  <TrendingUp size={14} />
-                  {change}
-                </div>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
-                <p className="text-sm text-gray-600 font-medium">{title}</p>
-                <p className="text-xs text-gray-500 mt-1">{description}</p>
-              </div>
-            </div>
+            <ResponsiveCard
+              key={title}
+              title={title}
+              value={value}
+              description={description}
+              icon={Icon}
+              iconColor="text-indigo-600"
+              trend={{
+                value: change,
+                isPositive: changeType === 'positive'
+              }}
+              size="md"
+            />
           ))}
         </div>
       </div>

@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Logistic Intel Brand Variables */
+/* Logistic Intel Brand Variables & Mobile Optimizations */
 :root {
   --primary-indigo: #1E2A78;
   --secondary-sky: #3AA1FF;
@@ -411,5 +411,154 @@ body {
   
   .page-title {
     font-size: 24px;
+  }
+}
+
+/* Enhanced Mobile Optimizations */
+@layer base {
+  html {
+    /* Prevent zoom on iOS when focusing inputs */
+    -webkit-text-size-adjust: 100%;
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    /* Prevent horizontal scroll */
+    overflow-x: hidden;
+    /* Better font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Touch-friendly input sizing on mobile */
+  @media (max-width: 768px) {
+    input, select, textarea, button {
+      font-size: 16px; /* Prevents zoom on iOS */
+      min-height: 44px; /* Apple's recommended touch target size */
+    }
+  }
+}
+
+/* Premium Component Styles (Apollo.io/Lemlist inspired) */
+@layer components {
+  /* Interactive cards with premium effects */
+  .premium-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200/50 hover:shadow-lg hover:border-indigo-200 transition-all duration-300;
+  }
+  
+  /* Mobile-optimized buttons */
+  .mobile-btn {
+    @apply min-h-[44px] px-6 py-3 text-base font-medium rounded-lg transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none;
+  }
+  
+  .mobile-btn-primary {
+    @apply mobile-btn bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 text-white;
+  }
+  
+  .mobile-btn-secondary {
+    @apply mobile-btn bg-gray-100 hover:bg-gray-200 focus:ring-gray-500 text-gray-900;
+  }
+  
+  /* Form inputs with proper mobile sizing */
+  .mobile-input {
+    @apply w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors;
+  }
+  
+  /* Table responsive wrapper */
+  .table-responsive {
+    @apply overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100;
+  }
+  
+  /* Custom scrollbar for webkit browsers */
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded hover:bg-gray-400;
+  }
+  
+  /* Premium gradient buttons */
+  .btn-premium {
+    @apply bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium px-6 py-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  /* Status badges */
+  .badge-success {
+    @apply bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .badge-danger {
+    @apply bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .badge-info {
+    @apply bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium;
+  }
+}
+
+/* Mobile-specific utilities */
+@layer utilities {
+  /* Safe area padding for mobile devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Text clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  /* Mobile breakpoint utilities */
+  .mobile-only {
+    @apply block sm:hidden;
+  }
+  
+  .desktop-only {
+    @apply hidden sm:block;
+  }
+  
+  .tablet-up {
+    @apply hidden md:block;
+  }
+  
+  /* Touch-friendly spacing */
+  .touch-spacing {
+    @apply space-y-4 sm:space-y-6;
+  }
+  
+  /* Responsive grid gaps */
+  .grid-gap-responsive {
+    @apply gap-3 sm:gap-4 lg:gap-6;
   }
 }
