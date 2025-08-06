@@ -12,6 +12,7 @@
     "test:production": "node test-deployment.js"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^7.8.0",
     "@supabase/supabase-js": "^2.39.0",
     "@types/node": "20.17.6",
     "@types/react": "18.3.12",
@@ -29,6 +30,7 @@
     "react-chartjs-2": "5.2.0",
     "react-dom": "18.3.1",
     "react-hot-toast": "^2.5.2",
+    "stripe": "^18.4.0",
     "tailwindcss": "3.3.0",
     "typescript": "5.6.3",
     "xlsx": "^0.18.5"
