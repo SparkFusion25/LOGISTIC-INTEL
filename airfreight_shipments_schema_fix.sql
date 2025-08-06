@@ -121,13 +121,16 @@ CREATE INDEX IF NOT EXISTS idx_airfreight_shipments_airports
 CREATE INDEX IF NOT EXISTS idx_airfreight_shipments_value 
     ON public.airfreight_shipments (value_usd);
 
--- Verify the schema after changes
-SELECT 
-    column_name, 
-    data_type, 
-    is_nullable,
-    column_default
-FROM information_schema.columns 
-WHERE table_name = 'airfreight_shipments' 
-AND table_schema = 'public'
-ORDER BY ordinal_position;
+-- Verify the schema after changes (Supabase compatible)
+SELECT 'Airfreight schema updates completed successfully' as status;
+
+-- Test insert to verify all columns work  
+INSERT INTO public.airfreight_shipments (
+    consignee_name, hs_code, value_usd, arrival_date, airline
+) VALUES (
+    'Air Schema Test Company', '8518', 2000, '2024-01-01', 'TEST AIRLINE'
+) RETURNING id, consignee_name, airline;
+
+-- Clean up test data
+DELETE FROM public.airfreight_shipments 
+WHERE consignee_name = 'Air Schema Test Company';

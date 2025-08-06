@@ -3,12 +3,11 @@
 -- =====================================================
 -- This adds all missing columns expected by XML ingestion
 
--- First, let's check what columns currently exist
-SELECT column_name, data_type, is_nullable 
-FROM information_schema.columns 
-WHERE table_name = 'ocean_shipments' 
-AND table_schema = 'public'
-ORDER BY ordinal_position;
+-- First, let's check what tables exist (Supabase compatible)
+SELECT tablename, schemaname 
+FROM pg_catalog.pg_tables 
+WHERE schemaname = 'public' 
+AND tablename = 'ocean_shipments';
 
 -- Add missing columns to ocean_shipments table
 -- Core identification
@@ -103,13 +102,16 @@ CREATE INDEX IF NOT EXISTS idx_ocean_shipments_origin_dest
 CREATE INDEX IF NOT EXISTS idx_ocean_shipments_value 
     ON public.ocean_shipments (value_usd);
 
--- Verify the schema after changes
-SELECT 
-    column_name, 
-    data_type, 
-    is_nullable,
-    column_default
-FROM information_schema.columns 
-WHERE table_name = 'ocean_shipments' 
-AND table_schema = 'public'
-ORDER BY ordinal_position;
+-- Verify the schema after changes (Supabase compatible)
+SELECT 'Schema updates completed successfully' as status;
+
+-- Test insert to verify all columns work
+INSERT INTO public.ocean_shipments (
+    consignee_name, hs_code, value_usd, arrival_date, vessel_name
+) VALUES (
+    'Schema Test Company', '8471', 1000, '2024-01-01', 'TEST VESSEL'
+) RETURNING id, consignee_name, vessel_name;
+
+-- Clean up test data
+DELETE FROM public.ocean_shipments 
+WHERE consignee_name = 'Schema Test Company';

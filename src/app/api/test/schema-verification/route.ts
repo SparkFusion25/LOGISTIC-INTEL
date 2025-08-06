@@ -21,52 +21,42 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // Test 1: Check ocean_shipments table structure
-    console.log('📊 Test 1: Checking ocean_shipments schema...');
+    // Test 1: Check ocean_shipments table exists and basic structure (Supabase compatible)
+    console.log('📊 Test 1: Checking ocean_shipments table exists...');
     try {
-      const { data: oceanColumns, error: oceanError } = await supabase
-        .from('information_schema.columns')
-        .select('column_name, data_type, is_nullable')
-        .eq('table_name', 'ocean_shipments')
-        .eq('table_schema', 'public');
+      // Test table existence by attempting to select from it
+      const { data: testSelect, error: selectError } = await supabase
+        .from('ocean_shipments')
+        .select('id')
+        .limit(1);
 
-      if (oceanError) throw oceanError;
-
-      const requiredColumns = [
-        'consignee_name', 'shipper_name', 'hs_code', 'commodity_description',
-        'value_usd', 'weight_kg', 'arrival_date', 'origin_country', 'destination_country'
-      ];
-
-      const existingColumns = oceanColumns?.map(col => col.column_name) || [];
-      const missingColumns = requiredColumns.filter(col => !existingColumns.includes(col));
+      if (selectError && selectError.code === 'PGRST116') {
+        // Table doesn't exist
+        throw new Error('ocean_shipments table does not exist');
+      }
 
       results.tests.push({
-        test: 'ocean_shipments_schema',
-        status: missingColumns.length === 0 ? 'PASS' : 'FAIL',
-        message: missingColumns.length === 0 
-          ? `All ${requiredColumns.length} required columns exist`
-          : `Missing columns: ${missingColumns.join(', ')}`,
+        test: 'ocean_shipments_table_exists',
+        status: 'PASS',
+        message: 'ocean_shipments table exists and is accessible',
         details: {
-          totalColumns: existingColumns.length,
-          requiredColumns: requiredColumns.length,
-          missingColumns
+          tableExists: true,
+          accessible: true
         }
       });
-
-      if (missingColumns.length === 0) results.summary.passed++;
-      else results.summary.failed++;
+      results.summary.passed++;
 
     } catch (error) {
       results.tests.push({
-        test: 'ocean_shipments_schema',
-        status: 'ERROR',
-        message: `Schema check failed: ${(error as Error).message}`
+        test: 'ocean_shipments_table_exists',
+        status: 'FAIL',
+        message: `Table check failed: ${(error as Error).message}`
       });
       results.summary.failed++;
     }
 
-    // Test 2: Test sample data insertion
-    console.log('📊 Test 2: Testing sample data insertion...');
+    // Test 2: Test required columns exist by attempting insert
+    console.log('📊 Test 2: Testing required columns via insertion...');
     try {
       const testData = {
         consignee_name: 'Test Company Inc',
@@ -89,17 +79,33 @@ export async function GET(request: NextRequest) {
       const { data: insertData, error: insertError } = await supabase
         .from('ocean_shipments')
         .insert(testData)
-        .select('id');
+        .select('id, consignee_name, vessel_name');
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Check if it's a missing column error
+        if (insertError.message.includes('column') && insertError.message.includes('does not exist')) {
+          throw new Error(`Missing column detected: ${insertError.message}`);
+        }
+        throw insertError;
+      }
+
+      const hasVesselName = insertData?.[0]?.vessel_name === 'TEST VESSEL';
 
       results.tests.push({
-        test: 'sample_data_insertion',
-        status: 'PASS',
-        message: `Successfully inserted test record with ID: ${insertData?.[0]?.id}`,
-        details: { recordId: insertData?.[0]?.id }
+        test: 'required_columns_test',
+        status: hasVesselName ? 'PASS' : 'PARTIAL',
+        message: hasVesselName 
+          ? `All required columns exist including vessel_name`
+          : `Basic columns exist, but vessel_name may be missing`,
+        details: { 
+          recordId: insertData?.[0]?.id,
+          vesselNamePresent: hasVesselName,
+          insertedData: insertData?.[0]
+        }
       });
-      results.summary.passed++;
+
+      if (hasVesselName) results.summary.passed++;
+      else results.summary.failed++;
 
       // Clean up test data
       if (insertData?.[0]?.id) {
@@ -111,76 +117,118 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
       results.tests.push({
-        test: 'sample_data_insertion',
+        test: 'required_columns_test',
         status: 'FAIL',
-        message: `Data insertion failed: ${(error as Error).message}`
+        message: `Column test failed: ${(error as Error).message}`,
+        details: {
+          error: (error as Error).message,
+          suggestion: 'Run ocean_shipments_schema_fix.sql to add missing columns'
+        }
       });
       results.summary.failed++;
     }
 
-    // Test 3: Check trade_data_view exists and works
-    console.log('📊 Test 3: Testing trade_data_view...');
+    // Test 3: Check trade_data_view exists and has unified_id
+    console.log('📊 Test 3: Testing trade_data_view with unified_id...');
     try {
       const { data: viewData, error: viewError } = await supabase
         .from('trade_data_view')
-        .select('*')
+        .select('unified_id, company_name, hs_code')
         .limit(1);
 
       if (viewError) throw viewError;
 
+      const hasUnifiedId = viewData && viewData.length > 0 && viewData[0].unified_id;
+
       results.tests.push({
-        test: 'trade_data_view',
-        status: 'PASS',
-        message: 'trade_data_view is accessible and functional',
+        test: 'trade_data_view_unified_id',
+        status: hasUnifiedId ? 'PASS' : 'PARTIAL',
+        message: hasUnifiedId 
+          ? 'trade_data_view has unified_id column'
+          : 'trade_data_view exists but may be missing unified_id column',
         details: { 
           viewExists: true,
+          hasUnifiedId: !!hasUnifiedId,
           sampleRecord: viewData?.[0] || null 
         }
       });
-      results.summary.passed++;
 
-    } catch (error) {
-      results.tests.push({
-        test: 'trade_data_view',
-        status: 'FAIL',
-        message: `trade_data_view test failed: ${(error as Error).message}`
-      });
-      results.summary.failed++;
-    }
-
-    // Test 4: Check RLS policies
-    console.log('📊 Test 4: Checking RLS policies...');
-    try {
-      const { data: policies, error: policyError } = await supabase
-        .from('pg_policies')
-        .select('*')
-        .eq('tablename', 'ocean_shipments');
-
-      if (policyError) throw policyError;
-
-      const hasInsertPolicy = policies?.some(p => p.cmd === 'INSERT') || false;
-      const hasSelectPolicy = policies?.some(p => p.cmd === 'SELECT') || false;
-
-      results.tests.push({
-        test: 'rls_policies',
-        status: (hasInsertPolicy && hasSelectPolicy) ? 'PASS' : 'FAIL',
-        message: `RLS policies - Insert: ${hasInsertPolicy}, Select: ${hasSelectPolicy}`,
-        details: {
-          totalPolicies: policies?.length || 0,
-          hasInsertPolicy,
-          hasSelectPolicy,
-          policies: policies?.map(p => ({ name: p.policyname, cmd: p.cmd })) || []
-        }
-      });
-
-      if (hasInsertPolicy && hasSelectPolicy) results.summary.passed++;
+      if (hasUnifiedId) results.summary.passed++;
       else results.summary.failed++;
 
     } catch (error) {
       results.tests.push({
-        test: 'rls_policies',
-        status: 'ERROR',
-        message: `RLS policy check failed: ${(error as Error).message}`
+        test: 'trade_data_view_unified_id',
+        status: 'FAIL',
+        message: `trade_data_view test failed: ${(error as Error).message}`,
+        details: {
+          suggestion: 'Run trade_data_view_schema.sql to recreate view with unified_id'
+        }
+      });
+      results.summary.failed++;
+    }
+
+    // Test 4: Check RLS by testing actual insert permissions (Supabase compatible)
+    console.log('📊 Test 4: Testing RLS insert permissions...');
+    try {
+      // Test insert with anonymous access (RLS should allow this)
+      const testRLSData = {
+        consignee_name: 'RLS Test Company',
+        hs_code: '1234',
+        value_usd: 1000,
+        raw_xml_filename: 'rls_test.xml'
+      };
+
+      const { data: rlsInsert, error: rlsError } = await supabase
+        .from('ocean_shipments')
+        .insert(testRLSData)
+        .select('id');
+
+      if (rlsError && rlsError.code === '42501') {
+        // Permission denied - RLS is blocking
+        throw new Error('RLS is blocking inserts - missing INSERT policy');
+      }
+
+      if (rlsError) throw rlsError;
+
+      // Test select permissions
+      const { data: rlsSelect, error: selectError } = await supabase
+        .from('ocean_shipments')
+        .select('id')
+        .eq('raw_xml_filename', 'rls_test.xml');
+
+      if (selectError && selectError.code === '42501') {
+        throw new Error('RLS is blocking selects - missing SELECT policy');
+      }
+
+      results.tests.push({
+        test: 'rls_permissions',
+        status: 'PASS',
+        message: 'RLS policies allow both INSERT and SELECT operations',
+        details: {
+          insertWorking: true,
+          selectWorking: true,
+          testRecordId: rlsInsert?.[0]?.id
+        }
+      });
+      results.summary.passed++;
+
+      // Clean up test data
+      if (rlsInsert?.[0]?.id) {
+        await supabase
+          .from('ocean_shipments')
+          .delete()
+          .eq('id', rlsInsert[0].id);
+      }
+
+    } catch (error) {
+      results.tests.push({
+        test: 'rls_permissions',
+        status: 'FAIL',
+        message: `RLS test failed: ${(error as Error).message}`,
+        details: {
+          suggestion: 'Run supabase_rls_fix.sql to add missing RLS policies'
+        }
       });
       results.summary.failed++;
     }

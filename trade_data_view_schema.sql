@@ -9,8 +9,8 @@ DROP VIEW IF EXISTS public.trade_data_view;
 -- Create unified view combining ocean and air shipments
 CREATE OR REPLACE VIEW public.trade_data_view AS
 SELECT 
-  -- Unified identifier
-  'ocean_' || id::text as unified_id,
+  -- Unified identifier (using shipment_id if available, otherwise id)
+  COALESCE('ocean_' || shipment_id::text, 'ocean_' || id::text) as unified_id,
   'ocean' as shipment_type,
   
   -- Company information
@@ -62,8 +62,8 @@ UNION ALL
 
 -- Add airfreight data if table exists
 SELECT 
-  -- Unified identifier  
-  'air_' || id::text as unified_id,
+  -- Unified identifier (using shipment_id if available, otherwise id)
+  COALESCE('air_' || shipment_id::text, 'air_' || id::text) as unified_id,
   'air' as shipment_type,
   
   -- Company information
