@@ -12,6 +12,8 @@ interface TradeIntelligenceRecord {
   destinationCountry: string;
   destinationCity: string;
   destinationPort: string;
+  destinationState?: string;
+  destinationZip?: string;
   containerSize: string;
   containerCount: number;
   weightKg: number;
@@ -46,6 +48,8 @@ const enterpriseTradeData: TradeIntelligenceRecord[] = [
     destinationCountry: 'United States',
     destinationCity: 'Los Angeles',
     destinationPort: 'Los Angeles',
+    destinationState: 'CA',
+    destinationZip: '90802',
     containerSize: '40HC',
     containerCount: 847,
     weightKg: 12450000,
@@ -77,6 +81,8 @@ const enterpriseTradeData: TradeIntelligenceRecord[] = [
     destinationCountry: 'United States',
     destinationCity: 'Fremont',
     destinationPort: 'Oakland',
+    destinationState: 'CA',
+    destinationZip: '94538',
     containerSize: '20GP',
     containerCount: 234,
     weightKg: 5670000,
@@ -108,6 +114,8 @@ const enterpriseTradeData: TradeIntelligenceRecord[] = [
     destinationCountry: 'United States',
     destinationCity: 'Seattle',
     destinationPort: 'Seattle',
+    destinationState: 'WA',
+    destinationZip: '98134',
     containerSize: '40HC',
     containerCount: 1205,
     weightKg: 18900000,
@@ -139,6 +147,8 @@ const enterpriseTradeData: TradeIntelligenceRecord[] = [
     destinationCountry: 'United States',
     destinationCity: 'Portland',
     destinationPort: 'Portland',
+    destinationState: 'OR',
+    destinationZip: '97210',
     containerSize: '40HC',
     containerCount: 456,
     weightKg: 8900000,
@@ -170,6 +180,8 @@ const enterpriseTradeData: TradeIntelligenceRecord[] = [
     destinationCountry: 'United States',
     destinationCity: 'Redmond',
     destinationPort: 'Tacoma',
+    destinationState: 'WA',
+    destinationZip: '98052',
     containerSize: '20GP',
     containerCount: 167,
     weightKg: 4200000,
@@ -201,6 +213,8 @@ const enterpriseTradeData: TradeIntelligenceRecord[] = [
     destinationCountry: 'United States',
     destinationCity: 'Bentonville',
     destinationPort: 'Houston',
+    destinationState: 'TX',
+    destinationZip: '77002',
     containerSize: '40HC',
     containerCount: 892,
     weightKg: 15600000,
@@ -231,6 +245,10 @@ export async function GET(request: NextRequest) {
     const commodity = searchParams.get('commodity')?.toLowerCase() || '';
     const originCountry = searchParams.get('origin_country')?.toLowerCase() || '';
     const destinationCountry = searchParams.get('destination_country')?.toLowerCase() || '';
+    const destinationPort = searchParams.get('destination_port')?.toLowerCase() || '';
+    const destinationCity = searchParams.get('destination_city')?.toLowerCase() || '';
+    const destinationState = searchParams.get('destination_state')?.toLowerCase() || '';
+    const destinationZip = searchParams.get('destination_zip')?.toLowerCase() || '';
     const hsCode = searchParams.get('hs_code') || '';
     const carrier = searchParams.get('carrier')?.toLowerCase() || '';
     const dateFrom = searchParams.get('date_from') || '';
@@ -268,6 +286,30 @@ export async function GET(request: NextRequest) {
         record.destinationCountry.toLowerCase().includes(destinationCountry) ||
         record.destinationCity.toLowerCase().includes(destinationCountry) ||
         record.destinationPort.toLowerCase().includes(destinationCountry)
+      );
+    }
+
+    if (destinationPort) {
+      filteredData = filteredData.filter(record => 
+        record.destinationPort.toLowerCase().includes(destinationPort)
+      );
+    }
+
+    if (destinationCity) {
+      filteredData = filteredData.filter(record => 
+        record.destinationCity.toLowerCase().includes(destinationCity)
+      );
+    }
+
+    if (destinationState) {
+      filteredData = filteredData.filter(record => 
+        record.destinationState?.toLowerCase().includes(destinationState)
+      );
+    }
+
+    if (destinationZip) {
+      filteredData = filteredData.filter(record => 
+        record.destinationZip?.toLowerCase().includes(destinationZip)
       );
     }
 
@@ -320,6 +362,10 @@ export async function GET(request: NextRequest) {
         commodity,
         origin_country: originCountry,
         destination_country: destinationCountry,
+        destination_port: destinationPort,
+        destination_city: destinationCity,
+        destination_state: destinationState,
+        destination_zip: destinationZip,
         hs_code: hsCode,
         carrier,
         date_from: dateFrom,

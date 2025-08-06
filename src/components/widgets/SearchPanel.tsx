@@ -40,6 +40,10 @@ interface SearchFilters {
   commodity: string;
   origin_country: string;
   destination_country: string;
+  destination_port: string;
+  destination_city: string;
+  destination_state: string;
+  destination_zip: string;
   hs_code: string;
   carrier: string;
   date_from: string;
@@ -67,6 +71,10 @@ export default function SearchPanel() {
     commodity: '',
     origin_country: '',
     destination_country: '',
+    destination_port: '',
+    destination_city: '',
+    destination_state: '',
+    destination_zip: '',
     hs_code: '',
     carrier: '',
     date_from: '',
@@ -293,58 +301,127 @@ export default function SearchPanel() {
 
         {/* Advanced Filters */}
         {showAdvancedFilters && (
-          <div className="grid md:grid-cols-5 gap-4 p-4 bg-white rounded-lg border border-gray-200">
+          <div className="space-y-6 p-6 bg-white rounded-lg border border-gray-200">
+            {/* General Filters */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                placeholder="United States..."
-                value={filters.destination_country}
-                onChange={(e) => setFilters({...filters, destination_country: e.target.value})}
-              />
+              <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                General Filters
+              </h4>
+              <div className="grid md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Destination Country</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    placeholder="United States..."
+                    value={filters.destination_country}
+                    onChange={(e) => setFilters({...filters, destination_country: e.target.value})}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">HS Code</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    placeholder="851712..."
+                    value={filters.hs_code}
+                    onChange={(e) => setFilters({...filters, hs_code: e.target.value})}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Carrier</label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    placeholder="Maersk, COSCO..."
+                    value={filters.carrier}
+                    onChange={(e) => setFilters({...filters, carrier: e.target.value})}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Date From</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    value={filters.date_from}
+                    onChange={(e) => setFilters({...filters, date_from: e.target.value})}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Date To</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    value={filters.date_to}
+                    onChange={(e) => setFilters({...filters, date_to: e.target.value})}
+                  />
+                </div>
+              </div>
             </div>
-            
+
+            {/* Destination Location Filters */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">HS Code</label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                placeholder="851712..."
-                value={filters.hs_code}
-                onChange={(e) => setFilters({...filters, hs_code: e.target.value})}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Carrier</label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                placeholder="Maersk, COSCO..."
-                value={filters.carrier}
-                onChange={(e) => setFilters({...filters, carrier: e.target.value})}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date From</label>
-              <input
-                type="date"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                value={filters.date_from}
-                onChange={(e) => setFilters({...filters, date_from: e.target.value})}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date To</label>
-              <input
-                type="date"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                value={filters.date_to}
-                onChange={(e) => setFilters({...filters, date_to: e.target.value})}
-              />
+              <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Refine by Destination Location
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Destination Port</label>
+                  <input
+                    type="text"
+                    name="destinationPort"
+                    placeholder="Port of Los Angeles, Savannah"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    value={filters.destination_port}
+                    onChange={(e) => setFilters({...filters, destination_port: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Destination City</label>
+                  <input
+                    type="text"
+                    name="destinationCity"
+                    placeholder="Los Angeles, New York"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    value={filters.destination_city}
+                    onChange={(e) => setFilters({...filters, destination_city: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Destination State</label>
+                  <input
+                    type="text"
+                    name="destinationState"
+                    placeholder="CA, NY, TX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    value={filters.destination_state}
+                    onChange={(e) => setFilters({...filters, destination_state: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Destination Zip Code</label>
+                  <input
+                    type="text"
+                    name="destinationZip"
+                    placeholder="90210, 10001"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    value={filters.destination_zip}
+                    onChange={(e) => setFilters({...filters, destination_zip: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-gray-500 bg-blue-50 p-3 rounded-md border-l-4 border-blue-400">
+                <strong>💡 Pro Tip:</strong> Use destination filters to identify import patterns by specific regions, ports, or zip codes. Perfect for territory analysis and market penetration strategies.
+              </div>
             </div>
           </div>
         )}
