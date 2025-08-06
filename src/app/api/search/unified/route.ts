@@ -39,6 +39,12 @@ interface CensusTradeRecord {
   COUNTRY: string;
   TRANSPORT_MODE: string; // 20 = Ocean, 40 = Air
   CUSTOMS_DISTRICT?: string;
+  consignee_name?: string;
+  shipper_name?: string;
+  consignee_zip?: string;
+  port_of_origin?: string;
+  port_of_arrival?: string;
+  confidence_score?: number;
   time: string;
 }
 
@@ -152,7 +158,7 @@ async function searchRealOceanData(filters: UnifiedSearchFilters) {
         hs_code: record.COMMODITY,
         commodity_name: record.COMMODITY_NAME,
         country: record.COUNTRY,
-        consignee_name: record.CONSIGNEE_NAME,
+        consignee_name: record.consignee_name,
         consignee_zip: record.consignee_zip,
         port_of_origin: record.port_of_origin,
         port_of_arrival: record.port_of_arrival,
@@ -275,8 +281,13 @@ async function fetchCensusData(filters: UnifiedSearchFilters, transportMode: str
       STATE: record.state,
       COUNTRY: record.country,
       TRANSPORT_MODE: record.transport_mode,
-      CONSIGNEE_NAME: record.consignee_name, // Real company name from XML data
       CUSTOMS_DISTRICT: record.customs_district,
+      consignee_name: record.consignee_name, // Real company name from XML data
+      shipper_name: record.shipper_name,
+      consignee_zip: record.consignee_zip,
+      port_of_origin: record.port_of_origin,
+      port_of_arrival: record.port_of_arrival,
+      confidence_score: record.confidence_score,
       time: `${record.year}-${String(record.month).padStart(2, '0')}`
     }));
 
@@ -336,7 +347,7 @@ async function matchAirData(censusData: CensusTradeRecord[], btsData: BTSRecord[
       hs_code: censusRecord.COMMODITY,
       commodity_name: censusRecord.COMMODITY_NAME,
       country: censusRecord.COUNTRY,
-      consignee_name: censusRecord.CONSIGNEE_NAME,
+      consignee_name: censusRecord.consignee_name,
       consignee_zip: censusRecord.consignee_zip,
       port_of_origin: censusRecord.port_of_origin,
       port_of_arrival: censusRecord.port_of_arrival,
@@ -394,82 +405,7 @@ async function matchAirData(censusData: CensusTradeRecord[], btsData: BTSRecord[
 
 // Removed: All mock data generation - system now uses real data only
 
-function inferCompanyFromCommodity(hsCode: string, commodityName?: string, country?: string): string {
-  // Enhanced company mapping based on HS code, commodity, and country
-  const companyMapping: Record<string, Record<string, string[]>> = {
-    '8471600000': { // Computer processing units
-      'South Korea': ['Samsung Electronics', 'LG Electronics'],
-      'China': ['Lenovo', 'Huawei Technologies'],
-      'Japan': ['Sony Corporation', 'Toshiba'],
-      'Taiwan': ['ASUS', 'Acer'],
-      'default': ['HP Inc', 'Dell Technologies']
-    },
-    '8528720000': { // LCD monitors and displays  
-      'South Korea': ['Samsung Electronics', 'LG Electronics'],
-      'China': ['TCL Corporation', 'Hisense'],
-      'Japan': ['Sony Electronics', 'Sharp Corporation'],
-      'Taiwan': ['AU Optronics', 'Innolux'],
-      'default': ['Dell Technologies', 'HP Inc']
-    },
-    '8518300000': { // Audio equipment and headphones
-      'Japan': ['Sony Electronics', 'Audio-Technica'],
-      'Germany': ['Sennheiser', 'Beyerdynamic'],
-      'China': ['Xiaomi Corporation', 'OnePlus'],
-      'Denmark': ['Bang & Olufsen'],
-      'default': ['Bose Corporation', 'Beats Electronics']
-    },
-    '8471700000': { // Computer storage units
-      'South Korea': ['Samsung Electronics'],
-      'Japan': ['Toshiba', 'Sony'],
-      'China': ['Lenovo'],
-      'Singapore': ['Seagate Technology'],
-      'default': ['Western Digital', 'Seagate Technology']
-    },
-    '9018390000': { // Medical instruments
-      'Germany': ['Siemens Healthineers', 'B. Braun'],
-      'United States': ['Medtronic', 'Abbott Laboratories'],
-      'Switzerland': ['Roche Diagnostics'],
-      'Japan': ['Olympus Corporation'],
-      'default': ['Johnson & Johnson', 'Medtronic']
-    }
-  };
-
-  const countryMapping = companyMapping[hsCode];
-  if (countryMapping) {
-    const companies = countryMapping[country || 'default'] || countryMapping['default'];
-    if (companies && companies.length > 0) {
-      // Use a deterministic selection based on the HS code for consistency
-      const index = parseInt(hsCode.slice(-2)) % companies.length;
-      return companies[index];
-    }
-  }
-
-  // Enhanced fallback based on commodity name patterns and country
-  if (country === 'South Korea' && (commodityName?.toLowerCase().includes('electronic') || commodityName?.toLowerCase().includes('display'))) {
-    return hsCode.endsWith('00') ? 'Samsung Electronics' : 'LG Electronics';
-  }
-  
-  if (country === 'Japan' && commodityName?.toLowerCase().includes('electronic')) {
-    return 'Sony Electronics';
-  }
-  
-  if (country === 'China' && commodityName?.toLowerCase().includes('computer')) {
-    return 'Lenovo';
-  }
-
-  // Generic fallbacks
-  if (commodityName?.toLowerCase().includes('electronic')) {
-    return 'Electronics Manufacturer';
-  }
-  if (commodityName?.toLowerCase().includes('medical')) {
-    return 'Medical Equipment Supplier';
-  }
-  if (commodityName?.toLowerCase().includes('computer')) {
-    return 'Technology Company';
-  }
-
-  return `${country} Trade Company`;
-}
+// Removed: Old inference function replaced by production-grade ConfidenceEngine
 
 function getAirportCity(airportCode: string): string {
   const airportMap: Record<string, string> = {
