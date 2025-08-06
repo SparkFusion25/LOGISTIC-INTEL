@@ -195,7 +195,7 @@ async function fetchCensusData(filters: UnifiedSearchFilters, transportMode: str
   try {
     // First try to get data from our cached Census data
     let query = supabase
-      .from('combined_trade_intelligence')
+      .from('census_trade_data')
       .select('*')
       .eq('transport_mode', transportMode)
       .order('value_usd', { ascending: false })
@@ -203,7 +203,9 @@ async function fetchCensusData(filters: UnifiedSearchFilters, transportMode: str
 
     // Apply filters
     if (filters.company) {
-      query = query.ilike('inferred_company', `%${filters.company}%`);
+      // Since we don't have a direct company field, we'll filter by commodity patterns
+      // This is a simplified approach - in production you'd have better company matching
+      query = query.or(`commodity_name.ilike.%${filters.company}%,commodity.ilike.%${filters.company}%`);
     }
     if (filters.hs_code) {
       query = query.eq('commodity', filters.hs_code);
@@ -229,7 +231,7 @@ async function fetchCensusData(filters: UnifiedSearchFilters, transportMode: str
     }
 
     if (!data || data.length === 0) {
-      console.log('No cached Census data found, trying API...');
+      console.log('No cached Census data found, using fallback...');
       return await fetchFromCensusAPI(transportMode, filters);
     }
 

@@ -167,10 +167,8 @@ export default function SearchPanel() {
 
   useEffect(() => {
     // Update search when mode changes
-    if (currentMode !== filters.mode) {
-      setFilters(prev => ({ ...prev, mode: currentMode }));
-      handleSearch();
-    }
+    setFilters(prev => ({ ...prev, mode: currentMode }));
+    handleSearch();
   }, [currentMode]);
 
   const handleModeChange = (mode: SearchMode) => {
