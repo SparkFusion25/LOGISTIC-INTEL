@@ -65,12 +65,13 @@ export async function GET(request: NextRequest) {
       destinationCity, commodity, hsCode, startDate, endDate, limit
     });
 
-    // First, let's try to query ocean_shipments directly since trade_data_view might be broken
+    // Build dynamic query for trade_data_view (fixed with correct columns)
     let query = supabase
-      .from('ocean_shipments')
+      .from('trade_data_view')
       .select(`
-        id,
+        unified_id,
         company_name,
+        shipment_type,
         arrival_date,
         departure_date,
         vessel_name,
@@ -86,7 +87,7 @@ export async function GET(request: NextRequest) {
         origin_country,
         destination_city,
         hs_code,
-        description
+        goods_description
       `);
 
     // Apply filters
@@ -94,8 +95,9 @@ export async function GET(request: NextRequest) {
       query = query.ilike('company_name', `%${company}%`);
     }
 
-    // Skip mode filter for now since we're only querying ocean_shipments
-    // We'll add air shipments later if needed
+    if (mode !== 'all') {
+      query = query.eq('shipment_type', mode);
+    }
 
     if (originCountry) {
       query = query.ilike('origin_country', `%${originCountry}%`);
@@ -110,7 +112,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (commodity) {
-      query = query.ilike('description', `%${commodity}%`);
+      query = query.ilike('goods_description', `%${commodity}%`);
     }
 
     if (hsCode) {
@@ -171,7 +173,7 @@ export async function GET(request: NextRequest) {
 
       const group = companyGroups.get(companyName)!;
       group.shipments.push(record);
-      group.shipment_modes.add('ocean'); // Since we're querying ocean_shipments
+      group.shipment_modes.add(record.shipment_type);
       group.total_weight += record.gross_weight_kg || 0;
       group.total_value += record.value_usd || 0;
       if (record.arrival_date) {
@@ -185,8 +187,13 @@ export async function GET(request: NextRequest) {
         // Sort arrival dates
         const sortedDates = group.arrival_dates.sort();
         
-        // For now, all are ocean since we're only querying ocean_shipments
-        const shipment_mode: 'ocean' | 'air' | 'mixed' = 'ocean';
+        // Determine shipment mode
+        let shipment_mode: 'ocean' | 'air' | 'mixed' = 'ocean';
+        if (group.shipment_modes.has('air') && group.shipment_modes.has('ocean')) {
+          shipment_mode = 'mixed';
+        } else if (group.shipment_modes.has('air')) {
+          shipment_mode = 'air';
+        }
 
         // Calculate confidence score (basic algorithm)
         const confidenceScore = Math.min(100, Math.max(10, 
@@ -208,10 +215,10 @@ export async function GET(request: NextRequest) {
           shipper_name: s.shipper_name,
           port_of_lading: s.port_of_loading,
           port_of_discharge: s.port_of_discharge,
-          goods_description: s.description,
+          goods_description: s.goods_description,
           departure_date: s.departure_date,
           hs_code: s.hs_code,
-          unified_id: s.id || s.unified_id
+          unified_id: s.unified_id
         }));
 
         return {
