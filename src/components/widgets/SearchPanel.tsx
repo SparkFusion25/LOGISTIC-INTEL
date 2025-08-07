@@ -41,11 +41,18 @@ interface UnifiedTradeRecord {
   // Shipment details
   bol_number?: string;
   vessel_name?: string;
+  shipper_name?: string;
+  consignee_name?: string;
   origin_country?: string;
   destination_country?: string;
   destination_city?: string;
   departure_date?: string;
   arrival_date?: string;
+  port_of_loading?: string;
+  port_of_discharge?: string;
+  container_count?: number;
+  container_type?: string;
+  gross_weight_kg?: number;
   // Contact information
   primary_email?: string;
   primary_phone?: string;
