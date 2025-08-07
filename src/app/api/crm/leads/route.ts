@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { getTierLimits } from '@/lib/subscription'
 
 // Create Supabase client
 const supabase = createClient(
@@ -21,6 +24,13 @@ interface CRMLead {
 
 export async function GET(request: NextRequest) {
   try {
+    const browser = createRouteHandlerClient({ cookies })
+    const { data: { user } } = await browser.auth.getUser()
+    const userId = user?.id || null
+    const plan = (user as any)?.user_metadata?.plan || (user as any)?.app_metadata?.plan || 'starter'
+    const isAdmin = (user as any)?.user_metadata?.role === 'admin' || (user as any)?.app_metadata?.role === 'admin'
+    const limits = getTierLimits(plan, isAdmin)
+
     const { searchParams } = new URL(request.url);
     const company = searchParams.get('company') || '';
     const full_name = searchParams.get('name') || '';
@@ -50,10 +60,28 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
 
+    // Usage counters for tier UI
+    let usageCount = 0
+    if (userId) {
+      const { count } = await supabase
+        .from('contacts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+      usageCount = count || 0
+    }
+
+    const maxContacts = limits.crmMaxContacts
+    const limitReached = maxContacts !== null && usageCount >= maxContacts
+
     return NextResponse.json({ 
       success: true, 
       leads: contacts || [],
-      total_count: contacts?.length || 0 
+      total_count: contacts?.length || 0,
+      limits: {
+        crm_max_contacts: maxContacts,
+        used_contacts: usageCount,
+        limit_reached: limitReached
+      }
     });
 
   } catch (error) {
@@ -69,11 +97,32 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const browser = createRouteHandlerClient({ cookies })
+    const { data: { user } } = await browser.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+    const plan = (user as any)?.user_metadata?.plan || (user as any)?.app_metadata?.plan || 'starter'
+    const isAdmin = (user as any)?.user_metadata?.role === 'admin' || (user as any)?.app_metadata?.role === 'admin'
+    const limits = getTierLimits(plan, isAdmin)
+
+    // Enforce CRM contacts limit
+    if (!isAdmin && limits.crmMaxContacts !== null) {
+      const { count } = await supabase
+        .from('contacts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+      if ((count || 0) >= limits.crmMaxContacts) {
+        return NextResponse.json({ success: false, error: 'CRM contact limit reached' }, { status: 403 })
+      }
+    }
+
     const leadData = await request.json();
     
     const { data, error } = await supabase
       .from('contacts')
       .insert({
+        user_id: user.id,
         full_name: leadData.name || leadData.full_name || '',
         title: leadData.title || '',
         company: leadData.company || '',
