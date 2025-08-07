@@ -58,11 +58,14 @@ export async function GET(request: NextRequest) {
     const hsCode = searchParams.get('hsCode') || '';
     const startDate = searchParams.get('startDate') || '';
     const endDate = searchParams.get('endDate') || '';
+    const portOfLoading = searchParams.get('portOfLoading') || '';
+    const portOfDischarge = searchParams.get('portOfDischarge') || '';
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 
     console.log('Search filters:', {
       mode, company, originCountry, destinationCountry, 
-      destinationCity, commodity, hsCode, startDate, endDate, limit
+      destinationCity, commodity, hsCode, startDate, endDate, 
+      portOfLoading, portOfDischarge, limit
     });
 
     // Build dynamic query for trade_data_view (fixed with correct columns)
@@ -127,6 +130,14 @@ export async function GET(request: NextRequest) {
       query = query.lte('arrival_date', endDate);
     }
 
+    if (portOfLoading) {
+      query = query.ilike('port_of_loading', `%${portOfLoading}%`);
+    }
+
+    if (portOfDischarge) {
+      query = query.ilike('port_of_discharge', `%${portOfDischarge}%`);
+    }
+
     // Execute query with limit
     const { data: rawData, error } = await query
       .order('arrival_date', { ascending: false })
@@ -145,7 +156,7 @@ export async function GET(request: NextRequest) {
         message: 'No shipments found matching your criteria',
         data: [],
         total_records: 0,
-        search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode }
+        search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode, portOfLoading, portOfDischarge }
       });
     }
 
@@ -246,7 +257,7 @@ export async function GET(request: NextRequest) {
       data: groupedData,
       total_companies: groupedData.length,
       total_shipments: rawData.length,
-      search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode },
+      search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode, portOfLoading, portOfDischarge },
       note: "Contact details are gated - add company to CRM to unlock"
     });
 
