@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Eye, EyeOff, AlertCircle, CheckCircle, Mail } from 'lucide-react'
 import Logo from '@/components/ui/Logo'
 
 export default function SignUp() {
@@ -17,8 +18,10 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const supabase = createClientComponentClient()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -31,6 +34,7 @@ export default function SignUp() {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess('')
 
     // Basic validation
     if (formData.password !== formData.confirmPassword) {
@@ -43,18 +47,87 @@ export default function SignUp() {
       setLoading(false)
       return
     }
+    if (!formData.email || !formData.firstName || !formData.lastName) {
+      setError('Please fill in all required fields')
+      setLoading(false)
+      return
+    }
 
     try {
-      // Mock signup process - in real app, this would call an API
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
+      // Sign up with Supabase
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            full_name: `${formData.firstName} ${formData.lastName}`,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            company: formData.company,
+            plan: 'free',
+            role: 'user'
+          }
+        }
+      })
 
-      // Redirect to login with success message
-      router.push('/login?message=Account created successfully! Please sign in.')
-    } catch (error) {
+      if (signUpError) {
+        throw signUpError
+      }
+
+      if (data.user && !data.session) {
+        // Email confirmation required
+        setSuccess('Account created! Please check your email for a verification link.')
+        
+        // For the test admin user, also show alternative instructions
+        if (formData.email === 'info@getb3acon.com') {
+          setSuccess(
+            'Account created! Please check your email for verification. ' +
+            'If no email arrives, you can proceed to run the admin setup SQL script in Supabase.'
+          )
+        }
+      } else if (data.session) {
+        // Auto-confirmed, redirect to dashboard
+        router.push('/dashboard')
+      }
+    } catch (error: any) {
       console.error('Signup error:', error)
-      setError('An error occurred during signup. Please try again.')
+      
+      if (error.message?.includes('already registered')) {
+        setError('An account with this email already exists. Please sign in instead.')
+      } else if (error.message?.includes('email')) {
+        setError('Please enter a valid email address.')
+      } else if (error.message?.includes('password')) {
+        setError('Password is too weak. Please use at least 6 characters.')
+      } else {
+        setError(error.message || 'An error occurred during signup. Please try again.')
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Skip email verification for test admin (development only)
+  const handleSkipVerification = async () => {
+    if (formData.email === 'info@getb3acon.com') {
+      try {
+        setLoading(true)
+        // Try to sign in directly (in case email verification is disabled)
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        })
+        
+        if (error) {
+          setError('Account created but needs verification. Please check email or contact admin.')
+        } else {
+          router.push('/dashboard')
+        }
+      } catch (error) {
+        setError('Please check your email for verification or contact admin.')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -71,6 +144,34 @@ export default function SignUp() {
             <p className="text-gray-600">Join thousands of logistics professionals</p>
           </div>
 
+          {/* Success Message */}
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <Mail className="w-5 h-5 text-green-600 mt-0.5" />
+                <div>
+                  <p className="text-sm text-green-700 font-medium">Check Your Email</p>
+                  <p className="text-sm text-green-600 mt-1">{success}</p>
+                  
+                  {formData.email === 'info@getb3acon.com' && (
+                    <div className="mt-3 space-y-2">
+                      <button
+                        onClick={handleSkipVerification}
+                        disabled={loading}
+                        className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50"
+                      >
+                        Skip Verification (Test Admin)
+                      </button>
+                      <p className="text-xs text-green-600">
+                        Alternative: Run the admin setup SQL script in Supabase
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -81,198 +182,167 @@ export default function SignUp() {
             </div>
           )}
 
-          {/* Demo Notice */}
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="text-sm font-semibold text-amber-800">Demo Mode</h4>
-                <p className="text-xs text-amber-700 mt-1">
-                  This is a demo signup form. For immediate access, use the demo credentials on the{' '}
-                  <a href="/login" className="underline font-medium">login page</a>.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Signup Form */}
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            {/* Name Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
+                  First Name *
                 </label>
                 <input
+                  type="text"
                   id="firstName"
                   name="firstName"
-                  type="text"
-                  required
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="John"
                 />
               </div>
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
+                  Last Name *
                 </label>
                 <input
+                  type="text"
                   id="lastName"
                   name="lastName"
-                  type="text"
-                  required
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Smith"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Doe"
                 />
               </div>
             </div>
 
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Email Address *
               </label>
               <input
+                type="email"
                 id="email"
                 name="email"
-                type="email"
-                required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 placeholder="john@company.com"
               />
             </div>
 
+            {/* Company */}
             <div>
               <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
                 Company
               </label>
               <input
+                type="text"
                 id="company"
                 name="company"
-                type="text"
-                required
                 value={formData.company}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Your company name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                placeholder="Your Company Name"
               />
             </div>
 
+            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Password *
               </label>
               <div className="relative">
                 <input
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
-                  placeholder="Create a secure password"
+                  required
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Create a strong password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
+            {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
+                Confirm Password *
               </label>
               <div className="relative">
                 <input
+                  type={showConfirmPassword ? 'text' : 'password'}
                   id="confirmPassword"
                   name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
+                  required
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Confirm your password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
-                  )}
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
-                I agree to the{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-500">
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-500">
-                  Privacy Policy
-                </a>
-              </label>
-            </div>
-
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Creating Account...
-                </>
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Creating account...</span>
+                </div>
               ) : (
                 'Create Account'
               )}
             </button>
-          </form>
 
-          {/* Footer Links */}
-          <div className="mt-8 text-center">
-            <div className="text-sm">
-              <span className="text-gray-600">Already have an account? </span>
-              <a href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                Sign in
-              </a>
+            {/* Sign In Link */}
+            <div className="text-center pt-4">
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                  Sign in
+                </a>
+              </p>
+            </div>
+          </form>
+        </div>
+
+        {/* Test Admin Instructions */}
+        {formData.email === 'info@getb3acon.com' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-yellow-800 mb-2">Test Admin Setup</h3>
+            <div className="text-xs text-yellow-700 space-y-1">
+              <p>1. Create account with the form above</p>
+              <p>2. Check email for verification (or skip for testing)</p>
+              <p>3. Run admin setup SQL in Supabase SQL Editor</p>
+              <p>4. Visit /test-admin to verify permissions</p>
             </div>
           </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="text-center">
-          <p className="text-xs text-gray-500">
-            By creating an account, you'll get access to comprehensive trade intelligence tools.
-          </p>
-        </div>
+        )}
       </div>
     </div>
   )
