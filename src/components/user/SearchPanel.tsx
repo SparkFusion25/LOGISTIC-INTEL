@@ -15,6 +15,8 @@ interface SearchFilters {
   startDate?: string
   endDate?: string
   mode?: 'all' | 'ocean' | 'air'
+  portOfLoading?: string
+  portOfDischarge?: string
 }
 
 interface ShipmentDetail {
@@ -65,7 +67,9 @@ export default function SearchPanel() {
     hsCode: '',
     startDate: '',
     endDate: '',
-    mode: 'all'
+    mode: 'all',
+    portOfLoading: '',
+    portOfDischarge: ''
   })
   
   const [companies, setCompanies] = useState<GroupedCompanyData[]>([])
@@ -97,11 +101,7 @@ export default function SearchPanel() {
   }, [])
 
   const handleSearch = async () => {
-    if (!hasSearched && !filters.company && !filters.originCountry && !filters.commodity) {
-      setError('Please enter at least one search criteria')
-      return
-    }
-
+    // Remove the restrictive validation - allow any search or default results
     setLoading(true)
     setError(null)
     setHasSearched(true)
@@ -109,6 +109,7 @@ export default function SearchPanel() {
     try {
       const searchParams = new URLSearchParams()
       
+      // Add all filters that have values
       Object.entries(filters).forEach(([key, value]) => {
         if (value && value.trim()) {
           searchParams.append(key, value.trim())
@@ -135,6 +136,13 @@ export default function SearchPanel() {
       setLoading(false)
     }
   }
+
+  // Auto-load default results on component mount
+  useEffect(() => {
+    if (!hasSearched) {
+      handleSearch()
+    }
+  }, [])
 
   const handleAddToCRM = async (company: GroupedCompanyData) => {
     setAddingToCRM(company.company_name)
@@ -206,7 +214,9 @@ export default function SearchPanel() {
       hsCode: '',
       startDate: '',
       endDate: '',
-      mode: 'all'
+      mode: 'all',
+      portOfLoading: '',
+      portOfDischarge: ''
     })
     setCompanies([])
     setHasSearched(false)
@@ -219,7 +229,7 @@ export default function SearchPanel() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Trade Intelligence Search</h1>
         <p className="text-gray-600">
-          Search global trade data to discover companies, shipment patterns, and market opportunities.
+          Search by company name, city, country, commodity, ports, or any combination. All fields are optional.
         </p>
       </div>
 
@@ -351,6 +361,32 @@ export default function SearchPanel() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Port of Loading
+              </label>
+              <input
+                type="text"
+                value={filters.portOfLoading || ''}
+                onChange={(e) => handleFilterChange('portOfLoading', e.target.value)}
+                placeholder="e.g., Shanghai, Long Beach"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Port of Discharge
+              </label>
+              <input
+                type="text"
+                value={filters.portOfDischarge || ''}
+                onChange={(e) => handleFilterChange('portOfDischarge', e.target.value)}
+                placeholder="e.g., Los Angeles, Hamburg"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
           </div>
         )}
 
@@ -375,6 +411,16 @@ export default function SearchPanel() {
           </button>
 
           <button
+            onClick={() => {
+              clearFilters()
+              setTimeout(handleSearch, 100) // Small delay to let filters clear
+            }}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Show All
+          </button>
+
+          <button
             onClick={clearFilters}
             className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
@@ -393,29 +439,16 @@ export default function SearchPanel() {
         </div>
       )}
 
-      {/* Welcome Message - Before Search */}
-      {!hasSearched && (
+      {/* Loading State */}
+      {loading && !hasSearched && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-          <h2 className="text-xl font-semibold text-blue-900 mb-2">
-            Global Trade Intelligence Search
-          </h2>
-          <p className="text-blue-700 mb-4">
-            Search and analyze global trade data to discover new business opportunities
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-600">
-            <div className="flex items-center justify-center gap-2">
-              <Ship className="w-4 h-4" />
-              Ocean & Air Shipments
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <Building className="w-4 h-4" />
-              Company Intelligence
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Trade Trends
-            </div>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-blue-700 font-medium">Loading trade data...</span>
           </div>
+          <p className="text-blue-600 text-sm">
+            Searching global shipment records to find companies and opportunities
+          </p>
         </div>
       )}
 
