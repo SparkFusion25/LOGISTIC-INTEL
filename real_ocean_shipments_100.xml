@@ -1,0 +1,2003 @@
+<?xml version="1.0" ?>
+<OceanShipments>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0001</ShipmentID>
+    <BolNumber>TJIFMC000023</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Asen Prefab House Co., Ltd.</Shipper>
+    <ShipperCountry>China</ShipperCountry>
+    <Consignee>Utilitymate Mfg.</Consignee>
+    <ConsigneeCity>Grants Pass</ConsigneeCity>
+    <ConsigneeState>Oregon</ConsigneeState>
+    <ConsigneeZip>97526</ConsigneeZip>
+    <ConsigneeCountry>Port of Portland, Portland, Oregon</ConsigneeCountry>
+    <GoodsDescription>PREFABRICATED HOUSE (L)5900MM X (W)700MM X(H) 2480MM</GoodsDescription>
+    <WeightKG>13410.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Busan, South Korea</PortOfLading>
+    <PortOfUnlading>Port of Seattle, Seattle, Washington</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>APL CHONGQING</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0002</ShipmentID>
+    <BolNumber>SHPT82199494</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Lactalis Investissements</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Lactalis Usa</Consignee>
+    <ConsigneeCity>Belmont</ConsigneeCity>
+    <ConsigneeState>Wisconsin</ConsigneeState>
+    <ConsigneeZip>53510</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>PACKAGES SLAC 400 BLOCKMOULD 147 - IN 3X4 BLUE COLOR 88 MAT 642X499 WITH 4 CHAMFERS - PARMA COLOR 21 MAT 642X499 WITH 4 CHAMFERS - NATURAL COLOR INCOTERM: DAP BELMONT HS: 392690 SCAC SHPT HBL 82199494</GoodsDescription>
+    <WeightKG>1188.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0003</ShipmentID>
+    <BolNumber>TWUD132250893600</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>La Chanvriere</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Chanvra Materials</Consignee>
+    <ConsigneeCity>Charleston</ConsigneeCity>
+    <ConsigneeState>South Carolina</ConsigneeState>
+    <ConsigneeZip>29492</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Louisville, Louisville, Kentucky</ConsigneeCountry>
+    <GoodsDescription>700 PACKAGES TRUE HEMP HS CODE 530290 ORDER 420KY2</GoodsDescription>
+    <WeightKG>14420.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0004</ShipmentID>
+    <BolNumber>BALG62ME25620932</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Societe Marrel</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Marrel Corp.</Consignee>
+    <ConsigneeCity>Rockford</ConsigneeCity>
+    <ConsigneeState>Michigan</ConsigneeState>
+    <ConsigneeZip>49341</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>HOOKLIFT</GoodsDescription>
+    <WeightKG>10375.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0005</ShipmentID>
+    <BolNumber>BALG925112251</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Champagne Roland Champion</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>R. CHAMPION, CHAMPAGNELESPARTELAINES-</GoodsDescription>
+    <WeightKG>170.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0006</ShipmentID>
+    <BolNumber>BALG925112252</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Chateau De Segries</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>CH. SEGRIES, LIRAC BLANC, CUVEE RESERV</GoodsDescription>
+    <WeightKG>160.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0007</ShipmentID>
+    <BolNumber>BALG925112253</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Confrerie Des Domaines</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>CABRIERES, CDP BLANC, CONFIDENTIEL</GoodsDescription>
+    <WeightKG>310.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0008</ShipmentID>
+    <BolNumber>BALG925112254</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Domaine Tinel Blondelet</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>TINEL BLONDELET, POUILLY-FUME, GENE</GoodsDescription>
+    <WeightKG>680.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0009</ShipmentID>
+    <BolNumber>BALG925112255</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Jean Reverdy Et Fils</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>REVERDY(JEAN), SANCERRE BLANC-2024 1</GoodsDescription>
+    <WeightKG>8500.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0010</ShipmentID>
+    <BolNumber>BALG925112256</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Savdvf</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>CHAUME, BOURGOGNE BLANC - 2023-12 7 CHAUME, CHABLIS - 2023 - 12X750</GoodsDescription>
+    <WeightKG>6255.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0011</ShipmentID>
+    <BolNumber>BALG925112257</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Wolfberger</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WOLFBERGER, CREMANT D ALSACE, ROSE</GoodsDescription>
+    <WeightKG>3940.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0012</ShipmentID>
+    <BolNumber>BWSS11547258</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Freiberger Lebensmittel Gmb H &amp; Co.</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Freiberger Usa Inc.</Consignee>
+    <ConsigneeCity>Morris Plains</ConsigneeCity>
+    <ConsigneeState>New Jersey</ConsigneeState>
+    <ConsigneeZip>07950</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>PIZZA</GoodsDescription>
+    <WeightKG>11934.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0013</ShipmentID>
+    <BolNumber>BWSS11536090</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Freiberger Lebensmittel Gmb H &amp; Co.</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Freiberger Usa Inc.</Consignee>
+    <ConsigneeCity>Morris Plains</ConsigneeCity>
+    <ConsigneeState>New Jersey</ConsigneeState>
+    <ConsigneeZip>07950</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>THIN CRUST PIZZA</GoodsDescription>
+    <WeightKG>12082.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0014</ShipmentID>
+    <BolNumber>SHPT29381974</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Witte Automotive Bulgaria Eood</Shipper>
+    <ShipperCountry>Bulgaria</ShipperCountry>
+    <Consignee>Valeo North America Dba Front End</Consignee>
+    <ConsigneeCity>N/A</ConsigneeCity>
+    <ConsigneeState>N/A</ConsigneeState>
+    <ConsigneeZip>N/A</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>AUTO PARTS FIXING ELEMENTS 69746503 - 64 CARTONS ON 1 PALLET ARTICLE T247732-D: 28 160 PCS HS CODE: 731819</GoodsDescription>
+    <WeightKG>585.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0015</ShipmentID>
+    <BolNumber>BALG62ME25620903</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Societe Nouvelle Yabon Verneuil</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Epicerie De France Corp.</Consignee>
+    <ConsigneeCity>Miami</ConsigneeCity>
+    <ConsigneeState>Florida</ConsigneeState>
+    <ConsigneeZip>33138</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>FOODSTUFFS (READY TO SERVE QUINOA B</GoodsDescription>
+    <WeightKG>17976.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0016</ShipmentID>
+    <BolNumber>BALG62ME25621394</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Balguerie Blagnac</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Epicerie De France Corp.</Consignee>
+    <ConsigneeCity>Miami</ConsigneeCity>
+    <ConsigneeState>Florida</ConsigneeState>
+    <ConsigneeZip>33138</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>FOODSTUFFS (READY TO SERVE JASMIN</GoodsDescription>
+    <WeightKG>17976.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0017</ShipmentID>
+    <BolNumber>BALG925620208</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Cook Inov</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Epicerie De France Corp.</Consignee>
+    <ConsigneeCity>Miami</ConsigneeCity>
+    <ConsigneeState>Florida</ConsigneeState>
+    <ConsigneeZip>33138</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>FOODSTUUFS (QUINOA BROWN RICE)</GoodsDescription>
+    <WeightKG>9020.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0018</ShipmentID>
+    <BolNumber>BALG925620209</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Societe Nouvelle Yabon Verneuil</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Epicerie De France Corp.</Consignee>
+    <ConsigneeCity>Miami</ConsigneeCity>
+    <ConsigneeState>Florida</ConsigneeState>
+    <ConsigneeZip>33138</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>FOODSTUFFS (JASMIN RICE)</GoodsDescription>
+    <WeightKG>8988.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0019</ShipmentID>
+    <BolNumber>MEWDFR25006671</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Hydroleduc</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Force America Inc.</Consignee>
+    <ConsigneeCity>Savage</ConsigneeCity>
+    <ConsigneeState>Minnesota</ConsigneeState>
+    <ConsigneeZip>55378</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>HYDRO COMPONENT</GoodsDescription>
+    <WeightKG>2858.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0020</ShipmentID>
+    <BolNumber>GOAG2325070007</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Fsm Frankenberger Gmb H &amp; Co. Kg</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Saveco North America</Consignee>
+    <ConsigneeCity>Gurnee</ConsigneeCity>
+    <ConsigneeState>Illinois</ConsigneeState>
+    <ConsigneeZip>60031</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>FILTERSCREENS, BRUSH COVERS FROM FILTERSCREEN SCREENING WASHING PRESS, SET SPARE PARTS, SHARE OF SET SPARE PARTS, SHAFT SEALING AND NAMEPLATE HS CODE: 84212100, 84741000 84219990, 84749090, 83100000 FREIGHT PREPAID UP TO GURNEE, EXPRESS RELEASE</GoodsDescription>
+    <WeightKG>5898.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0021</ShipmentID>
+    <BolNumber>QLNDAO99556AO1</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Kayser Berndorf Ag</Shipper>
+    <ShipperCountry>Austria</ShipperCountry>
+    <Consignee>Waterline Marketing Co. (Wlm)</Consignee>
+    <ConsigneeCity>Kansas City</ConsigneeCity>
+    <ConsigneeState>Kansas</ConsigneeState>
+    <ConsigneeZip>66105</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Kansas City, Kansas City, Missouri</ConsigneeCountry>
+    <GoodsDescription>CREAM CHARGER</GoodsDescription>
+    <WeightKG>20739.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0022</ShipmentID>
+    <BolNumber>AWSLAWSL294330</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Viastore System Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>General Motors Llc Orion Assembly P</Consignee>
+    <ConsigneeCity>N/A</ConsigneeCity>
+    <ConsigneeState>N/A</ConsigneeState>
+    <ConsigneeZip>N/A</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>LIFT CARRIAGE COMPLETE FOR THE STORAGE AND RETRIEVAL MACHINE VIAPAL HS CODE: 84313900</GoodsDescription>
+    <WeightKG>2564.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0023</ShipmentID>
+    <BolNumber>ALRB250713180021</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Kirsch Pharma Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Universal Preserv A Chem Inc.</Consignee>
+    <ConsigneeCity>Mebane</ConsigneeCity>
+    <ConsigneeState>North Carolina</ConsigneeState>
+    <ConsigneeZip>27302</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>1.) UREA PEARLS, KOSHER HS-CODE: 31021010</GoodsDescription>
+    <WeightKG>20738.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0024</ShipmentID>
+    <BolNumber>DSVFINN0009150</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Balmung Medical Handel Gmb H</Shipper>
+    <ShipperCountry>Austria</ShipperCountry>
+    <Consignee>Srw Industries</Consignee>
+    <ConsigneeCity>Lake Zurich</ConsigneeCity>
+    <ConsigneeState>Illinois</ConsigneeState>
+    <ConsigneeZip>60047</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>MEDICAL DISPOSABLES PARZS2500009</GoodsDescription>
+    <WeightKG>3243.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0025</ShipmentID>
+    <BolNumber>KWEO75024102462</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Gc Europe Nv</Shipper>
+    <ShipperCountry>Belgium</ShipperCountry>
+    <Consignee>Gc America</Consignee>
+    <ConsigneeCity>Alsip</ConsigneeCity>
+    <ConsigneeState>Illinois</ConsigneeState>
+    <ConsigneeZip>60803</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>DENTAL GOODS</GoodsDescription>
+    <WeightKG>1203.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0026</ShipmentID>
+    <BolNumber>SHPT83344200</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Boatech Aps</Shipper>
+    <ShipperCountry>Denmark</ShipperCountry>
+    <Consignee>Carsoe Us Inc.</Consignee>
+    <ConsigneeCity>Seattle</ConsigneeCity>
+    <ConsigneeState>Washington</ConsigneeState>
+    <ConsigneeZip>98107</ConsigneeZip>
+    <ConsigneeCountry>Port of Seattle, Seattle, Washington</ConsigneeCountry>
+    <GoodsDescription>FREEZING FRAMES HS CODE 76169990</GoodsDescription>
+    <WeightKG>830.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0027</ShipmentID>
+    <BolNumber>TWUD132250778200</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Mubea Tellerfedern Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>72 PACKAGES DISC SPRINGS AND SEPARATING SPRINGS WAVE TYPE (AUTOMOTIVE PARTS) HS CODES: 732090 TA 352438042 AX 561593188 NAC MUHR UND BENDER KG</GoodsDescription>
+    <WeightKG>12991.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0028</ShipmentID>
+    <BolNumber>FMAL2250700001</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Jensen Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Jensen Usa Inc.</Consignee>
+    <ConsigneeCity>Panama</ConsigneeCity>
+    <ConsigneeState>Florida</ConsigneeState>
+    <ConsigneeZip>32405-6463</ConsigneeZip>
+    <ConsigneeCountry>Port of Seattle, Seattle, Washington</ConsigneeCountry>
+    <GoodsDescription>= 06 SKIDS + 03 UNPACKED PRESS CUSHION AND UPPER PART PRESS BASKED, CYLINDER, HANDLINGSTEEL, TANK, PIPE, SUCTION PIPE, DRAIN PIPE, BELLHOUSING HS CODES: 84519000, 39172110, 84313900, 84509000; = 12 SKIDS + 02 CASES CONTROL, ACCESSORIES, PEDESTAL, ACCESSORIES FOR SEP, COMPOUND CONTROL, CABLE, CONTROL PPC, ACCESSORIES FOR DRYING TUMBLER, LINT FLTER, SUCTION ENGINE HS CODES: 85371098, 84509000, 84519000</GoodsDescription>
+    <WeightKG>5830.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0029</ShipmentID>
+    <BolNumber>BOPT25CZ4292</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Yokohama Tws Czech Republic A.S.</Shipper>
+    <ShipperCountry>Czech Republic</ShipperCountry>
+    <Consignee>K &amp; M Tire Inc. Park City</Consignee>
+    <ConsigneeCity>N/A</ConsigneeCity>
+    <ConsigneeState>N/A</ConsigneeState>
+    <ConsigneeZip>N/A</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Kansas City, Kansas City, Missouri</ConsigneeCountry>
+    <GoodsDescription>TYRES</GoodsDescription>
+    <WeightKG>5473.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0030</ShipmentID>
+    <BolNumber>SHPT83342126</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Man Energy Solutions</Shipper>
+    <ShipperCountry>Denmark</ShipperCountry>
+    <Consignee>Matson Navigation Co. Inc.</Consignee>
+    <ConsigneeCity>Honolulu</ConsigneeCity>
+    <ConsigneeState>Hawaii</ConsigneeState>
+    <ConsigneeZip>96819</ConsigneeZip>
+    <ConsigneeCountry>Port of Seattle, Seattle, Washington</ConsigneeCountry>
+    <GoodsDescription>ACTUATOR HS CODE 85111000</GoodsDescription>
+    <WeightKG>60.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0031</ShipmentID>
+    <BolNumber>SHPT29381996</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Witte Automotive Bulgaria Eood</Shipper>
+    <ShipperCountry>Bulgaria</ShipperCountry>
+    <Consignee>Walker Scm</Consignee>
+    <ConsigneeCity>Belleville</ConsigneeCity>
+    <ConsigneeState>Michigan</ConsigneeState>
+    <ConsigneeZip>48111</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>PACKAGES STC AUTO PARTS - FIXING ELEMENTS FOR SEATS REF NOS. 69775773; 69775778 HS CODE?</GoodsDescription>
+    <WeightKG>3771.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0032</ShipmentID>
+    <BolNumber>MLCWHAMH10004453</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Nidec Motors &amp; Actuators (Poland) S</Shipper>
+    <ShipperCountry>Poland</ShipperCountry>
+    <Consignee>Inalfa Roof Systems</Consignee>
+    <ConsigneeCity>Auburn Hills</ConsigneeCity>
+    <ConsigneeState>Michigan</ConsigneeState>
+    <ConsigneeZip>48326</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>AUTOMOTIVE PARTS</GoodsDescription>
+    <WeightKG>370.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0033</ShipmentID>
+    <BolNumber>PYMNBRE250321819</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Deutz Ag</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Deutz Corporation</Consignee>
+    <ConsigneeCity>Norcross</ConsigneeCity>
+    <ConsigneeState>Georgia</ConsigneeState>
+    <ConsigneeZip>30093</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>DEUTZ ENGINES AND ACCESSORIES HS-CODE: 840890 DEUTZ ORDER: 4181428</GoodsDescription>
+    <WeightKG>15390.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0034</ShipmentID>
+    <BolNumber>GOLA040917713785</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Kaindl Flooring Gmb H</Shipper>
+    <ShipperCountry>Austria</ShipperCountry>
+    <Consignee>F9 Brands Inc.</Consignee>
+    <ConsigneeCity>Lawrenceburg</ConsigneeCity>
+    <ConsigneeState>Tennessee</ConsigneeState>
+    <ConsigneeZip>38464</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>LAMINATE FLOORING DIGIT. PRINTED EN15468 ITEM 14136977 ORDER NO. PO262959 HS CODE 441114</GoodsDescription>
+    <WeightKG>16888.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0035</ShipmentID>
+    <BolNumber>WIFW2506REM20236</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>G. Adolf Lemp &amp; Co. Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Kinetic Co.</Consignee>
+    <ConsigneeCity>Greendale</ConsigneeCity>
+    <ConsigneeState>Wisconsin</ConsigneeState>
+    <ConsigneeZip>53129</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>CIRCULAR KNIVES</GoodsDescription>
+    <WeightKG>1157.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0036</ShipmentID>
+    <BolNumber>BOPT1355941449</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Hexion Vad B.V.</Shipper>
+    <ShipperCountry>Netherlands</ShipperCountry>
+    <Consignee>Hexion Inc.</Consignee>
+    <ConsigneeCity>Columbus</ConsigneeCity>
+    <ConsigneeState>Ohio</ConsigneeState>
+    <ConsigneeZip>43215</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>CARDE10P /BULK</GoodsDescription>
+    <WeightKG>20100.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0037</ShipmentID>
+    <BolNumber>FMAL2250600084</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Allmetal Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Allmetal Inc.</Consignee>
+    <ConsigneeCity>Bensenville</ConsigneeCity>
+    <ConsigneeState>Illinois</ConsigneeState>
+    <ConsigneeZip>60106</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>12 STEEL DELIVERY RACKS HS CODE: 73269040 CONTAINING 30096 PIECES STAINLESS STEEL SPACER FOR INSULATING GLASS TYPE ENDUR HS CODE: 7308909590</GoodsDescription>
+    <WeightKG>11033.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0038</ShipmentID>
+    <BolNumber>AWSLAWSL294191</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Karl Funk Gmb H &amp; Co Kg</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Funk North America Inc.</Consignee>
+    <ConsigneeCity>Sterling Heights</ConsigneeCity>
+    <ConsigneeState>Michigan</ConsigneeState>
+    <ConsigneeZip>48310</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>BOWLING EQUIPMENT HS CODE: 95049080</GoodsDescription>
+    <WeightKG>9236.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0039</ShipmentID>
+    <BolNumber>GOLA348910544444</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Le Belier Magyarorszag Formaontode Zrt</Shipper>
+    <ShipperCountry>Hungary</ShipperCountry>
+    <Consignee>Akebono Brake Corp.</Consignee>
+    <ConsigneeCity>Elizabethtown</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>42701</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>BRAKE SPARE PARTS HS CODE 870830 INVOICE NUM BER 150488408, 150488409 TERMS OF DELIVERY</GoodsDescription>
+    <WeightKG>18695.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0040</ShipmentID>
+    <BolNumber>ALRB250608150371</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Solenis Switzerland Gmb H</Shipper>
+    <ShipperCountry>Switzerland</ShipperCountry>
+    <Consignee>Solenis Llc</Consignee>
+    <ConsigneeCity>Greensboro</ConsigneeCity>
+    <ConsigneeState>North Carolina</ConsigneeState>
+    <ConsigneeZip>27406</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>PRODUCT BCQ IBC 1000L</GoodsDescription>
+    <WeightKG>19062.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0041</ShipmentID>
+    <BolNumber>ALRB250708150103</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Solenis Switzerland Gmb H</Shipper>
+    <ShipperCountry>Switzerland</ShipperCountry>
+    <Consignee>Solenis Llc</Consignee>
+    <ConsigneeCity>Greensboro</ConsigneeCity>
+    <ConsigneeState>North Carolina</ConsigneeState>
+    <ConsigneeZip>27406</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>PRODUCT BCQ HS CODE: 2924. 19. 0090</GoodsDescription>
+    <WeightKG>19062.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0042</ShipmentID>
+    <BolNumber>GOLA276954297258</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Bk Giulini Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Icl Specialty Products Inc.</Consignee>
+    <ConsigneeCity>Creve Coeur</ConsigneeCity>
+    <ConsigneeState>Missouri</ConsigneeState>
+    <ConsigneeZip>63141</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>JOHA C NEU CUSTOMER MATERIAL REF. 71476235 C OUNTRY OF ORIGIN GERMANY BRIFISOL PTP FOOD</GoodsDescription>
+    <WeightKG>18022.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0043</ShipmentID>
+    <BolNumber>PYMNBRE250323889</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Deutz Ag</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Lighten The Load</Consignee>
+    <ConsigneeCity>Itasca</ConsigneeCity>
+    <ConsigneeState>Illinois</ConsigneeState>
+    <ConsigneeZip>60143</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>DEUTZ ENGINES AND ACCESSORIES HS-CODE: 840890 DEUTZ ORDER: 4181495</GoodsDescription>
+    <WeightKG>8919.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0044</ShipmentID>
+    <BolNumber>PYMNBRE250321810</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Deutz Ag</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Gi Warehouse Corp.</Consignee>
+    <ConsigneeCity>Pella</ConsigneeCity>
+    <ConsigneeState>Iowa</ConsigneeState>
+    <ConsigneeZip>50219</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>DEUTZ ENGINES AND ACCESSORIES HS-CODE: 840890 DEUTZ ORDER: 4181457</GoodsDescription>
+    <WeightKG>18868.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0045</ShipmentID>
+    <BolNumber>PYMNBRE250323671</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Deutz Ag</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Lighten The Load</Consignee>
+    <ConsigneeCity>Itasca</ConsigneeCity>
+    <ConsigneeState>Illinois</ConsigneeState>
+    <ConsigneeZip>60143</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>DEUTZ ENGINES AND ACCESSORIES HS-CODE: 840890 DEUTZ ORDER: 4181464</GoodsDescription>
+    <WeightKG>9415.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0046</ShipmentID>
+    <BolNumber>BOPT25CZ4080</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Kuraray Europe Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Kuraray America Inc.</Consignee>
+    <ConsigneeCity>Houston</ConsigneeCity>
+    <ConsigneeState>Texas</ConsigneeState>
+    <ConsigneeZip>77058</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>EMPTY BINS</GoodsDescription>
+    <WeightKG>4960.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0047</ShipmentID>
+    <BolNumber>BOPT25CZ4141</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Kuraray Europe Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Kuraray America Inc.</Consignee>
+    <ConsigneeCity>Houston</ConsigneeCity>
+    <ConsigneeState>Texas</ConsigneeState>
+    <ConsigneeZip>77058</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>EMPTY BINS</GoodsDescription>
+    <WeightKG>4960.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0048</ShipmentID>
+    <BolNumber>PYMNBRE250321808</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Deutz Ag</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Gi Warehouse Corp.</Consignee>
+    <ConsigneeCity>Pella</ConsigneeCity>
+    <ConsigneeState>Iowa</ConsigneeState>
+    <ConsigneeZip>50219</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>DEUTZ ENGINES AND ACCESSORIES HS-CODE: 840890 DEUTZ ORDER: 4181439</GoodsDescription>
+    <WeightKG>17794.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0049</ShipmentID>
+    <BolNumber>TWUD137250832100</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Halssen &amp; Lyon Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Tea Forte Inc.</Consignee>
+    <ConsigneeCity>Jeffersonville</ConsigneeCity>
+    <ConsigneeState>Indiana</ConsigneeState>
+    <ConsigneeZip>47111</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Louisville, Louisville, Kentucky</ConsigneeCountry>
+    <GoodsDescription>1134 PACKAGES ON 18 PALLETS BLACK - &amp; GREEN - &amp; FRUIT - &amp; HERBAL TEA BLEND HS CODE: 090210, 090230, 090240, 210690 REF.: OC18702 PO#8027 LTC OC20374 PO#8111 LTC</GoodsDescription>
+    <WeightKG>2808.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0050</ShipmentID>
+    <BolNumber>BALG925111900</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Sarl Le Serbet</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES) CHAMPAGNE WINE (-2 LITRES) WINE (-2 LITRES) WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>7402.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0051</ShipmentID>
+    <BolNumber>BALG925111902</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Dreyfus Ashby Inc.</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>2058.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0052</ShipmentID>
+    <BolNumber>BALG925111904</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Mhw Ltd. Compagnie De Burgondie</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>1900.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0053</ShipmentID>
+    <BolNumber>BALG925111905</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Massaya &amp; Co Sal</Shipper>
+    <ShipperCountry>Lebanon</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>1032.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0054</ShipmentID>
+    <BolNumber>BALG925112148</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Sarl La Pepiere</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>430.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0055</ShipmentID>
+    <BolNumber>BALG925112149</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Sa Breban</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>1940.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0056</ShipmentID>
+    <BolNumber>BALG925112150</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Producta Vignobles</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>1529.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0057</ShipmentID>
+    <BolNumber>BALG925112249</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Bernard Baudry Earl</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>264.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0058</ShipmentID>
+    <BolNumber>BALG925112250</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>K.Descombes</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Intl Wines &amp; Craft Beer</Consignee>
+    <ConsigneeCity>Alabaster</ConsigneeCity>
+    <ConsigneeState>Alabama</ConsigneeState>
+    <ConsigneeZip>35007</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>WINE (-2 LITRES)</GoodsDescription>
+    <WeightKG>225.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0059</ShipmentID>
+    <BolNumber>BALG925112068</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Famille Bougrier</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>ALAIN DE LA TREILLE, PINOT NOIR-202 ALAIN DE LA TREILLE, LES FOLIES VOUV</GoodsDescription>
+    <WeightKG>11475.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0060</ShipmentID>
+    <BolNumber>BALG925112069</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Les Costieres De Pomerols</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>POMEROLS, HB CUVEE PATIENCE CH. RES</GoodsDescription>
+    <WeightKG>840.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0061</ShipmentID>
+    <BolNumber>BALG925112070</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Sarl La Colombette</Shipper>
+    <ShipperCountry>France</ShipperCountry>
+    <Consignee>Kysela Pere Et Fils Ltd.</Consignee>
+    <ConsigneeCity>Winchester</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>22602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>BORN TO BE FREE, NON-ALCHOLIC RED - BORN TO BE FREE, NON-ALCHOLIC ROSE</GoodsDescription>
+    <WeightKG>3320.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Le Havre, France</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0062</ShipmentID>
+    <BolNumber>FMALN24215</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Galactic Sa</Shipper>
+    <ShipperCountry>Belgium</ShipperCountry>
+    <Consignee>Galactic Inc. Mann Warehouse</Consignee>
+    <ConsigneeCity>Kenosha</ConsigneeCity>
+    <ConsigneeState>Wisconsin</ConsigneeState>
+    <ConsigneeZip>53140</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>226 UNITS ON 20 PALLETS GALIMAX FLAVOR F 100 POWDER 20 KG PRESERV P 100 15 KG PRESERV P 100 GALAXIUM PEARLS EXCEL 860 KG CALCIUM LACTATE PENTAHYDRATE TOTAL NET WEIGHT 12920 KGS PURCHASE ORDER V260454 PO26 0249 / V260339 P O26 0189 / V253195 PO25 1397 CUSTOMS CODE 2918. 11. 00 / 2106. 90. 98</GoodsDescription>
+    <WeightKG>13693.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Antwerp, Belgium</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0063</ShipmentID>
+    <BolNumber>MLGDSFEX008109</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Kyodo Yushi Europe Bv</Shipper>
+    <ShipperCountry>Netherlands</ShipperCountry>
+    <Consignee>Kyodo Yushi Usa Inc.</Consignee>
+    <ConsigneeCity>Rolling Meadows</ConsigneeCity>
+    <ConsigneeState>Illinois</ConsigneeState>
+    <ConsigneeZip>60008</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>LUBRICATING OIL TMO 150 - 209LTR</GoodsDescription>
+    <WeightKG>1960.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0064</ShipmentID>
+    <BolNumber>GOLA276954492066</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Bk Giulini Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Icl Specialty Products Inc.</Consignee>
+    <ConsigneeCity>Creve Coeur</ConsigneeCity>
+    <ConsigneeState>Missouri</ConsigneeState>
+    <ConsigneeZip>63141</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Kansas City, Kansas City, Missouri</ConsigneeCountry>
+    <GoodsDescription>KALIUMTRIPOLYPHOSPHAT GEMAHLEN P2O5 CA. 47, 5 25 KG CUSTOMER MATERIAL REF. 10002653 COUNT</GoodsDescription>
+    <WeightKG>19071.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0065</ShipmentID>
+    <BolNumber>GOLA348910542327</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Schaeffler Savaria Kft.</Shipper>
+    <ShipperCountry>Hungary</ShipperCountry>
+    <Consignee>Fca Us Logistics 00143</Consignee>
+    <ConsigneeCity>Detroit</ConsigneeCity>
+    <ConsigneeState>Michigan</ConsigneeState>
+    <ConsigneeZip>48210</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>AUTOMOTIVE PARTS DELIVERY NOTE 50399776 06 2 4 2025 ORDER NUMBER 302509 06 28 2023 INVOIC</GoodsDescription>
+    <WeightKG>8988.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0066</ShipmentID>
+    <BolNumber>GOLA348910542341</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Schaeffler Savaria Kft.</Shipper>
+    <ShipperCountry>Hungary</ShipperCountry>
+    <Consignee>Fca Us Logistics 00143</Consignee>
+    <ConsigneeCity>Detroit</ConsigneeCity>
+    <ConsigneeState>Michigan</ConsigneeState>
+    <ConsigneeZip>48210</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>AUTOMOTIVE PARTS DELIVERY NOTE 50402271 06 2 4 2025 ORDER NUMBER 302558 06 28 2023 INVOIC</GoodsDescription>
+    <WeightKG>8067.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0067</ShipmentID>
+    <BolNumber>SENM3425002730</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Vdl Jansen B.V.</Shipper>
+    <ShipperCountry>Netherlands</ShipperCountry>
+    <Consignee>Premier Ag Supply Llc</Consignee>
+    <ConsigneeCity>Russellville</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>42276</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Kansas City, Kansas City, Missouri</ConsigneeCountry>
+    <GoodsDescription>POULTRY EQUIPMENT FOR THE PRODUCTION OF HATCHING EGGS FOR PO STOCK ORDER 123 XXL NESTS = VDL JANSEN ORDER: 4023214 - 104</GoodsDescription>
+    <WeightKG>11942.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0068</ShipmentID>
+    <BolNumber>TWUD132250792101</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Muhr Und Bender Kg</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>HOSE CLAMPS HS CODE 732090 TA 352438052 AX 561593457</GoodsDescription>
+    <WeightKG>659.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0069</ShipmentID>
+    <BolNumber>TWUD132250792102</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Mubea Tellerfedern Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>DISC SPRING HS CODE 732090 TA 352438052 AX 561593457</GoodsDescription>
+    <WeightKG>10220.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0070</ShipmentID>
+    <BolNumber>TWUD132250792103</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Mubea Tellerfedern Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>SEPARATING SPRINGS HS CODE 732090 TA 352438052 AX 561593457</GoodsDescription>
+    <WeightKG>2691.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0071</ShipmentID>
+    <BolNumber>TWUD132250792104</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Mubea Tellerfedern Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>SPARE PARTS HS CODE 842490, 732690, 730300 TA 352438052 AX 561593457</GoodsDescription>
+    <WeightKG>1471.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0072</ShipmentID>
+    <BolNumber>GOLA203912933538</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Zdb Dratovna A.S.</Shipper>
+    <ShipperCountry>Czech Republic</ShipperCountry>
+    <Consignee>Pfeifer Wire Rope And Lifting</Consignee>
+    <ConsigneeCity>Hampton</ConsigneeCity>
+    <ConsigneeState>Virginia</ConsigneeState>
+    <ConsigneeZip>23661</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>HOT ROLLED WIRE ROD CONTRACT NO. 0041790052, 0041791807 YOUR ORDER. 9817, 9834 HS CODE 73</GoodsDescription>
+    <WeightKG>16980.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0073</ShipmentID>
+    <BolNumber>BOPT25CZ4079</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Kuraray Europe Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Kuraray America Inc.</Consignee>
+    <ConsigneeCity>Houston</ConsigneeCity>
+    <ConsigneeState>Texas</ConsigneeState>
+    <ConsigneeZip>77058</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>EMPTY BINS</GoodsDescription>
+    <WeightKG>4960.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0074</ShipmentID>
+    <BolNumber>FMALN24456</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Sankyo Tateyama Europe Bvba</Shipper>
+    <ShipperCountry>Belgium</ShipperCountry>
+    <Consignee>Channel Alloys</Consignee>
+    <ConsigneeCity>Monroe</ConsigneeCity>
+    <ConsigneeState>Connecticut</ConsigneeState>
+    <ConsigneeZip>06468</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>49 PACKAGES ALU ROUND BAR HS CODE 76042910</GoodsDescription>
+    <WeightKG>19801.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Antwerp, Belgium</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0075</ShipmentID>
+    <BolNumber>PYMNBRE250315175</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Deutz Ag</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Gi Warehouse Corp.</Consignee>
+    <ConsigneeCity>Pella</ConsigneeCity>
+    <ConsigneeState>Iowa</ConsigneeState>
+    <ConsigneeZip>50219</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>DEUTZ ENGINES AND ACCESSORIES HS-CODE: 840890 DEUTZ ORDER: 4181392</GoodsDescription>
+    <WeightKG>16976.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0076</ShipmentID>
+    <BolNumber>FMALN24430</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Eurofoil Luxembourg Sa</Shipper>
+    <ShipperCountry>Luxembourg</ShipperCountry>
+    <Consignee>I C Caldwell</Consignee>
+    <ConsigneeCity>Caldwell</ConsigneeCity>
+    <ConsigneeState>Idaho</ConsigneeState>
+    <ConsigneeZip>N/A</ConsigneeZip>
+    <ConsigneeCountry>Port Columbus International Airport, Columbus, Ohio</ConsigneeCountry>
+    <GoodsDescription>15 PACKAGES ALUMINIUM FOIL HS CODE 76071119</GoodsDescription>
+    <WeightKG>19381.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Antwerp, Belgium</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0077</ShipmentID>
+    <BolNumber>SHPT17422344</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>3 B Fibreglass Belgium</Shipper>
+    <ShipperCountry>Belgium</ShipperCountry>
+    <Consignee>Haysite Reinforced Plastics</Consignee>
+    <ConsigneeCity>Erie</ConsigneeCity>
+    <ConsigneeState>Pennsylvania</ConsigneeState>
+    <ConsigneeZip>16509</ConsigneeZip>
+    <ConsigneeCountry>Port Of Cleveland, Cleveland, Ohio</ConsigneeCountry>
+    <GoodsDescription>CHEMICALLY BONDED MAT HS CODE 70191500; CHEMICALLY BONDED MAT HS CODE 70191500; CHEMICALLY BONDED MAT HS CODE 70191500; CHEMICALLY BONDED MAT HS CODE 70191500</GoodsDescription>
+    <WeightKG>51265.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Antwerp, Belgium</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0078</ShipmentID>
+    <BolNumber>FMALN24682</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Sarens Nv</Shipper>
+    <ShipperCountry>Belgium</ShipperCountry>
+    <Consignee>Sarens Projects Usa Llc</Consignee>
+    <ConsigneeCity>Houston</ConsigneeCity>
+    <ConsigneeState>Texas</ConsigneeState>
+    <ConsigneeZip>77044</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>23 PACKAGES BEING 7 SUPPORTING STOOL H500 D508X15 GW. 3339 KG 16 LOAD SPREADING MAT 3X HEB300 LENGTH 3000MM GW. 16800 KG; 22 PACKAGES BEING 14 LOAD SPREADING MAT 3X HEB300 LENGTH 3000MM GW. 14700 KG 8 SUPPORTING STOOL H500 D508X15 GW. 3816 KG; 24 PACKAGES BEING 14 LOAD SPREADING MAT 3X HEB300 LENGTH 3000MM GW. 14700 KG 10 SUPPORTING STOOL H500 D508X15 GW. 4770 K G. HS CODE 7308 1000 00; 24 PACKAGES BEING 8 SUPPORTING STOOL H500 D508X15 GW. 3816 KG 16 LOAD SPREADING MAT 3X HEB300 LENGTH 3000MM</GoodsDescription>
+    <WeightKG>78741.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Antwerp, Belgium</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0079</ShipmentID>
+    <BolNumber>FMALN24214</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Sankyo Tateyama Europe Bvba</Shipper>
+    <ShipperCountry>Belgium</ShipperCountry>
+    <Consignee>C Thorrez Industries Inc.</Consignee>
+    <ConsigneeCity>Jackson</ConsigneeCity>
+    <ConsigneeState>Michigan</ConsigneeState>
+    <ConsigneeZip>49201</ConsigneeZip>
+    <ConsigneeCountry>Detroit/Wayne County Port Authority, Detroit, Michigan</ConsigneeCountry>
+    <GoodsDescription>36 PACKAGES ALU ROUND BAR NET WEIGHT 17820 KG HS CODE 76042910</GoodsDescription>
+    <WeightKG>18324.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Antwerp, Belgium</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0080</ShipmentID>
+    <BolNumber>GOLA348910543867</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Le Belier Magyarorszag Formaontode Zrt</Shipper>
+    <ShipperCountry>Hungary</ShipperCountry>
+    <Consignee>Akebono Brake Corp.</Consignee>
+    <ConsigneeCity>Elizabethtown</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>42701</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>BRAKE SPARE PARTS HS CODE 870830 INVOICE NUM BER 150488345, 150488346 TERMS OF DELIVERY</GoodsDescription>
+    <WeightKG>19806.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0081</ShipmentID>
+    <BolNumber>TWUD132250809700</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Stein &amp; Co. Gmb H (Sebo)</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Karcher North America</Consignee>
+    <ConsigneeCity>Aurora</ConsigneeCity>
+    <ConsigneeState>Colorado</ConsigneeState>
+    <ConsigneeZip>80019</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Kansas City, Kansas City, Missouri</ConsigneeCountry>
+    <GoodsDescription>681 CARTONS PACKED ON 30 PALLETS AND 1 CARTON VACUUM CLEANER AND SPARE PARTS HS: 481920, 850811 KAERCHER FY KW 26</GoodsDescription>
+    <WeightKG>75152.5</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0082</ShipmentID>
+    <BolNumber>QLNDAO98849AO1</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Wittmann Battenfeld Gmb H</Shipper>
+    <ShipperCountry>Austria</ShipperCountry>
+    <Consignee>Wittmann Battenfeld Inc.</Consignee>
+    <ConsigneeCity>Torrington</ConsigneeCity>
+    <ConsigneeState>Connecticut</ConsigneeState>
+    <ConsigneeZip>06790</ConsigneeZip>
+    <ConsigneeCountry>Port Columbus International Airport, Columbus, Ohio</ConsigneeCountry>
+    <GoodsDescription>INJECTION MOLDING MACHINE; INJECTION MOLDING MACHINE; INJECTION MOULDING MACHINE</GoodsDescription>
+    <WeightKG>16000.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0083</ShipmentID>
+    <BolNumber>ZIFDSSE00112768</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Bedford Steels</Shipper>
+    <ShipperCountry>United Kingdom</ShipperCountry>
+    <Consignee>Belle Center Air Tool Inc.</Consignee>
+    <ConsigneeCity>Belle Center</ConsigneeCity>
+    <ConsigneeState>Ohio</ConsigneeState>
+    <ConsigneeZip>43310</ConsigneeZip>
+    <ConsigneeCountry>Port Of Cleveland, Cleveland, Ohio</ConsigneeCountry>
+    <GoodsDescription>HOLLOW MINING DRILL STEEL</GoodsDescription>
+    <WeightKG>17206.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Southhampton, United Kingdom</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0084</ShipmentID>
+    <BolNumber>AWSLAWSL293762</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Zf Stankov S.R.O.</Shipper>
+    <ShipperCountry>Czech Republic</ShipperCountry>
+    <Consignee>Hyster Yale Group Inc.</Consignee>
+    <ConsigneeCity>Greenville</ConsigneeCity>
+    <ConsigneeState>North Carolina</ConsigneeState>
+    <ConsigneeZip>27834</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>MASTER DRIVE UNITS</GoodsDescription>
+    <WeightKG>12656.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0085</ShipmentID>
+    <BolNumber>AWSLAWSL293763</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Gumotex Coating S.R.O.</Shipper>
+    <ShipperCountry>Czech Republic</ShipperCountry>
+    <Consignee>Sleep Number Corp.</Consignee>
+    <ConsigneeCity>Minneapolis</ConsigneeCity>
+    <ConsigneeState>Minnesota</ConsigneeState>
+    <ConsigneeZip>55404</ConsigneeZip>
+    <ConsigneeCountry>Port of Greater Cincinnati Development Authority, Cincinnati, Ohio</ConsigneeCountry>
+    <GoodsDescription>PNEUMATIC MATTRESSES; PNEUMATIC MATTRESSES</GoodsDescription>
+    <WeightKG>29814.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0086</ShipmentID>
+    <BolNumber>TWUD132250809500</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Stein &amp; Co. Gmb H (Sebo)</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Karcher North America</Consignee>
+    <ConsigneeCity>Aurora</ConsigneeCity>
+    <ConsigneeState>Colorado</ConsigneeState>
+    <ConsigneeZip>80019</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Kansas City, Kansas City, Missouri</ConsigneeCountry>
+    <GoodsDescription>840 CARTONS PACKED ON 30 PALLETS VACUUM CLEANER AND SPARE PARTS HS: 850811 KAERCHER FY KW 26</GoodsDescription>
+    <WeightKG>84159.1</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0087</ShipmentID>
+    <BolNumber>TWUD132250809300</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Stein &amp; Co. Gmb H (Sebo)</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Karcher North America</Consignee>
+    <ConsigneeCity>Aurora</ConsigneeCity>
+    <ConsigneeState>Colorado</ConsigneeState>
+    <ConsigneeZip>80019</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Kansas City, Kansas City, Missouri</ConsigneeCountry>
+    <GoodsDescription>716 CARTONS PACKED ON 30 PALLETS VACUUM CLEANER AND SPARE PARTS HS: 850811, 850870, 441520 850120 KAERCHER FY KW 26</GoodsDescription>
+    <WeightKG>76453.5</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0088</ShipmentID>
+    <BolNumber>TWUD132250777900</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Mubea Automotive Poland Sp. Z O.O.</Shipper>
+    <ShipperCountry>Poland</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Greater Cincinnati Development Authority, Cincinnati, Ohio</ConsigneeCountry>
+    <GoodsDescription>37 PACKAGES STEEL WAVE DISC SPRINGS USED IN THE AUTOMOTIVE SECTOR (AUTOMOTIVE PARTS) HS CODE 732090 TA 352445688 AX 563986267</GoodsDescription>
+    <WeightKG>15859.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0089</ShipmentID>
+    <BolNumber>DSVFHOR0684971</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Jacobsens Bakery Ltd.</Shipper>
+    <ShipperCountry>Denmark</ShipperCountry>
+    <Consignee>Jacobsens Bakery Ltd.</Consignee>
+    <ConsigneeCity>Hedensted</ConsigneeCity>
+    <ConsigneeState>N/A</ConsigneeState>
+    <ConsigneeZip>8722</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>BUTTER COOKIES</GoodsDescription>
+    <WeightKG>14007.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0090</ShipmentID>
+    <BolNumber>BOPT1465422365</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Coda Plastics Ltd.</Shipper>
+    <ShipperCountry>United Kingdom</ShipperCountry>
+    <Consignee>Revlon</Consignee>
+    <ConsigneeCity>Oxford</ConsigneeCity>
+    <ConsigneeState>North Carolina</ConsigneeState>
+    <ConsigneeZip>27565</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>PLASTIC CAPS</GoodsDescription>
+    <WeightKG>2280.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Southhampton, United Kingdom</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0091</ShipmentID>
+    <BolNumber>BOPT1465422358</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Coda Plastics Ltd.</Shipper>
+    <ShipperCountry>United Kingdom</ShipperCountry>
+    <Consignee>Revlon</Consignee>
+    <ConsigneeCity>Oxford</ConsigneeCity>
+    <ConsigneeState>North Carolina</ConsigneeState>
+    <ConsigneeZip>27565</ConsigneeZip>
+    <ConsigneeCountry>Port Of Entry-Raleigh-Durham, Durham, North Carolina</ConsigneeCountry>
+    <GoodsDescription>PLASTIC CAPS</GoodsDescription>
+    <WeightKG>3952.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Southhampton, United Kingdom</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0092</ShipmentID>
+    <BolNumber>ZIFDSSE00111089</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Yara Uk Ltd.</Shipper>
+    <ShipperCountry>United Kingdom</ShipperCountry>
+    <Consignee>Yara North America</Consignee>
+    <ConsigneeCity>Tampa</ConsigneeCity>
+    <ConsigneeState>Florida</ConsigneeState>
+    <ConsigneeZip>33602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>NON HAZ FERTILIZER PRODUCTS</GoodsDescription>
+    <WeightKG>9119.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Southhampton, United Kingdom</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0093</ShipmentID>
+    <BolNumber>TWUD132250778301</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Muhr Und Bender Kg</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Greater Cincinnati Development Authority, Cincinnati, Ohio</ConsigneeCountry>
+    <GoodsDescription>HOSE CLAMP HS CODE 732090 TA 352438046 AX 561593338</GoodsDescription>
+    <WeightKG>3199.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0094</ShipmentID>
+    <BolNumber>TWUD132250778302</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Mubea Tellerfedern Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Greater Cincinnati Development Authority, Cincinnati, Ohio</ConsigneeCountry>
+    <GoodsDescription>DISC SPRING HS CODE 732090, 732620 TA 352438046 AX 561593338</GoodsDescription>
+    <WeightKG>11880.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0095</ShipmentID>
+    <BolNumber>TWUD132250778303</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Hagenkoetter Gmb H &amp; Co.</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Greater Cincinnati Development Authority, Cincinnati, Ohio</ConsigneeCountry>
+    <GoodsDescription>SPARE PARTS HS CODE 842490 TA 352438046 AX 561593338</GoodsDescription>
+    <WeightKG>415.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0096</ShipmentID>
+    <BolNumber>TWUD132250778304</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Wheelabrator Group Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Greater Cincinnati Development Authority, Cincinnati, Ohio</ConsigneeCountry>
+    <GoodsDescription>SPARE PARTS HS CODE 730300, 731821, 732690, 842490 TA 352438046 AX 561593338</GoodsDescription>
+    <WeightKG>667.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0097</ShipmentID>
+    <BolNumber>TWUD132250778305</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Mubea Tellerfedern Gmb H</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Greater Cincinnati Development Authority, Cincinnati, Ohio</ConsigneeCountry>
+    <GoodsDescription>SEPARATING SPRINGS HS CODE 732090 TA 352438046 AX 561593338</GoodsDescription>
+    <WeightKG>3035.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0098</ShipmentID>
+    <BolNumber>TWUD132250778306</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Hagenkoetter Gmb H &amp; Co.</Shipper>
+    <ShipperCountry>Germany</ShipperCountry>
+    <Consignee>Mubea Precision Springs</Consignee>
+    <ConsigneeCity>Florence</ConsigneeCity>
+    <ConsigneeState>Kentucky</ConsigneeState>
+    <ConsigneeZip>41042</ConsigneeZip>
+    <ConsigneeCountry>Port of Greater Cincinnati Development Authority, Cincinnati, Ohio</ConsigneeCountry>
+    <GoodsDescription>SPARE PARTS HS CODE 842490 TA 352438046 AX 561593338</GoodsDescription>
+    <WeightKG>55.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Rotterdam, Netherlands</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0099</ShipmentID>
+    <BolNumber>ZIFDSSE00111511</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Yara Uk Ltd.</Shipper>
+    <ShipperCountry>United Kingdom</ShipperCountry>
+    <Consignee>Yara North America</Consignee>
+    <ConsigneeCity>Tampa</ConsigneeCity>
+    <ConsigneeState>Florida</ConsigneeState>
+    <ConsigneeZip>33602</ConsigneeZip>
+    <ConsigneeCountry>Port of Virginia, Norfolk, Virginia</ConsigneeCountry>
+    <GoodsDescription>NON HAZ FERTILIZER PRODUCTS</GoodsDescription>
+    <WeightKG>18676.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Southhampton, United Kingdom</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+  <OceanShipment>
+    <ShipmentID>OCEAN-0100</ShipmentID>
+    <BolNumber>DSVFPRG0234183</BolNumber>
+    <ArrivalDate>2025-08-03</ArrivalDate>
+    <Shipper>Juta A.S.</Shipper>
+    <ShipperCountry>Czech Republic</ShipperCountry>
+    <Consignee>Vaproshield Llc</Consignee>
+    <ConsigneeCity>Morton Grove</ConsigneeCity>
+    <ConsigneeState>Illinois</ConsigneeState>
+    <ConsigneeZip>60053</ConsigneeZip>
+    <ConsigneeCountry>Illinois International Port District, Chicago, Illinois</ConsigneeCountry>
+    <GoodsDescription>REVEALSHIELD BLACK JUMBOWRAPSHIELD ORANGEHS C ODE: 56031480</GoodsDescription>
+    <WeightKG>6213.0</WeightKG>
+    <ValueUSD>N/A</ValueUSD>
+    <PortOfLading>Bremerhaven, Germany</PortOfLading>
+    <PortOfUnlading>Port of Virginia, Norfolk, Virginia</PortOfUnlading>
+    <TransportMethod>Maritime</TransportMethod>
+    <VesselName>COSCO HOPE</VesselName>
+    <RawFilename>real_ocean_shipments_100.xml</RawFilename>
+  </OceanShipment>
+</OceanShipments>
