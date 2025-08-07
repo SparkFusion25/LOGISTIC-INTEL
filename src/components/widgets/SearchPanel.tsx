@@ -348,7 +348,7 @@ export default function SearchPanel() {
       }
     } catch (error) {
       console.error('Failed to add to CRM:', error);
-      alert(`Failed to add contact to CRM. Please try again.\n\nError: ${error.message}`);
+      alert(`Failed to add contact to CRM. Please try again.\n\nError: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
