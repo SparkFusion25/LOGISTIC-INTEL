@@ -148,7 +148,6 @@ export default function SearchPanel() {
   const [summary, setSummary] = useState<SearchSummary | null>(null);
   const [totalResults, setTotalResults] = useState(0);
   const [expandedContacts, setExpandedContacts] = useState<Set<string>>(new Set());
-  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(50);
   const [hasMorePages, setHasMorePages] = useState(false);
@@ -803,112 +802,41 @@ export default function SearchPanel() {
             </p>
           </div>
         ) : (
-          // Group results by company
-          Object.entries(
-            searchResults.reduce((acc: Record<string, UnifiedTradeRecord[]>, record) => {
-              const companyName = record.unified_company_name || 'Unknown Company';
-              if (!acc[companyName]) {
-                acc[companyName] = [];
-              }
-              acc[companyName].push(record);
-              return acc;
-            }, {})
-          ).map(([companyName, shipments]) => {
-            const totalShipments = shipments.length;
-            const totalValue = shipments.reduce((sum, s) => sum + (s.unified_value || 0), 0);
-            const totalWeight = shipments.reduce((sum, s) => sum + (s.unified_weight || 0), 0);
-            const uniqueModes = [...new Set(shipments.map(s => s.mode))];
-            const isExpanded = expandedCompanies.has(companyName);
-            const primaryShipment = shipments[0]; // Use first shipment for company-level data
-            
-            return (
-                      <div key={companyName} className="border border-gray-200 rounded-lg overflow-hidden">
-              {/* Company Header Card */}
-              <div className="p-6 bg-gradient-to-r from-gray-50 to-white hover:from-gray-100 hover:to-gray-50 transition-all duration-200">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    {/* Company Title with Transport Modes */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex items-center gap-1">
-                        {uniqueModes.map(mode => (
-                          <span key={mode} className="text-xl">
-                            {mode === 'air' ? '✈️' : '🚢'}
-                          </span>
-                        ))}
+          searchResults.map((record) => (
+          <div key={record.id} className="border border-gray-200 rounded-lg overflow-hidden">
+            {/* Main Result Row */}
+            <div className="p-4 hover:bg-gray-50 transition-colors">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">{record.mode_icon || (record.mode === 'air' ? '✈️' : '🚢')}</span>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      (record.mode === 'air' || record.shipment_type === 'air') ? 'bg-blue-100 text-blue-800' : 'bg-teal-100 text-teal-800'
+                    }`}>
+                      {(record.mode || record.shipment_type || 'unknown').toUpperCase()}
+                    </span>
+                                          <div className="flex items-center gap-3">
+                        <h3 className="font-semibold text-gray-900">{record.unified_company_name || 'Unknown Company'}</h3>
+                        {record.unified_company_name && (
+                          <ShipmentTrendMini companyName={record.unified_company_name} />
+                        )}
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-900">{companyName}</h3>
-                      <ShipmentTrendMini companyName={companyName} />
-                    </div>
-                    
-                    {/* Company Metrics Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-blue-600">{totalShipments}</div>
-                        <div className="text-xs text-blue-800 font-medium">Shipments</div>
-                      </div>
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-green-600">{formatCurrency(totalValue)}</div>
-                        <div className="text-xs text-green-800 font-medium">Total Value</div>
-                      </div>
-                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-purple-600">{totalWeight.toLocaleString()} kg</div>
-                        <div className="text-xs text-purple-800 font-medium">Total Weight</div>
-                      </div>
-                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                        <div className="text-2xl font-bold text-orange-600">{uniqueModes.length}</div>
-                        <div className="text-xs text-orange-800 font-medium">Transport Modes</div>
-                      </div>
-                    </div>
-
-                                      {/* Company Action Buttons */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => {
-                            const newExpanded = new Set(expandedCompanies);
-                            if (isExpanded) {
-                              newExpanded.delete(companyName);
-                            } else {
-                              newExpanded.add(companyName);
-                            }
-                            setExpandedCompanies(newExpanded);
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                        >
-                          <Package className="w-4 h-4" />
-                          {isExpanded ? 'Hide' : 'Show'} Shipments ({totalShipments})
-                          <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                        </button>
-                        
-                        <button
-                          onClick={() => toggleContactCard(companyName)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
-                        >
-                          <Users className="w-4 h-4" />
-                          {expandedContacts.has(companyName) ? 'Hide' : 'Show'} Contacts
-                        </button>
-                        
-                        {/* Access Level Badge */}
-                        <div className="flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-                          <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
-                          <span>🔒 Contact info locked</span>
-                        </div>
-                      </div>
-                      
-                      <button
-                        onClick={() => addToCRM(primaryShipment)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add to CRM
-                        <span className="text-xs bg-indigo-500 px-1.5 py-0.5 rounded ml-1">
-                          Get Contacts
-                        </span>
-                      </button>
+                    <div className="flex flex-wrap gap-1">
+                      {record && getCompanyMatchBadges(record)}
                     </div>
                   </div>
-                </div>
-              </div>
+
+                  {/* Confidence Indicator */}
+                  {record?.confidence_score && (
+                    <div className="mb-3">
+                      <ConfidenceIndicator 
+                        score={record.confidence_score}
+                        sources={record.confidence_sources || []}
+                        apolloVerified={record.apollo_verified || false}
+                        className="mb-2"
+                      />
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
                     <div>
