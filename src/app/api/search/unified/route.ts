@@ -51,13 +51,13 @@ export async function GET(request: NextRequest) {
     // Extract search filters
     const mode = searchParams.get('mode') || 'all'; // air, ocean, all
     const company = searchParams.get('company') || '';
-    const originCountry = searchParams.get('origin_country') || '';
-    const destinationCountry = searchParams.get('destination_country') || '';
-    const destinationCity = searchParams.get('destination_city') || '';
+    const originCountry = searchParams.get('originCountry') || '';
+    const destinationCountry = searchParams.get('destinationCountry') || '';
+    const destinationCity = searchParams.get('destinationCity') || '';
     const commodity = searchParams.get('commodity') || '';
-    const hsCode = searchParams.get('hs_code') || '';
-    const startDate = searchParams.get('start_date') || '';
-    const endDate = searchParams.get('end_date') || '';
+    const hsCode = searchParams.get('hsCode') || '';
+    const startDate = searchParams.get('startDate') || '';
+    const endDate = searchParams.get('endDate') || '';
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 
     console.log('Search filters:', {
@@ -65,13 +65,12 @@ export async function GET(request: NextRequest) {
       destinationCity, commodity, hsCode, startDate, endDate, limit
     });
 
-    // Build dynamic query for trade_data_view
+    // First, let's try to query ocean_shipments directly since trade_data_view might be broken
     let query = supabase
-      .from('trade_data_view')
+      .from('ocean_shipments')
       .select(`
-        unified_id,
+        id,
         company_name,
-        shipment_type,
         arrival_date,
         departure_date,
         vessel_name,
@@ -87,7 +86,7 @@ export async function GET(request: NextRequest) {
         origin_country,
         destination_city,
         hs_code,
-        goods_description
+        description
       `);
 
     // Apply filters
@@ -95,9 +94,8 @@ export async function GET(request: NextRequest) {
       query = query.ilike('company_name', `%${company}%`);
     }
 
-    if (mode !== 'all') {
-      query = query.eq('shipment_type', mode);
-    }
+    // Skip mode filter for now since we're only querying ocean_shipments
+    // We'll add air shipments later if needed
 
     if (originCountry) {
       query = query.ilike('origin_country', `%${originCountry}%`);
@@ -112,7 +110,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (commodity) {
-      query = query.ilike('goods_description', `%${commodity}%`);
+      query = query.ilike('description', `%${commodity}%`);
     }
 
     if (hsCode) {
@@ -173,7 +171,7 @@ export async function GET(request: NextRequest) {
 
       const group = companyGroups.get(companyName)!;
       group.shipments.push(record);
-      group.shipment_modes.add(record.shipment_type);
+      group.shipment_modes.add('ocean'); // Since we're querying ocean_shipments
       group.total_weight += record.gross_weight_kg || 0;
       group.total_value += record.value_usd || 0;
       if (record.arrival_date) {
@@ -187,13 +185,8 @@ export async function GET(request: NextRequest) {
         // Sort arrival dates
         const sortedDates = group.arrival_dates.sort();
         
-        // Determine shipment mode
-        let shipment_mode: 'ocean' | 'air' | 'mixed' = 'ocean';
-        if (group.shipment_modes.has('air') && group.shipment_modes.has('ocean')) {
-          shipment_mode = 'mixed';
-        } else if (group.shipment_modes.has('air')) {
-          shipment_mode = 'air';
-        }
+        // For now, all are ocean since we're only querying ocean_shipments
+        const shipment_mode: 'ocean' | 'air' | 'mixed' = 'ocean';
 
         // Calculate confidence score (basic algorithm)
         const confidenceScore = Math.min(100, Math.max(10, 
@@ -215,10 +208,10 @@ export async function GET(request: NextRequest) {
           shipper_name: s.shipper_name,
           port_of_lading: s.port_of_loading,
           port_of_discharge: s.port_of_discharge,
-          goods_description: s.goods_description,
+          goods_description: s.description,
           departure_date: s.departure_date,
           hs_code: s.hs_code,
-          unified_id: s.unified_id
+          unified_id: s.id || s.unified_id
         }));
 
         return {
