@@ -23,26 +23,59 @@ export default function TestAdminPage() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [setupStep, setSetupStep] = useState(0)
+  const [rawMeta, setRawMeta] = useState<any | null>(null)
+  const [profileData, setProfileData] = useState<any | null>(null)
   const supabase = createClientComponentClient()
 
   useEffect(() => {
     loadAuthUser()
   }, [])
 
-  const loadAuthUser = async () => {
+  const loadAuthUser = async () => { 
+    // Always refresh session first to avoid stale metadata
+    try { await supabase.auth.getSession() } catch {}
+
     try {
       setLoading(true)
       const user = await getAuthUser()
       setAuthUser(user)
+
+      // Fetch raw auth user and public.profile for diagnostics
+      try {
+        const { data: sessionData } = await supabase.auth.getUser()
+        setRawMeta({
+          user_metadata: sessionData?.user?.user_metadata || null,
+          app_metadata: sessionData?.user?.app_metadata || null,
+          email: sessionData?.user?.email,
+          id: sessionData?.user?.id
+        })
+        if (sessionData?.user?.id) {
+          const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', sessionData.user.id).single()
+          setProfileData(profile || null)
+        }
+      } catch {}
       
       // Determine setup step based on user state
       if (!user) {
         setSetupStep(1) // Need to sign up/in
       } else if (user.email === 'info@getb3acon.com' && (!user.role || user.role === 'user')) {
+        // Force a session refresh and re-fetch to avoid stale metadata
+        try {
+          await supabase.auth.getSession();
+        } catch {}
         setSetupStep(2) // Need to run SQL scripts
       } else if (user.role === 'admin') {
         setSetupStep(3) // All set up
       } else {
+        // Attempt a live profile read to confirm admin upgrade before defaulting to non-admin
+        try {
+          const { data: profile } = await supabase.from('user_profiles').select('role, plan').eq('id', user.id).single()
+          if (profile && profile.role === 'admin') {
+            setAuthUser({ ...user, role: 'admin', plan: profile.plan || user.plan, isAdmin: true, isPremium: true, permissions: user.permissions })
+            setSetupStep(3)
+            return
+          }
+        } catch {}
         setSetupStep(2) // Need admin setup
       }
     } catch (error) {
@@ -89,6 +122,21 @@ export default function TestAdminPage() {
                 Sign Out
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Diagnostics */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Live Metadata Diagnostics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <h3 className="font-medium text-gray-800 mb-2">Auth Metadata</h3>
+              <pre className="bg-gray-50 p-3 rounded border overflow-auto max-h-64">{JSON.stringify(rawMeta, null, 2)}</pre>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-800 mb-2">User Profile (public.user_profiles)</h3>
+              <pre className="bg-gray-50 p-3 rounded border overflow-auto max-h-64">{JSON.stringify(profileData, null, 2)}</pre>
+            </div>
           </div>
         </div>
 

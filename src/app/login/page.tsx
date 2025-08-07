@@ -88,9 +88,9 @@ export default function UserLogin() {
               password: password
             })
             
-            if (!retryError && retryData.user) {
-              router.push('/test-admin')
-              return
+                          if (!retryError && retryData.user) {
+                router.push('/dashboard')
+                return
             } else {
               // Signup worked but signin failed, user might need email confirmation
               alert('Admin account created! Please check your email for verification, then try signing in again.')
@@ -145,8 +145,8 @@ export default function UserLogin() {
       if (data.user) {
         // Check if this is the admin test user
         if (email === ADMIN_EMAIL) {
-          // Redirect to test-admin page for verification
-          router.push('/test-admin')
+          // Redirect to dashboard for admin flow
+          router.push('/dashboard')
         } else {
           // Regular users go to dashboard
           router.push('/dashboard')
