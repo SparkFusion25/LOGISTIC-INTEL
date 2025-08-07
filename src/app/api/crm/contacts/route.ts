@@ -81,7 +81,12 @@ export async function POST(request: NextRequest) {
     const currentUserId = user?.id || 'c90f60b4-d3b2-4c3a-8b1b-123456789012'; // Fallback for demo
     
     // Validate required fields - only company_name is required for lead capture
-    if (!contactData.company_name) {
+    if (!contactData.company_name || !String(contactData.company_name).trim()) {
+      // Try to infer a reasonable non-empty label from other fields
+      const inferredLabel = contactData.unified_id ? `Company ${contactData.unified_id}` : (contactData.shipper_name || contactData.consignee_name || '').toString().trim()
+      if (inferredLabel) {
+        contactData.company_name = inferredLabel
+      } else {
       console.error('❌ Missing required field: company_name:', { 
         company_name: contactData.company_name 
       });
@@ -93,6 +98,7 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+      }
     }
 
     // Add contact to CRM

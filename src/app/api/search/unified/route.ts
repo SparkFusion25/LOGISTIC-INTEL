@@ -91,7 +91,9 @@ export async function GET(request: NextRequest) {
         destination_city,
         hs_code,
         goods_description
-      `);
+      `)
+      .not('company_name', 'is', null)
+      .neq('company_name', '');
 
     // Apply filters
     if (company) {
@@ -193,70 +195,57 @@ export async function GET(request: NextRequest) {
     });
 
     // Convert to grouped format
-    const groupedData: GroupedCompanyData[] = Array.from(companyGroups.entries())
+    let groupedData: GroupedCompanyData[] = Array.from(companyGroups.entries())
       .map(([companyName, group]) => {
         // Sort arrival dates
         const sortedDates = group.arrival_dates.sort();
         
-        // Determine shipment mode
-        let shipment_mode: 'ocean' | 'air' | 'mixed' = 'ocean';
-        if (group.shipment_modes.has('air') && group.shipment_modes.has('ocean')) {
-          shipment_mode = 'mixed';
-        } else if (group.shipment_modes.has('air')) {
-          shipment_mode = 'air';
-        }
+        const shipmentMode = group.shipment_modes.size === 1
+          ? (Array.from(group.shipment_modes)[0] as 'air' | 'ocean')
+          : 'mixed';
 
-        // Calculate confidence score (basic algorithm)
-        const confidenceScore = Math.min(100, Math.max(10, 
-          (group.shipments.length * 15) + 
-          (group.total_value > 0 ? 20 : 0) +
-          (group.total_weight > 0 ? 15 : 0)
-        ));
-
-        // Format shipment details
-        const shipments: ShipmentDetail[] = group.shipments.map(s => ({
-          bol_number: s.bol_number,
-          arrival_date: s.arrival_date,
-          containers: s.container_count?.toString() || null,
-          vessel_name: s.vessel_name,
-          weight_kg: s.gross_weight_kg || 0,
-          value_usd: s.value_usd || 0,
-          shipper_name: s.shipper_name,
-          port_of_lading: s.port_of_loading,
-          port_of_discharge: s.port_of_discharge,
-          goods_description: s.goods_description,
-          departure_date: s.departure_date,
-          hs_code: s.hs_code,
-          unified_id: s.unified_id
+        const shipments: ShipmentDetail[] = group.shipments.map((r: any) => ({
+          bol_number: r.bol_number,
+          arrival_date: r.arrival_date,
+          containers: r.container_count ? String(r.container_count) : null,
+          vessel_name: r.vessel_name,
+          weight_kg: Number(r.gross_weight_kg) || 0,
+          value_usd: Number(r.value_usd) || 0,
+          shipper_name: r.shipper_name,
+          port_of_lading: r.port_of_loading,
+          port_of_discharge: r.port_of_discharge,
+          goods_description: r.goods_description,
+          departure_date: r.departure_date,
+          hs_code: r.hs_code,
+          unified_id: r.unified_id,
         }));
+
+        const confidence_score = Math.min(99, Math.max(30, Math.round((group.total_value / 1_000_000) + (shipments.length))));
 
         return {
           company_name: companyName,
-          shipment_mode,
-          total_shipments: group.shipments.length,
-          total_weight_kg: Math.round(group.total_weight),
-          total_value_usd: Math.round(group.total_value),
+          shipment_mode: shipmentMode,
+          total_shipments: shipments.length,
+          total_weight_kg: group.total_weight,
+          total_value_usd: group.total_value,
           first_arrival: sortedDates[0] || '',
           last_arrival: sortedDates[sortedDates.length - 1] || '',
-          confidence_score: confidenceScore,
-          shipments: shipments.sort((a, b) => 
-            new Date(b.arrival_date).getTime() - new Date(a.arrival_date).getTime()
-          )
-        };
+          confidence_score,
+          shipments,
+        } as GroupedCompanyData;
       })
-      .sort((a, b) => b.total_shipments - a.total_shipments) // Sort by shipment count
-      .slice(0, limit); // Apply final limit
+      .filter((g) => g.company_name && g.company_name.toLowerCase() !== 'unknown company');
 
-    console.log(`✅ Grouped into ${groupedData.length} companies`);
+    // Basic summary
+    const totalCompanies = groupedData.length;
+    const totalShipments = groupedData.reduce((sum, g) => sum + g.total_shipments, 0);
 
     return NextResponse.json({
       success: true,
-      message: `Found ${groupedData.length} companies with ${rawData.length} total shipments`,
       data: groupedData,
-      total_companies: groupedData.length,
-      total_shipments: rawData.length,
-      search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode, portOfLoading, portOfDischarge },
-      note: "Contact details are gated - add company to CRM to unlock"
+      total_companies: totalCompanies,
+      total_shipments: totalShipments,
+      search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode, startDate, endDate, portOfLoading, portOfDischarge }
     });
 
   } catch (error: any) {
