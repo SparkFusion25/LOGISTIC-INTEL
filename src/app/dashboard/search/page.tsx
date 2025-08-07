@@ -4,7 +4,7 @@
 
 import dynamic from 'next/dynamic';
 
-const SearchPanel = dynamic(() => import('@/components/widgets/SearchPanel'), { 
+const SearchPanel = dynamic(() => import('@/components/user/SearchPanel'), { 
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-64">
