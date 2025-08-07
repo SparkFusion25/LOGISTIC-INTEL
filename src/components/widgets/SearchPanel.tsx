@@ -144,6 +144,7 @@ export default function SearchPanel() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(25);
   const [hasMorePages, setHasMorePages] = useState(false);
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
 
   const [filters, setFilters] = useState<SearchFilters>({
     mode: 'all',
@@ -192,6 +193,22 @@ export default function SearchPanel() {
       borderColor: 'border-teal-200'
     }
   ];
+
+  // Load available countries from actual data
+  useEffect(() => {
+    const loadCountries = async () => {
+      try {
+        const response = await fetch('/api/search/countries');
+        const result = await response.json();
+        if (result.success) {
+          setAvailableCountries(result.countries);
+        }
+      } catch (error) {
+        console.error('Failed to load countries:', error);
+      }
+    };
+    loadCountries();
+  }, []);
 
   // Removed auto-search on page load - user must manually search
   // useEffect(() => {
@@ -327,14 +344,11 @@ export default function SearchPanel() {
     try {
       const contactData = {
         company_name: record.unified_company_name,
-        contact_name: 'Lead Contact', // Default name, will be enriched
-        title: 'Contact Person',
-        email: '', // Will be enriched by Apollo
         source: 'Trade Search',
         unified_id: record.id,
         hs_code: record.hs_code,
         tags: ['trade-lead', record.mode],
-        notes: `Added from ${record.mode} shipment search. Value: ${record.unified_value ? `$${record.unified_value}` : 'Unknown'}, Date: ${record.unified_date}`
+        notes: `Added from ${record.mode} shipment search. ${record.shipper_name ? `Shipper: ${record.shipper_name}. ` : ''}Value: ${record.unified_value ? `$${record.unified_value}` : 'Unknown'}, Date: ${record.unified_date}. BOL: ${record.bol_number || 'N/A'}`
       };
 
       const response = await fetch('/api/crm/contacts', {
@@ -550,14 +564,9 @@ export default function SearchPanel() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="">All Countries</option>
-              <option value="CN">China</option>
-              <option value="DE">Germany</option>
-              <option value="JP">Japan</option>
-              <option value="KR">South Korea</option>
-              <option value="SG">Singapore</option>
-              <option value="NL">Netherlands</option>
-              <option value="CH">Switzerland</option>
-              <option value="FR">France</option>
+              {availableCountries.map(country => (
+                <option key={country} value={country}>{country}</option>
+              ))}
             </select>
           </div>
 
@@ -815,19 +824,38 @@ export default function SearchPanel() {
                   </div>
 
                   {/* Detailed Shipment Information */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                    <div>
-                      <span className="font-medium">BOL Number:</span> 
-                      <span className="ml-1 font-mono text-xs">{record.bol_number || 'N/A'}</span>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
+                      <div>
+                        <span className="font-medium">BOL Number:</span> 
+                        <span className="ml-1 font-mono text-xs">{record.bol_number || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Vessel:</span> {record.vessel_name || record.unified_carrier || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="font-medium">Arrival Date:</span> {record.arrival_date || record.unified_date || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="font-medium">Containers:</span> {record.container_count || 'N/A'}
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-medium">Vessel:</span> {record.vessel_name || record.unified_carrier || 'N/A'}
-                    </div>
-                    <div>
-                      <span className="font-medium">Arrival Date:</span> {record.unified_date || 'N/A'}
-                    </div>
-                    <div>
-                      <span className="font-medium">Origin:</span> {record.origin_country || 'N/A'}
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600">
+                      <div>
+                        <span className="font-medium">Shipper:</span> 
+                        <span className="ml-1">{record.shipper_name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">Port of Loading:</span> {record.port_of_loading || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="font-medium">Port of Discharge:</span> {record.port_of_discharge || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="font-medium">Gross Weight:</span> 
+                        {record.gross_weight_kg ? `${record.gross_weight_kg.toLocaleString()} kg` : 'N/A'}
+                      </div>
                     </div>
                   </div>
 

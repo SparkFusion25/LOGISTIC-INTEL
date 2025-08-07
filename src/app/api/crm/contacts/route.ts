@@ -79,17 +79,16 @@ export async function POST(request: NextRequest) {
     // Get authenticated user (or use a default for now)
     const currentUserId = 'c90f60b4-d3b2-4c3a-8b1b-123456789012'; // Default user ID for demo
     
-    // Validate required fields
-    if (!contactData.contact_name || !contactData.company_name) {
-      console.error('❌ Missing required fields:', { 
-        contact_name: contactData.contact_name, 
+    // Validate required fields - only company_name is required for lead capture
+    if (!contactData.company_name) {
+      console.error('❌ Missing required field: company_name:', { 
         company_name: contactData.company_name 
       });
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Contact name and company name are required',
-          received: { contact_name: contactData.contact_name, company_name: contactData.company_name }
+          error: 'Company name is required',
+          received: { company_name: contactData.company_name }
         },
         { status: 400 }
       );
@@ -100,18 +99,18 @@ export async function POST(request: NextRequest) {
       .from('crm_contacts')
       .insert({
         company_name: contactData.company_name,
-        contact_name: contactData.contact_name,
+        contact_name: contactData.contact_name || 'Lead Contact', // Default for company leads
         title: contactData.title || '',
         email: contactData.email || '',
         phone: contactData.phone || '',
         linkedin_url: contactData.linkedin_url || '',
-        source: contactData.source || 'Manual',
-        status: 'active',
+        source: contactData.source || 'Trade Search',
+        status: 'lead', // Mark as lead until enriched
         tags: contactData.tags || [],
         notes: contactData.notes || '',
         enriched_at: new Date().toISOString(),
         apollo_id: contactData.apollo_id || null,
-        // New fields for shipment linking
+        // Shipment data linking
         unified_id: contactData.unified_id || null,
         hs_code: contactData.hs_code || null,
         added_by_user: currentUserId
