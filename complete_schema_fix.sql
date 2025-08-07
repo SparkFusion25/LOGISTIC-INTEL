@@ -1,5 +1,9 @@
--- Complete Schema Fix for Trade Data View
+-- Complete Schema Fix for Trade Data View and CRM
 -- Fix all missing columns and create a proper unified view
+
+-- Step 0: Fix CRM contacts table schema
+ALTER TABLE public.crm_contacts 
+ADD COLUMN IF NOT EXISTS added_by_user TEXT;
 
 -- Step 1: Add missing column to ocean_shipments
 ALTER TABLE public.ocean_shipments 
