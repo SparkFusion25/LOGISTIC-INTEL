@@ -52,13 +52,65 @@ export default function UserLogin() {
     setError('')
 
     try {
-      // Use Supabase authentication
+      // Try to sign in first
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: email,
         password: password
       })
 
-      if (signInError) {
+      if (signInError && signInError.message?.includes('Invalid login credentials')) {
+        // User doesn't exist, try to create them automatically for demo/admin users
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+          // Create admin user
+          const createResponse = await fetch('/api/admin/create-test-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          
+          const createResult = await createResponse.json()
+          
+          if (createResult.success) {
+            // Try to sign in again
+            const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+              email: email,
+              password: password
+            })
+            
+            if (retryError) {
+              throw retryError
+            }
+            
+            router.push('/test-admin')
+            return
+          }
+        } else if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+          // Create demo user
+          const createResponse = await fetch('/api/admin/create-demo-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          
+          const createResult = await createResponse.json()
+          
+          if (createResult.success) {
+            // Try to sign in again
+            const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+              email: email,
+              password: password
+            })
+            
+            if (retryError) {
+              throw retryError
+            }
+            
+            router.push('/dashboard')
+            return
+          }
+        }
+        
+        // Still failed, show error
+        throw signInError
+      } else if (signInError) {
         throw signInError
       }
 

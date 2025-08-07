@@ -54,7 +54,51 @@ export default function SignUp() {
     }
 
     try {
-      // Sign up with Supabase
+      // Special handling for admin test user - create directly without email verification
+      if (formData.email === 'info@getb3acon.com') {
+        const createResponse = await fetch('/api/admin/create-test-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        
+        const createResult = await createResponse.json()
+        
+        if (!createResult.success) {
+          if (createResult.error?.includes('already registered') || createResult.error?.includes('already exists')) {
+            // User already exists, try to sign in
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: formData.email,
+              password: formData.password
+            })
+            
+            if (signInError) {
+              throw new Error('Admin user exists but password is incorrect. Please use the correct credentials.')
+            }
+            
+            router.push('/test-admin')
+            return
+          } else {
+            throw new Error(createResult.error)
+          }
+        }
+        
+        // Admin user created successfully, now sign them in
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        })
+        
+        if (signInError) {
+          throw signInError
+        }
+        
+        router.push('/test-admin')
+        return
+      }
+
+      // Regular user signup with email verification
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -78,14 +122,6 @@ export default function SignUp() {
       if (data.user && !data.session) {
         // Email confirmation required
         setSuccess('Account created! Please check your email for a verification link.')
-        
-        // For the test admin user, also show alternative instructions
-        if (formData.email === 'info@getb3acon.com') {
-          setSuccess(
-            'Account created! Please check your email for verification. ' +
-            'If no email arrives, you can proceed to run the admin setup SQL script in Supabase.'
-          )
-        }
       } else if (data.session) {
         // Auto-confirmed, redirect to dashboard
         router.push('/dashboard')
