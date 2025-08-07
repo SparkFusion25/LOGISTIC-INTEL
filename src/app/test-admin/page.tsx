@@ -264,9 +264,9 @@ export default function TestAdminPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Feature Access Test</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {testFeatures.map((feature) => {
-              const hasAccess = authUser ? canAccessFeature(authUser, feature) : false
-              const message = authUser ? getFeatureGateMessage(authUser, feature) : 'Please sign in first'
+                         {testFeatures.map((feature) => {
+               const hasAccess = authUser ? canAccessFeature(authUser, feature) : false
+               const message = authUser ? getFeatureGateMessage(feature) : 'Please sign in first'
               
               return (
                 <div key={feature} className="border rounded-lg p-4">
