@@ -3,7 +3,7 @@
 
 -- Step 0: Fix CRM contacts table schema
 ALTER TABLE public.crm_contacts 
-ADD COLUMN IF NOT EXISTS added_by_user TEXT;
+ADD COLUMN IF NOT EXISTS added_by_user UUID REFERENCES auth.users(id);
 
 -- Step 1: Add missing column to ocean_shipments
 ALTER TABLE public.ocean_shipments 

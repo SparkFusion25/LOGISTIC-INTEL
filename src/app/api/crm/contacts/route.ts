@@ -76,6 +76,9 @@ export async function POST(request: NextRequest) {
     
     console.log('🔄 CRM Contact Add Request:', JSON.stringify(contactData, null, 2));
 
+    // Get authenticated user (or use a default for now)
+    const currentUserId = 'c90f60b4-d3b2-4c3a-8b1b-123456789012'; // Default user ID for demo
+    
     // Validate required fields
     if (!contactData.contact_name || !contactData.company_name) {
       console.error('❌ Missing required fields:', { 
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
         // New fields for shipment linking
         unified_id: contactData.unified_id || null,
         hs_code: contactData.hs_code || null,
-        added_by_user: contactData.added_by_user || null
+        added_by_user: currentUserId
       })
       .select()
       .single();

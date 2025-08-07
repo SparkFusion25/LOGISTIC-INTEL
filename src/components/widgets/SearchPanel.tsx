@@ -38,6 +38,14 @@ interface UnifiedTradeRecord {
   description?: string;
   hs_description?: string;
   commodity_description?: string;
+  // Shipment details
+  bol_number?: string;
+  vessel_name?: string;
+  origin_country?: string;
+  destination_country?: string;
+  destination_city?: string;
+  departure_date?: string;
+  arrival_date?: string;
   // Contact information
   primary_email?: string;
   primary_phone?: string;
@@ -133,6 +141,9 @@ export default function SearchPanel() {
   const [summary, setSummary] = useState<SearchSummary | null>(null);
   const [totalResults, setTotalResults] = useState(0);
   const [expandedContacts, setExpandedContacts] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(25);
+  const [hasMorePages, setHasMorePages] = useState(false);
 
   const [filters, setFilters] = useState<SearchFilters>({
     mode: 'all',
@@ -182,23 +193,27 @@ export default function SearchPanel() {
     }
   ];
 
-  useEffect(() => {
-    // Load default search results
-    handleSearch();
-  }, []);
+  // Removed auto-search on page load - user must manually search
+  // useEffect(() => {
+  //   // Load default search results
+  //   handleSearch();
+  // }, []);
 
   useEffect(() => {
-    // Update search when mode changes
+    // Update search mode in filters when mode changes (but don't auto-search)
     setFilters(prev => ({ ...prev, mode: currentMode }));
-    handleSearch();
   }, [currentMode]);
 
   const handleModeChange = (mode: SearchMode) => {
     setCurrentMode(mode);
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (resetPagination = false) => {
     setIsLoading(true);
+    
+    if (resetPagination) {
+      setCurrentPage(1);
+    }
     
     try {
       // First get unified search results
@@ -215,8 +230,9 @@ export default function SearchPanel() {
       });
 
       // Add pagination
-      queryParams.append('limit', '100');
-      queryParams.append('offset', '0');
+      const offset = (currentPage - 1) * itemsPerPage;
+      queryParams.append('limit', itemsPerPage.toString());
+      queryParams.append('offset', offset.toString());
 
       const response = await fetch(`/api/search/unified?${queryParams}`);
       const result = await response.json();
@@ -228,6 +244,7 @@ export default function SearchPanel() {
         setSearchResults(enrichedResults);
         setSummary(result.summary);
         setTotalResults(result.total || 0);
+        setHasMorePages(result.pagination?.hasMore || false);
 
         // Log search analytics
         const avgConfidence = enrichedResults.reduce((sum: number, r: UnifiedTradeRecord) => {
@@ -501,7 +518,7 @@ export default function SearchPanel() {
       </div>
 
       {/* Search Form */}
-      <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
+              <form onSubmit={(e) => { e.preventDefault(); handleSearch(true); }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
@@ -779,7 +796,7 @@ export default function SearchPanel() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
                     <div>
                       <span className="font-medium">Commodity:</span> {record.hs_code}
                     </div>
@@ -793,7 +810,24 @@ export default function SearchPanel() {
                       </span>
                     </div>
                     <div>
-                      <span className="font-medium">Carrier:</span> {record.unified_carrier || 'N/A'}
+                      <span className="font-medium">Weight:</span> {record.unified_weight ? `${record.unified_weight.toLocaleString()} kg` : 'N/A'}
+                    </div>
+                  </div>
+
+                  {/* Detailed Shipment Information */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    <div>
+                      <span className="font-medium">BOL Number:</span> 
+                      <span className="ml-1 font-mono text-xs">{record.bol_number || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Vessel:</span> {record.vessel_name || record.unified_carrier || 'N/A'}
+                    </div>
+                    <div>
+                      <span className="font-medium">Arrival Date:</span> {record.unified_date || 'N/A'}
+                    </div>
+                    <div>
+                      <span className="font-medium">Origin:</span> {record.origin_country || 'N/A'}
                     </div>
                   </div>
 
@@ -905,6 +939,46 @@ export default function SearchPanel() {
         ))
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {searchResults && searchResults.length > 0 && (
+        <div className="mt-6 flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center text-sm text-gray-700">
+            <span>
+              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalResults)} of {totalResults} results
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (currentPage > 1) {
+                  setCurrentPage(currentPage - 1);
+                  handleSearch(false);
+                }
+              }}
+              disabled={currentPage <= 1}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="px-3 py-1 text-sm font-medium text-gray-700">
+              Page {currentPage}
+            </span>
+            <button
+              onClick={() => {
+                if (hasMorePages) {
+                  setCurrentPage(currentPage + 1);
+                  handleSearch(false);
+                }
+              }}
+              disabled={!hasMorePages}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Data Source Information */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">

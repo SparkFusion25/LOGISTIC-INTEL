@@ -60,11 +60,12 @@ export default function EnrichedContactCard({
   const [enrichmentSource, setEnrichmentSource] = useState<'cache' | 'apollo' | 'phantom' | 'mock' | 'apollo_unavailable' | null>(null);
   const [lastEnriched, setLastEnriched] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (companyName && isExpanded) {
-      enrichContacts();
-    }
-  }, [companyName, isExpanded]);
+  // Removed automatic Apollo enrichment to avoid rate limits
+  // useEffect(() => {
+  //   if (companyName && isExpanded) {
+  //     enrichContacts();
+  //   }
+  // }, [companyName, isExpanded]);
 
   const enrichContacts = async () => {
     setIsLoading(true);
