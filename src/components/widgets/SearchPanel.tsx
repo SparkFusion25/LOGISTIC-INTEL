@@ -152,6 +152,7 @@ export default function SearchPanel() {
   const [itemsPerPage] = useState(25);
   const [hasMorePages, setHasMorePages] = useState(false);
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const [filters, setFilters] = useState<SearchFilters>({
     mode: 'all',
@@ -234,6 +235,7 @@ export default function SearchPanel() {
 
   const handleSearch = async (resetPagination = false) => {
     setIsLoading(true);
+    setHasSearched(true);
     
     if (resetPagination) {
       setCurrentPage(1);
@@ -765,7 +767,31 @@ export default function SearchPanel() {
 
       {/* Results Display */}
       <div className="space-y-4">
-        {!searchResults || searchResults.length === 0 ? (
+        {!hasSearched ? (
+          <div className="text-center py-16">
+            <div className="text-8xl mb-6">🚢</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              Global Trade Intelligence Search
+            </h3>
+            <p className="text-lg text-gray-600 mb-4">
+              Search millions of shipment records to find companies, suppliers, and trade opportunities
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto text-sm text-gray-500">
+              <div className="flex items-center gap-2 justify-center">
+                <Package className="w-4 h-4 text-blue-500" />
+                <span>Ocean & Air Shipments</span>
+              </div>
+              <div className="flex items-center gap-2 justify-center">
+                <Building2 className="w-4 h-4 text-green-500" />
+                <span>Company Intelligence</span>
+              </div>
+              <div className="flex items-center gap-2 justify-center">
+                <TrendingUp className="w-4 h-4 text-purple-500" />
+                <span>Trade Trends</span>
+              </div>
+            </div>
+          </div>
+        ) : !searchResults || searchResults.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">

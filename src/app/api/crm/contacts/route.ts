@@ -76,8 +76,9 @@ export async function POST(request: NextRequest) {
     
     console.log('🔄 CRM Contact Add Request:', JSON.stringify(contactData, null, 2));
 
-    // Get authenticated user (or use a default for now)
-    const currentUserId = 'c90f60b4-d3b2-4c3a-8b1b-123456789012'; // Default user ID for demo
+    // Get authenticated user from session
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const currentUserId = user?.id || 'c90f60b4-d3b2-4c3a-8b1b-123456789012'; // Fallback for demo
     
     // Validate required fields - only company_name is required for lead capture
     if (!contactData.company_name) {
