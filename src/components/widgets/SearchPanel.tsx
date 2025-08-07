@@ -149,7 +149,7 @@ export default function SearchPanel() {
   const [totalResults, setTotalResults] = useState(0);
   const [expandedContacts, setExpandedContacts] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(25);
+  const [itemsPerPage] = useState(50);
   const [hasMorePages, setHasMorePages] = useState(false);
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
@@ -892,16 +892,31 @@ export default function SearchPanel() {
                     </div>
                   </div>
 
-                  {/* CRM Call-to-Action Section */}
-                  <div className="mt-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-indigo-700">
-                        <Building2 className="w-4 h-4" />
-                        <span className="font-medium">Need contact details?</span>
-                        <span className="text-indigo-600">Add to CRM to unlock emails, phones & decision makers</span>
+                  {/* Contact Privacy & CRM Gating Section */}
+                  <div className="mt-3 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 text-sm text-indigo-700 mb-2">
+                          <Building2 className="w-4 h-4" />
+                          <span className="font-bold">🔒 Contact Details Protected</span>
+                        </div>
+                        <p className="text-sm text-indigo-600 mb-3">
+                          Shipment data is visible, but contact information (emails, phones, decision makers) is premium-gated. 
+                          Add to CRM to unlock full company intelligence.
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                            <span>Trade Data: Visible</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                            <span>Contact Info: CRM Only</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-xs text-indigo-500 font-medium bg-indigo-100 px-2 py-1 rounded">
-                        Premium Feature
+                      <div className="text-xs text-indigo-600 font-bold bg-indigo-100 px-3 py-1.5 rounded-full">
+                        🎯 Premium
                       </div>
                     </div>
                   </div>
@@ -927,29 +942,39 @@ export default function SearchPanel() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 ml-4">
-                  <button
-                    onClick={() => toggleContactCard(record.unified_company_name)}
-                    className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      expandedContacts.has(record.unified_company_name)
-                        ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    <Users className="w-4 h-4" />
-                    {expandedContacts.has(record.unified_company_name) ? 'Hide' : 'Show'} Contacts
-                  </button>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {/* Access Level Badge */}
+                    <div className="flex items-center gap-1 text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+                      <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                      <span>🔒 Contact info locked</span>
+                    </div>
+                  </div>
                   
-                  <button
-                    onClick={() => addToCRM(record)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add to CRM
-                    <span className="text-xs bg-indigo-500 px-1.5 py-0.5 rounded ml-1">
-                      Get Contacts
-                    </span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleContactCard(record.unified_company_name)}
+                      className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                        expandedContacts.has(record.unified_company_name)
+                          ? 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Users className="w-4 h-4" />
+                      {expandedContacts.has(record.unified_company_name) ? 'Hide' : 'Show'} Contacts
+                    </button>
+                  
+                    <button
+                      onClick={() => addToCRM(record)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add to CRM
+                      <span className="text-xs bg-indigo-500 px-1.5 py-0.5 rounded ml-1">
+                        Get Contacts
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

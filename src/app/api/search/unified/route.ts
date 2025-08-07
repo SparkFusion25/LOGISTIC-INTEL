@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     const carrier = searchParams.get('carrier') || '';
     const minValue = parseFloat(searchParams.get('min_value') || '0');
     const maxValue = parseFloat(searchParams.get('max_value') || '999999999');
-    const limit = parseInt(searchParams.get('limit') || '100');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100); // Max 100, default 50
     const offset = parseInt(searchParams.get('offset') || '0');
 
     console.log('🔍 Search filters:', {
