@@ -1,353 +1,469 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Filter, Download, MapPin, Ship, Package, Building } from 'lucide-react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Search, Filter, Download, MapPin, Ship, Plane, Building, AlertCircle, CheckCircle } from 'lucide-react'
+import { CompanySummaryCard } from '../search/CompanySummaryCard'
 
 interface SearchFilters {
-  origin?: string
-  destination?: string
-  hsCode?: string
-  carrier?: string
-  port?: string
-  dateRange?: string
-  commodity?: string
-  companyName?: string
+  company?: string
   originCountry?: string
   destinationCountry?: string
-  mode?: string
-  // Index signature to prevent TypeScript errors for dynamic keys
-  [key: string]: string | undefined
+  destinationCity?: string
+  commodity?: string
+  hsCode?: string
+  startDate?: string
+  endDate?: string
+  mode?: 'all' | 'ocean' | 'air'
 }
 
-interface TradeResult {
-  id: string
-  company: string
-  origin: string
-  destination: string
-  commodity: string
-  hsCode: string
-  carrier: string
-  port: string
-  volume: string
-  date: string
-  value: string
+interface ShipmentDetail {
+  bol_number: string | null;
+  arrival_date: string;
+  containers: string | null;
+  vessel_name: string | null;
+  weight_kg: number;
+  value_usd: number;
+  shipper_name: string | null;
+  port_of_lading: string | null;
+  port_of_discharge: string | null;
+  goods_description: string | null;
+  departure_date: string | null;
+  hs_code: string | null;
+  unified_id: string;
+}
+
+interface GroupedCompanyData {
+  company_name: string;
+  shipment_mode: 'ocean' | 'air' | 'mixed';
+  total_shipments: number;
+  total_weight_kg: number;
+  total_value_usd: number;
+  first_arrival: string;
+  last_arrival: string;
+  confidence_score: number;
+  shipments: ShipmentDetail[];
+}
+
+interface SearchResponse {
+  success: boolean;
+  message: string;
+  data: GroupedCompanyData[];
+  total_companies: number;
+  total_shipments: number;
+  search_filters: any;
+  note?: string;
 }
 
 export default function SearchPanel() {
   const [filters, setFilters] = useState<SearchFilters>({
-    origin: '',
-    destination: '',
+    company: '',
+    originCountry: '',
+    destinationCountry: '',
+    destinationCity: '',
+    commodity: '',
     hsCode: '',
-    carrier: '',
-    port: '',
-    dateRange: '30d',
-    commodity: ''
+    startDate: '',
+    endDate: '',
+    mode: 'all'
   })
   
-  const [results, setResults] = useState<TradeResult[]>([])
+  const [companies, setCompanies] = useState<GroupedCompanyData[]>([])
   const [loading, setLoading] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [addingToCRM, setAddingToCRM] = useState<string | null>(null)
+  const [countries, setCountries] = useState<string[]>([])
+  
+  const supabase = createClientComponentClient()
 
-  // Fetch real trade data from API
-  const fetchTradeData = async () => {
-    setLoading(true);
-    try {
-      const queryParams = new URLSearchParams();
-      if (filters.company) queryParams.set('company', filters.company);
-      if (filters.origin) queryParams.set('origin_country', filters.origin);
-      if (filters.destination) queryParams.set('destination_country', filters.destination);
-      if (filters.commodity) queryParams.set('commodity', filters.commodity);
-      if (filters.hsCode) queryParams.set('hs_code', filters.hsCode);
-      if (filters.carrier) queryParams.set('carrier', filters.carrier);
-      
-      const response = await fetch(`/api/search/unified?${queryParams.toString()}`);
-      const data = await response.json();
-      
-      if (data.success && data.records) {
-        // Transform data to match TradeResult interface
-        const transformedResults: TradeResult[] = data.records.map((record: any) => ({
-          id: record.unified_id || record.id,
-          company: record.company_name || record.unified_company_name || 'Unknown Company',
-          origin: `${record.origin_country || 'Unknown'}`,
-          destination: `${record.destination_city || record.destination_country || 'Unknown'}`,
-          commodity: record.description || record.commodity_description || 'Unknown Commodity',
-          hsCode: record.hs_code || 'N/A',
-          carrier: record.carrier || record.unified_carrier || 'Unknown Carrier',
-          port: record.destination_port || record.origin_port || 'Unknown Port',
-          volume: `${record.weight_kg || 0} kg`,
-          date: record.shipment_date || record.unified_date || 'Unknown Date',
-          value: record.value_usd ? `$${(record.value_usd / 1000).toFixed(0)}K` : 'Unknown'
-        }));
-        setResults(transformedResults);
-      } else {
-        setResults([]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch trade data:', error);
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Load data on component mount
+  // Load countries for dropdown
   useEffect(() => {
-    fetchTradeData();
-  }, []);
-
-  // Sample data for demo (fallback if no real data)
-  const sampleResults: TradeResult[] = [
-    {
-      id: 'sample-1',
-      company: 'Asia Pacific Trading',
-      origin: 'Busan, South Korea',
-      destination: 'Long Beach, USA',
-      commodity: 'Textiles',
-      hsCode: '6109.10.00',
-      carrier: 'HMM',
-      port: 'Port of Long Beach',
-      volume: '890 TEU',
-      date: '2024-01-10',
-      value: '$950K'
+    const loadCountries = async () => {
+      try {
+        const response = await fetch('/api/search/countries')
+        const data = await response.json()
+        if (data.success) {
+          setCountries(data.countries || [])
+        }
+      } catch (error) {
+        console.error('Failed to load countries:', error)
+        // Fallback list
+        setCountries(['China', 'United States', 'Germany', 'India', 'Vietnam', 'Turkey', 'South Korea', 'Japan'])
+      }
     }
-  ]
+    loadCountries()
+  }, [])
 
   const handleSearch = async () => {
-    await fetchTradeData();
-  }
-
-  const handleFilterChange = (key: keyof SearchFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }
-
-  const exportResults = () => {
-    if (!results || results.length === 0) {
-      alert('No results to export');
-      return;
+    if (!hasSearched && !filters.company && !filters.originCountry && !filters.commodity) {
+      setError('Please enter at least one search criteria')
+      return
     }
+
+    setLoading(true)
+    setError(null)
+    setHasSearched(true)
+
+    try {
+      const searchParams = new URLSearchParams()
+      
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value.trim()) {
+          searchParams.append(key, value.trim())
+        }
+      })
+
+      console.log('Searching with filters:', filters)
+
+      const response = await fetch(`/api/search/unified?${searchParams.toString()}`)
+      const data: SearchResponse = await response.json()
+
+      if (data.success) {
+        setCompanies(data.data || [])
+        console.log(`Found ${data.total_companies} companies with ${data.total_shipments} shipments`)
+      } else {
+        setError(data.message || 'Search failed')
+        setCompanies([])
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      setError('Failed to search. Please try again.')
+      setCompanies([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddToCRM = async (company: GroupedCompanyData) => {
+    setAddingToCRM(company.company_name)
     
-    const csvContent = [
-      ['Company', 'Origin', 'Destination', 'Commodity', 'HS Code', 'Carrier', 'Port', 'Volume', 'Date', 'Value'],
-      ...results.map(r => [
-        r?.company || '', 
-        r?.origin || '', 
-        r?.destination || '', 
-        r?.commodity || '', 
-        r?.hsCode || '', 
-        r?.carrier || '', 
-        r?.port || '', 
-        r?.volume || '', 
-        r?.date || '', 
-        r?.value || ''
-      ])
-    ].map(row => row.join(',')).join('\n')
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'trade_search_results.csv'
-    a.click()
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        setError('Please sign in to add companies to CRM')
+        return
+      }
+
+      const crmData = {
+        company_name: company.company_name,
+        total_shipments: company.total_shipments,
+        total_weight_kg: company.total_weight_kg,
+        total_value_usd: company.total_value_usd,
+        shipment_mode: company.shipment_mode,
+        confidence_score: company.confidence_score,
+        source: 'Trade Search',
+        added_by_user: user.id
+      }
+
+      console.log('Adding to CRM:', crmData)
+
+      const response = await fetch('/api/crm/contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(crmData)
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Show success message
+        alert(`${company.company_name} added to CRM successfully!`)
+      } else {
+        if (result.error?.includes('already exists')) {
+          alert(`${company.company_name} is already in your CRM`)
+        } else {
+          setError(result.error || 'Failed to add to CRM')
+        }
+      }
+    } catch (error) {
+      console.error('Add to CRM error:', error)
+      setError('Failed to add to CRM. Please try again.')
+    } finally {
+      setAddingToCRM(null)
+    }
+  }
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }))
+  }
+
+  const clearFilters = () => {
+    setFilters({
+      company: '',
+      originCountry: '',
+      destinationCountry: '',
+      destinationCity: '',
+      commodity: '',
+      hsCode: '',
+      startDate: '',
+      endDate: '',
+      mode: 'all'
+    })
+    setCompanies([])
+    setHasSearched(false)
+    setError(null)
   }
 
   return (
-    <div className="space-y-6">
-      {/* Search Header */}
-      <div className="glass-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Global Trade Search</h2>
-            <p className="text-gray-600">Search company trade activity, shipment history, and market intelligence</p>
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="btn-secondary"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
-          </button>
-        </div>
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Trade Intelligence Search</h1>
+        <p className="text-gray-600">
+          Search global trade data to discover companies, shipment patterns, and market opportunities.
+        </p>
+      </div>
 
-        {/* Main Search Bar */}
-        <div className="flex space-x-4 mb-6">
-          <div className="flex-1">
+      {/* Search Form */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {/* Company Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Company Name
+            </label>
             <input
               type="text"
-              placeholder="Search by company name, commodity, or HS code..."
-              className="form-input w-full"
-              value={filters.commodity}
-              onChange={(e) => handleFilterChange('commodity', e.target.value)}
+              value={filters.company || ''}
+              onChange={(e) => handleFilterChange('company', e.target.value)}
+              placeholder="Search companies..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <button
-            onClick={handleSearch}
-            className="btn-primary px-8"
-            disabled={loading}
-          >
-            {loading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            ) : (
-              <Search className="w-4 h-4 mr-2" />
-            )}
-            Search
-          </button>
+
+          {/* Origin Country */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Origin Country
+            </label>
+            <select
+              value={filters.originCountry || ''}
+              onChange={(e) => handleFilterChange('originCountry', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">All Countries</option>
+              {countries.map(country => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Shipment Mode */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Shipment Mode
+            </label>
+            <select
+              value={filters.mode || 'all'}
+              onChange={(e) => handleFilterChange('mode', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Modes</option>
+              <option value="ocean">🚢 Ocean</option>
+              <option value="air">✈️ Air</option>
+            </select>
+          </div>
         </div>
+
+        {/* Advanced Filters Toggle */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 mb-4"
+        >
+          <Filter className="w-4 h-4" />
+          {showFilters ? 'Hide' : 'Show'} Advanced Filters
+        </button>
 
         {/* Advanced Filters */}
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="w-4 h-4 inline mr-1" />
-                Origin
+                Destination Country
+              </label>
+              <select
+                value={filters.destinationCountry || ''}
+                onChange={(e) => handleFilterChange('destinationCountry', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Countries</option>
+                {countries.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Commodity
               </label>
               <input
                 type="text"
-                placeholder="City, Country"
-                className="form-input"
-                value={filters.origin}
-                onChange={(e) => handleFilterChange('origin', e.target.value)}
+                value={filters.commodity || ''}
+                onChange={(e) => handleFilterChange('commodity', e.target.value)}
+                placeholder="e.g., Electronics, Textiles"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="w-4 h-4 inline mr-1" />
-                Destination
-              </label>
-              <input
-                type="text"
-                placeholder="City, Country"
-                className="form-input"
-                value={filters.destination}
-                onChange={(e) => handleFilterChange('destination', e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Package className="w-4 h-4 inline mr-1" />
                 HS Code
               </label>
               <input
                 type="text"
-                placeholder="e.g. 8471.30.01"
-                className="form-input"
-                value={filters.hsCode}
+                value={filters.hsCode || ''}
                 onChange={(e) => handleFilterChange('hsCode', e.target.value)}
+                placeholder="e.g., 8471, 6204"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Ship className="w-4 h-4 inline mr-1" />
-                Carrier
+                Start Date
               </label>
               <input
-                type="text"
-                placeholder="e.g. COSCO, Hapag-Lloyd"
-                className="form-input"
-                value={filters.carrier}
-                onChange={(e) => handleFilterChange('carrier', e.target.value)}
+                type="date"
+                value={filters.startDate || ''}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Building className="w-4 h-4 inline mr-1" />
-                Port
+                End Date
               </label>
               <input
-                type="text"
-                placeholder="Port name"
-                className="form-input"
-                value={filters.port}
-                onChange={(e) => handleFilterChange('port', e.target.value)}
+                type="date"
+                value={filters.endDate || ''}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
-              <select
-                className="form-input"
-                value={filters.dateRange}
-                onChange={(e) => handleFilterChange('dateRange', e.target.value)}
-              >
-                <option value="7d">Last 7 days</option>
-                <option value="30d">Last 30 days</option>
-                <option value="90d">Last 90 days</option>
-                <option value="1y">Last year</option>
-              </select>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Results Section */}
-      <div className="glass-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Search Results ({results.length})
-          </h3>
-          {results.length > 0 && (
-            <button
-              onClick={exportResults}
-              className="btn-secondary"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export CSV
-            </button>
-          )}
+        {/* Search Actions */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Searching...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4" />
+                Search
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={clearFilters}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Clear
+          </button>
         </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-          </div>
-        ) : results.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Company</th>
-                  <th>Route</th>
-                  <th>Commodity</th>
-                  <th>HS Code</th>
-                  <th>Carrier</th>
-                  <th>Volume</th>
-                  <th>Value</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((result) => (
-                  <tr key={result.id}>
-                    <td className="font-medium">{result.company}</td>
-                    <td>
-                      <div className="text-sm">
-                        <div>{result.origin}</div>
-                        <div className="text-gray-500">→ {result.destination}</div>
-                      </div>
-                    </td>
-                    <td>{result.commodity}</td>
-                    <td className="font-mono text-sm">{result.hsCode}</td>
-                    <td>{result.carrier}</td>
-                    <td>{result.volume}</td>
-                    <td className="font-semibold text-green-600">{result.value}</td>
-                    <td>{result.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
-            <p className="text-gray-500">Try adjusting your search criteria or filters</p>
-          </div>
-        )}
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <p className="text-red-700">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Welcome Message - Before Search */}
+      {!hasSearched && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-semibold text-blue-900 mb-2">
+            Global Trade Intelligence Search
+          </h2>
+          <p className="text-blue-700 mb-4">
+            Search and analyze global trade data to discover new business opportunities
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-blue-600">
+            <div className="flex items-center justify-center gap-2">
+              <Ship className="w-4 h-4" />
+              Ocean & Air Shipments
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <Building className="w-4 h-4" />
+              Company Intelligence
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Trade Trends
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Results */}
+      {hasSearched && companies.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Search Results ({companies.length} companies found)
+            </h2>
+            <button
+              onClick={() => console.log('Export functionality')}
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {companies.map((company, index) => (
+              <CompanySummaryCard
+                key={`${company.company_name}-${index}`}
+                company={company}
+                onAddToCRM={handleAddToCRM}
+                isAddingToCRM={addingToCRM === company.company_name}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* No Results */}
+      {hasSearched && companies.length === 0 && !loading && (
+        <div className="text-center py-12">
+          <Building className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No companies found</h3>
+          <p className="text-gray-600 mb-4">
+            Try adjusting your search criteria or broadening your filters.
+          </p>
+          <button
+            onClick={clearFilters}
+            className="text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * 🚀 UNIFIED TRADE SEARCH - REAL SUPABASE DATA
- * This endpoint searches the trade_data_view with uploaded XML data
- * Replaces all mock data with real shipment records
+ * 🚀 UNIFIED TRADE SEARCH - GROUPED BY COMPANY
+ * Returns companies with aggregated shipment data and expandable shipment details
+ * Fixes duplicate company listings and implements proper UI/UX structure
  */
 
 // Create Supabase client
@@ -13,30 +13,38 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-interface UnifiedTradeRecord {
+interface ShipmentDetail {
+  bol_number: string | null;
+  arrival_date: string;
+  containers: string | null;
+  vessel_name: string | null;
+  weight_kg: number;
+  value_usd: number;
+  shipper_name: string | null;
+  port_of_lading: string | null;
+  port_of_discharge: string | null;
+  goods_description: string | null;
+  departure_date: string | null;
+  hs_code: string | null;
   unified_id: string;
-  shipment_type: 'ocean' | 'air';
-  unified_company_name: string;
-  unified_destination: string;
-  unified_value: number;
-  unified_weight: number;
-  unified_date: string;
-  unified_carrier: string;
-  hs_code: string;
-  description: string;
-  origin_country: string;
-  destination_country: string;
-  destination_city: string;
+}
+
+interface GroupedCompanyData {
+  company_name: string;
+  shipment_mode: 'ocean' | 'air' | 'mixed';
+  total_shipments: number;
+  total_weight_kg: number;
+  total_value_usd: number;
+  first_arrival: string;
+  last_arrival: string;
   confidence_score: number;
-  confidence_sources: string[];
-  apollo_verified: boolean;
-  comtrade_data: boolean;
-  bts_intelligence: any;
+  shipments: ShipmentDetail[];
+  // Contact info is NOT included in search results (CRM gating)
 }
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🚀 UNIFIED SEARCH - QUERYING REAL TRADE DATA');
+    console.log('🚀 UNIFIED SEARCH - QUERYING GROUPED COMPANY DATA');
     
     const { searchParams } = new URL(request.url);
     
@@ -48,31 +56,47 @@ export async function GET(request: NextRequest) {
     const destinationCity = searchParams.get('destination_city') || '';
     const commodity = searchParams.get('commodity') || '';
     const hsCode = searchParams.get('hs_code') || '';
-    const dateFrom = searchParams.get('date_from') || '';
-    const dateTo = searchParams.get('date_to') || '';
-    const carrier = searchParams.get('carrier') || '';
-    const minValue = parseFloat(searchParams.get('min_value') || '0');
-    const maxValue = parseFloat(searchParams.get('max_value') || '999999999');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100); // Max 100, default 50
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const startDate = searchParams.get('start_date') || '';
+    const endDate = searchParams.get('end_date') || '';
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 
-    console.log('🔍 Search filters:', {
-      mode, company, originCountry, destinationCountry, destinationCity,
-      commodity, hsCode, dateFrom, dateTo, carrier, minValue, maxValue, limit, offset
+    console.log('Search filters:', {
+      mode, company, originCountry, destinationCountry, 
+      destinationCity, commodity, hsCode, startDate, endDate, limit
     });
 
-    // Build Supabase query
+    // Build dynamic query for trade_data_view
     let query = supabase
       .from('trade_data_view')
-      .select('*');
+      .select(`
+        unified_id,
+        company_name,
+        shipment_type,
+        arrival_date,
+        departure_date,
+        vessel_name,
+        bol_number,
+        container_count,
+        container_type,
+        gross_weight_kg,
+        value_usd,
+        shipper_name,
+        consignee_name,
+        port_of_loading,
+        port_of_discharge,
+        origin_country,
+        destination_city,
+        hs_code,
+        goods_description
+      `);
 
     // Apply filters
-    if (mode !== 'all') {
-      query = query.eq('shipment_type', mode);
+    if (company) {
+      query = query.ilike('company_name', `%${company}%`);
     }
 
-    if (company) {
-      query = query.ilike('company_name', `%${company.toLowerCase()}%`);
+    if (mode !== 'all') {
+      query = query.eq('shipment_type', mode);
     }
 
     if (originCountry) {
@@ -80,7 +104,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (destinationCountry) {
-      query = query.ilike('destination_country', `%${destinationCountry}%`);
+      query = query.ilike('destination_city', `%${destinationCountry}%`);
     }
 
     if (destinationCity) {
@@ -88,268 +112,151 @@ export async function GET(request: NextRequest) {
     }
 
     if (commodity) {
-      query = query.ilike('description_lower', `%${commodity.toLowerCase()}%`);
+      query = query.ilike('goods_description', `%${commodity}%`);
     }
 
     if (hsCode) {
       query = query.ilike('hs_code', `%${hsCode}%`);
     }
 
-    if (carrier) {
-      query = query.ilike('carrier', `%${carrier}%`);
+    if (startDate) {
+      query = query.gte('arrival_date', startDate);
     }
 
-    if (dateFrom) {
-      query = query.gte('shipment_date', dateFrom);
+    if (endDate) {
+      query = query.lte('arrival_date', endDate);
     }
 
-    if (dateTo) {
-      query = query.lte('shipment_date', dateTo);
-    }
-
-    if (minValue > 0) {
-      query = query.gte('value_usd', minValue);
-    }
-
-    if (maxValue < 999999999) {
-      query = query.lte('value_usd', maxValue);
-    }
-
-    // Apply pagination and ordering
-    query = query
-      .order('shipment_date', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    console.log('📊 Executing Supabase query...');
-
-    // Execute query
-    const { data: rawData, error, count } = await query;
+    // Execute query with limit
+    const { data: rawData, error } = await query
+      .order('arrival_date', { ascending: false })
+      .limit(1000); // Get more records for grouping
 
     if (error) {
-      console.error('💥 Supabase query error:', error);
-      return NextResponse.json({
-        success: false,
-        error: 'Database query failed',
-        details: error.message,
-        filters: { mode, company, originCountry, destinationCountry, commodity, hsCode }
-      }, { status: 500 });
+      console.error('Supabase query error:', error);
+      throw error;
     }
 
+    console.log(`✅ Retrieved ${rawData?.length || 0} raw shipment records`);
+
     if (!rawData || rawData.length === 0) {
-      console.log('⚠️ No trade data found with current filters');
       return NextResponse.json({
         success: true,
-        message: 'No shipment records found matching your search criteria',
+        message: 'No shipments found matching your criteria',
         data: [],
-        pagination: {
-          total: 0,
-          offset,
-          limit,
-          hasMore: false
-        },
-        filters: { mode, company, originCountry, destinationCountry, commodity, hsCode },
-        suggestions: [
-          'Try broader search terms',
-          'Check spelling of company names',
-          'Expand date range',
-          'Try different HS codes'
-        ]
+        total_records: 0,
+        search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode }
       });
     }
 
-    console.log(`✅ Found ${rawData.length} trade records`);
+    // Group shipments by company
+    const companyGroups = new Map<string, {
+      shipments: any[];
+      shipment_modes: Set<string>;
+      total_weight: number;
+      total_value: number;
+      arrival_dates: string[];
+    }>();
 
-    // Transform data to expected format
-    const transformedData: UnifiedTradeRecord[] = rawData.map((record: any, index: number) => {
-      const mode = (record.shipment_type === 'air') ? 'air' : 'ocean';
-      const modeIcon = mode === 'air' ? '✈️' : '🚢';
+    rawData.forEach(record => {
+      const companyName = record.company_name || 'Unknown Company';
       
-      return {
-        id: record.unified_id || `${record.shipment_type}_${index}`,
-        unified_id: record.unified_id || `${record.shipment_type}_${index}`,
-        mode: mode,
-        mode_icon: modeIcon,
-        shipment_type: record.shipment_type,
-        unified_company_name: record.company_name || 'Unknown Company',
-        unified_destination: record.destination_city || record.destination_country || 'Unknown',
-        unified_value: record.value_usd || 0,
-        unified_weight: record.weight_kg || 0,
-        unified_date: record.shipment_date || record.arrival_date || new Date().toISOString().split('T')[0],
-        unified_carrier: record.vessel_name || record.shipping_line || 'Unknown Vessel',
-        hs_code: record.hs_code || '',
-        description: record.description || record.goods_description || 'No description available',
-        origin_country: record.origin_country || record.shipper_country || 'Unknown',
-        destination_country: record.destination_country || 'Unknown',
-        destination_city: record.destination_city || record.consignee_city || 'Unknown',
-        // Additional shipment details from XML
-        bol_number: record.bol_number || record.master_bill_of_lading || '',
-        vessel_name: record.vessel_name || '',
-        shipper_name: record.shipper_name || '',
-        consignee_name: record.consignee_name || '',
-        departure_date: record.departure_date || '',
-        arrival_date: record.arrival_date || '',
-        port_of_loading: record.port_of_loading || record.departure_port || '',
-        port_of_discharge: record.port_of_discharge || record.arrival_port || '',
-        container_count: record.container_count || 0,
-        container_type: record.container_type || '',
-        gross_weight_kg: record.gross_weight_kg || record.weight_kg || 0,
-        
-        // NOTE: Contact details (emails, phones) are NOT included in search results
-        // Users must add companies to CRM to unlock contact information (premium feature)
-        
-        // Add confidence scoring based on data completeness
-        confidence_score: calculateConfidenceScore(record),
-        confidence_sources: getConfidenceSources(record),
-        apollo_verified: false, // Will be updated when Apollo enrichment runs
-        comtrade_data: false, // This is direct shipment data, not Comtrade
-        bts_intelligence: null // Will be populated by BTS matching if available
-      };
-    });
+      if (!companyGroups.has(companyName)) {
+        companyGroups.set(companyName, {
+          shipments: [],
+          shipment_modes: new Set(),
+          total_weight: 0,
+          total_value: 0,
+          arrival_dates: []
+        });
+      }
 
-    // Get total count for pagination
-    const { count: totalCount } = await supabase
-      .from('trade_data_view')
-      .select('*', { count: 'exact', head: true });
-
-    return NextResponse.json({
-      success: true,
-      message: `Found ${transformedData.length} shipment records`,
-      data: transformedData,
-      pagination: {
-        total: totalCount || 0,
-        offset,
-        limit,
-        hasMore: (offset + limit) < (totalCount || 0)
-      },
-      filters: {
-        mode, company, originCountry, destinationCountry, destinationCity,
-        commodity, hsCode, dateFrom, dateTo, carrier
-      },
-      metadata: {
-        source: 'trade_data_view',
-        queryTime: new Date().toISOString(),
-        dataTypes: Array.from(new Set(transformedData.map(r => r.shipment_type))),
-        dateRange: {
-          earliest: Math.min(...transformedData.map(r => new Date(r.unified_date).getTime())),
-          latest: Math.max(...transformedData.map(r => new Date(r.unified_date).getTime()))
-        }
+      const group = companyGroups.get(companyName)!;
+      group.shipments.push(record);
+      group.shipment_modes.add(record.shipment_type);
+      group.total_weight += record.gross_weight_kg || 0;
+      group.total_value += record.value_usd || 0;
+      if (record.arrival_date) {
+        group.arrival_dates.push(record.arrival_date);
       }
     });
 
-  } catch (error) {
-    console.error('💥 Unified search error:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Search failed',
-      details: (error as Error).message,
-      message: 'Unable to search trade data. Please try again or contact support.'
-    }, { status: 500 });
-  }
-}
+    // Convert to grouped format
+    const groupedData: GroupedCompanyData[] = Array.from(companyGroups.entries())
+      .map(([companyName, group]) => {
+        // Sort arrival dates
+        const sortedDates = group.arrival_dates.sort();
+        
+        // Determine shipment mode
+        let shipment_mode: 'ocean' | 'air' | 'mixed' = 'ocean';
+        if (group.shipment_modes.has('air') && group.shipment_modes.has('ocean')) {
+          shipment_mode = 'mixed';
+        } else if (group.shipment_modes.has('air')) {
+          shipment_mode = 'air';
+        }
 
-function calculateConfidenceScore(record: any): number {
-  let score = 0;
-  
-  // Company name quality
-  if (record.company_name && record.company_name.length > 3) score += 20;
-  
-  // Geographic data
-  if (record.origin_country) score += 15;
-  if (record.destination_country) score += 15;
-  if (record.destination_city) score += 10;
-  
-  // Commodity data
-  if (record.hs_code && record.hs_code.length >= 4) score += 20;
-  if (record.description && record.description.length > 10) score += 10;
-  
-  // Financial data
-  if (record.value_usd && record.value_usd > 0) score += 10;
-  
-  return Math.min(score, 100);
-}
+        // Calculate confidence score (basic algorithm)
+        const confidenceScore = Math.min(100, Math.max(10, 
+          (group.shipments.length * 15) + 
+          (group.total_value > 0 ? 20 : 0) +
+          (group.total_weight > 0 ? 15 : 0)
+        ));
 
-function getConfidenceSources(record: any): string[] {
-  const sources = [];
-  
-  if (record.company_name) sources.push('Company Name');
-  if (record.hs_code) sources.push('HS Code');
-  if (record.value_usd) sources.push('Trade Value');
-  if (record.origin_country && record.destination_country) sources.push('Geographic Data');
-  if (record.carrier) sources.push('Carrier Information');
-  if (record.shipment_date) sources.push('Date Information');
-  
-  return sources;
-}
+        // Format shipment details
+        const shipments: ShipmentDetail[] = group.shipments.map(s => ({
+          bol_number: s.bol_number,
+          arrival_date: s.arrival_date,
+          containers: s.container_count && s.container_type 
+            ? `${s.container_count}x${s.container_type}` 
+            : s.container_count?.toString() || null,
+          vessel_name: s.vessel_name,
+          weight_kg: s.gross_weight_kg || 0,
+          value_usd: s.value_usd || 0,
+          shipper_name: s.shipper_name,
+          port_of_lading: s.port_of_loading,
+          port_of_discharge: s.port_of_discharge,
+          goods_description: s.goods_description,
+          departure_date: s.departure_date,
+          hs_code: s.hs_code,
+          unified_id: s.unified_id
+        }));
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    
-    // Handle bulk search or advanced filtering
-    const {
-      companies = [],
-      hsCodes = [],
-      countries = [],
-      dateRange = {},
-      valueRange = {},
-      mode = 'all'
-    } = body;
+        return {
+          company_name: companyName,
+          shipment_mode,
+          total_shipments: group.shipments.length,
+          total_weight_kg: Math.round(group.total_weight),
+          total_value_usd: Math.round(group.total_value),
+          first_arrival: sortedDates[0] || '',
+          last_arrival: sortedDates[sortedDates.length - 1] || '',
+          confidence_score: confidenceScore,
+          shipments: shipments.sort((a, b) => 
+            new Date(b.arrival_date).getTime() - new Date(a.arrival_date).getTime()
+          )
+        };
+      })
+      .sort((a, b) => b.total_shipments - a.total_shipments) // Sort by shipment count
+      .slice(0, limit); // Apply final limit
 
-    console.log('🔍 Bulk search request:', { companies, hsCodes, countries, mode });
-
-    let query = supabase.from('trade_data_view').select('*');
-
-    if (mode !== 'all') {
-      query = query.eq('shipment_type', mode);
-    }
-
-    // Bulk company search
-    if (companies.length > 0) {
-      const companyFilters = companies.map((c: string) => 
-        `company_name_lower.ilike.%${c.toLowerCase()}%`
-      ).join(',');
-      query = query.or(companyFilters);
-    }
-
-    // Bulk HS code search
-    if (hsCodes.length > 0) {
-      query = query.in('hs_code', hsCodes);
-    }
-
-    // Bulk country search
-    if (countries.length > 0) {
-      const countryFilters = countries.map((c: string) => 
-        `origin_country.ilike.%${c}%,destination_country.ilike.%${c}%`
-      ).join(',');
-      query = query.or(countryFilters);
-    }
-
-    // Date range
-    if (dateRange.from) query = query.gte('shipment_date', dateRange.from);
-    if (dateRange.to) query = query.lte('shipment_date', dateRange.to);
-
-    // Value range
-    if (valueRange.min) query = query.gte('value_usd', valueRange.min);
-    if (valueRange.max) query = query.lte('value_usd', valueRange.max);
-
-    const { data, error } = await query.limit(500);
-
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
+    console.log(`✅ Grouped into ${groupedData.length} companies`);
 
     return NextResponse.json({
       success: true,
-      data: data || [],
-      count: data?.length || 0,
-      searchCriteria: body
+      message: `Found ${groupedData.length} companies with ${rawData.length} total shipments`,
+      data: groupedData,
+      total_companies: groupedData.length,
+      total_shipments: rawData.length,
+      search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode },
+      note: "Contact details are gated - add company to CRM to unlock"
     });
 
-  } catch (error) {
-    console.error('Bulk search error:', error);
-    return NextResponse.json(
-      { success: false, error: (error as Error).message },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    console.error('❌ UNIFIED SEARCH ERROR:', error);
+    return NextResponse.json({
+      success: false,
+      error: error.message || 'Failed to search trade data',
+      data: [],
+      total_records: 0
+    }, { status: 500 });
   }
 }
