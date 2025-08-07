@@ -61,50 +61,78 @@ export default function UserLogin() {
       if (signInError && signInError.message?.includes('Invalid login credentials')) {
         // User doesn't exist, try to create them automatically for demo/admin users
         if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-          // Create admin user
-          const createResponse = await fetch('/api/admin/create-test-user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+          // Create admin user via signup
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: {
+                full_name: 'Admin Test User',
+                first_name: 'Admin',
+                last_name: 'User',
+                company: 'LogisticIntel',
+                plan: 'enterprise',
+                role: 'admin'
+              }
+            }
           })
           
-          const createResult = await createResponse.json()
+          if (signUpError) {
+            throw signUpError
+          }
           
-          if (createResult.success) {
-            // Try to sign in again
+          // If signup succeeded, try to sign in again
+          if (signUpData.user) {
             const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
               email: email,
               password: password
             })
             
-            if (retryError) {
-              throw retryError
+            if (!retryError && retryData.user) {
+              router.push('/test-admin')
+              return
+            } else {
+              // Signup worked but signin failed, user might need email confirmation
+              alert('Admin account created! Please check your email for verification, then try signing in again.')
+              return
             }
-            
-            router.push('/test-admin')
-            return
           }
         } else if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
-          // Create demo user
-          const createResponse = await fetch('/api/admin/create-demo-user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+          // Create demo user via signup
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: {
+                full_name: 'Demo User',
+                first_name: 'Demo',
+                last_name: 'User',
+                company: 'Demo Company',
+                plan: 'free',
+                role: 'user'
+              }
+            }
           })
           
-          const createResult = await createResponse.json()
+          if (signUpError) {
+            throw signUpError
+          }
           
-          if (createResult.success) {
-            // Try to sign in again
+          // If signup succeeded, try to sign in again
+          if (signUpData.user) {
             const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
               email: email,
               password: password
             })
             
-            if (retryError) {
-              throw retryError
+            if (!retryError && retryData.user) {
+              router.push('/dashboard')
+              return
+            } else {
+              // Signup worked but signin failed, user might need email confirmation
+              alert('Demo account created! Please check your email for verification, then try signing in again.')
+              return
             }
-            
-            router.push('/dashboard')
-            return
           }
         }
         

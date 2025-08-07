@@ -54,20 +54,30 @@ export default function SignUp() {
     }
 
     try {
-      // Special handling for admin test user - create directly without email verification
+      // Special handling for admin test user
       if (formData.email === 'info@getb3acon.com') {
-        const createResponse = await fetch('/api/admin/create-test-user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        // For admin user, set special metadata but still go through normal signup
+        const adminMetadata = {
+          full_name: `${formData.firstName} ${formData.lastName}`,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          company: formData.company || 'LogisticIntel',
+          plan: 'enterprise',
+          role: 'admin'
+        }
+        
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            data: adminMetadata
           }
         })
-        
-        const createResult = await createResponse.json()
-        
-        if (!createResult.success) {
-          if (createResult.error?.includes('already registered') || createResult.error?.includes('already exists')) {
-            // User already exists, try to sign in
+
+        if (signUpError) {
+          if (signUpError.message?.includes('already registered')) {
+            // Try to sign in instead
             const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
               email: formData.email,
               password: formData.password
@@ -80,21 +90,15 @@ export default function SignUp() {
             router.push('/test-admin')
             return
           } else {
-            throw new Error(createResult.error)
+            throw signUpError
           }
         }
-        
-        // Admin user created successfully, now sign them in
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password
-        })
-        
-        if (signInError) {
-          throw signInError
+
+        if (data.user && !data.session) {
+          setSuccess('Admin account created! Please check your email for a verification link.')
+        } else if (data.session) {
+          router.push('/test-admin')
         }
-        
-        router.push('/test-admin')
         return
       }
 
