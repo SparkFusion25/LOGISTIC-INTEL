@@ -73,11 +73,21 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const contactData = await request.json();
+    
+    console.log('🔄 CRM Contact Add Request:', JSON.stringify(contactData, null, 2));
 
     // Validate required fields
     if (!contactData.contact_name || !contactData.company_name) {
+      console.error('❌ Missing required fields:', { 
+        contact_name: contactData.contact_name, 
+        company_name: contactData.company_name 
+      });
       return NextResponse.json(
-        { success: false, error: 'Contact name and company name are required' },
+        { 
+          success: false, 
+          error: 'Contact name and company name are required',
+          received: { contact_name: contactData.contact_name, company_name: contactData.company_name }
+        },
         { status: 400 }
       );
     }
@@ -107,6 +117,8 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('💥 Supabase insert error:', error);
+      
       if (error.code === '23505') { // Duplicate key
         return NextResponse.json(
           { success: false, error: 'Contact already exists in CRM' },
@@ -115,10 +127,18 @@ export async function POST(request: NextRequest) {
       }
       
       return NextResponse.json(
-        { success: false, error: 'Failed to add contact', details: error.message },
+        { 
+          success: false, 
+          error: 'Failed to add contact', 
+          details: error.message,
+          code: error.code,
+          hint: error.hint
+        },
         { status: 500 }
       );
     }
+
+    console.log('✅ Contact added successfully:', data);
 
     return NextResponse.json({
       success: true,

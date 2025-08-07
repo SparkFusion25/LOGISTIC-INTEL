@@ -38,6 +38,11 @@ interface UnifiedTradeRecord {
   description?: string;
   hs_description?: string;
   commodity_description?: string;
+  // Contact information
+  primary_email?: string;
+  primary_phone?: string;
+  contact_person?: string;
+  linkedin_url?: string;
   // Enhanced confidence data from new UN Comtrade integration
   confidence_score?: number;
   confidence_sources?: string[];
@@ -210,7 +215,7 @@ export default function SearchPanel() {
       });
 
       // Add pagination
-      queryParams.append('limit', '25');
+      queryParams.append('limit', '100');
       queryParams.append('offset', '0');
 
       const response = await fetch(`/api/search/unified?${queryParams}`);
@@ -334,15 +339,16 @@ export default function SearchPanel() {
           enrichContactWithApollo(result.contact.id, record.unified_company_name);
         }
       } else {
+        console.error('❌ CRM Add Failed:', result);
         if (result.error === 'Contact already exists in CRM') {
           alert('This company is already in your CRM.');
         } else {
-          throw new Error(result.error);
+          alert(`❌ Failed to add contact: ${result.error}\n\nDetails: ${result.details || 'No additional details'}`);
         }
       }
     } catch (error) {
       console.error('Failed to add to CRM:', error);
-      alert('Failed to add contact to CRM. Please try again.');
+      alert(`Failed to add contact to CRM. Please try again.\n\nError: ${error.message}`);
     }
   };
 
@@ -788,6 +794,30 @@ export default function SearchPanel() {
                     </div>
                     <div>
                       <span className="font-medium">Carrier:</span> {record.unified_carrier || 'N/A'}
+                    </div>
+                  </div>
+
+                  {/* Contact Details Section */}
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Contact:</span>
+                        <span className="ml-1 text-gray-600">
+                          {record.primary_email || 'Contact via CRM'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Phone:</span>
+                        <span className="ml-1 text-gray-600">
+                          {record.primary_phone || 'Available after enrichment'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Updated:</span>
+                        <span className="ml-1 text-gray-600">
+                          {record.unified_date}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
