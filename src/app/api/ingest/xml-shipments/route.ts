@@ -14,17 +14,11 @@ interface ShipmentRecord {
   origin_country?: string;
   destination_country?: string;
   destination_city?: string;
-  destination_port?: string;
-  origin_port?: string;
   hs_code?: string;
   commodity_description?: string;
   value_usd?: number;
-  freight_amount?: number;
   arrival_date?: string;
-  departure_date?: string;
-  shipment_date?: string;
   vessel_name?: string;
-  container_count?: number;
   weight_kg?: number;
   raw_xml_filename?: string;
 }
@@ -97,10 +91,33 @@ export async function POST(request: NextRequest) {
 
     console.log(`🔍 Extracted ${shipmentRecords.length} shipment records`);
 
+    // Clean records - remove undefined fields and ensure only valid columns
+    const cleanRecords = shipmentRecords.map(record => {
+      const cleanRecord: any = {};
+      
+      // Only include fields that exist and are not undefined
+      if (record.consignee_name) cleanRecord.consignee_name = record.consignee_name;
+      if (record.shipper_name) cleanRecord.shipper_name = record.shipper_name;
+      if (record.origin_country) cleanRecord.shipper_country = record.origin_country;
+      if (record.destination_country) cleanRecord.consignee_country = record.destination_country;
+      if (record.destination_city) cleanRecord.consignee_city = record.destination_city;
+      if (record.hs_code) cleanRecord.hs_code = record.hs_code;
+      if (record.commodity_description) cleanRecord.goods_description = record.commodity_description;
+      if (record.value_usd !== undefined) cleanRecord.value_usd = record.value_usd;
+      if (record.arrival_date) cleanRecord.arrival_date = record.arrival_date;
+      if (record.vessel_name) cleanRecord.vessel_name = record.vessel_name;
+      if (record.weight_kg !== undefined) cleanRecord.weight_kg = record.weight_kg;
+      if (record.raw_xml_filename) cleanRecord.raw_xml_filename = record.raw_xml_filename;
+      
+      return cleanRecord;
+    });
+
+    console.log(`🧹 Cleaned records, sample:`, cleanRecords[0]);
+
     // Insert records into ocean_shipments table
     const { data: insertData, error: insertError } = await supabase
       .from('ocean_shipments')
-      .insert(shipmentRecords)
+      .insert(cleanRecords)
       .select('id');
 
     if (insertError) {
@@ -223,70 +240,40 @@ function extractShipmentRecords(parsedXML: any, filename: string): ShipmentRecor
           'DestinationCountry', 'CountryOfDestination', 'ImportCountry',
           'ConsigneeCountry', 'DestinationCountryCode'
         ]),
-        
+
         destination_city: extractField(shipment, [
-          'DestinationCity', 'ConsigneeCity', 'ImportCity',
-          'DestinationPort', 'PortOfDischarge'
-        ]),
-        
-        destination_port: extractField(shipment, [
-          'DestinationPort', 'PortOfDischarge', 'DischargePort',
-          'UnloadingPort', 'ArrivalPort'
-        ]),
-        
-        origin_port: extractField(shipment, [
-          'OriginPort', 'PortOfLoading', 'LoadingPort',
-          'DeparturePort', 'ShipmentPort'
+          'DestinationCity', 'CityOfDestination', 'ImportCity',
+          'ConsigneeCity', 'Port', 'DestinationPort'
         ]),
 
         // Commodity data
         hs_code: extractField(shipment, [
-          'HSCode', 'HarmonizedCode', 'CommodityCode',
-          'TariffCode', 'ClassificationCode'
+          'HSCode', 'HS_Code', 'CommodityCode', 'TariffCode',
+          'ClassificationCode', 'ProductCode'
         ]),
         
         commodity_description: extractField(shipment, [
-          'CommodityDescription', 'Description', 'ProductDescription',
-          'GoodsDescription', 'Commodity', 'Product'
+          'CommodityDescription', 'Description', 'GoodsDescription',
+          'ProductDescription', 'Goods', 'Commodity'
         ]),
 
-        // Financial data
+        // Financial data - only basic value
         value_usd: parseNumeric(extractField(shipment, [
-          'ValueUSD', 'Value', 'InvoiceValue', 'DeclaredValue',
-          'CustomsValue', 'FOBValue'
-        ])),
-        
-        freight_amount: parseNumeric(extractField(shipment, [
-          'FreightAmount', 'Freight', 'ShippingCost',
-          'TransportationCost', 'FreightCharges'
+          'ValueUSD', 'Value', 'DeclaredValue', 'InvoiceValue',
+          'CustomsValue', 'CIFValue', 'FOBValue'
         ])),
 
-        // Date information
+        // Date information - only arrival_date for now
         arrival_date: parseDate(extractField(shipment, [
           'ArrivalDate', 'DischargeDate', 'ImportDate',
           'UnloadingDate', 'DeliveryDate'
         ])),
-        
-        departure_date: parseDate(extractField(shipment, [
-          'DepartureDate', 'LoadingDate', 'ExportDate',
-          'ShipmentDate', 'SailingDate'
-        ])),
-        
-        shipment_date: parseDate(extractField(shipment, [
-          'ShipmentDate', 'Date', 'TransactionDate',
-          'BillOfLadingDate', 'ManifestDate'
-        ])),
 
-        // Logistics data
+        // Logistics data - only basic fields
         vessel_name: extractField(shipment, [
           'VesselName', 'Vessel', 'ShipName', 'Ship',
           'CarrierName', 'TransportName'
         ]),
-        
-        container_count: parseNumeric(extractField(shipment, [
-          'ContainerCount', 'Containers', 'NumberOfContainers',
-          'ContainerQuantity', 'Pieces'
-        ])),
         
         weight_kg: parseNumeric(extractField(shipment, [
           'WeightKG', 'Weight', 'GrossWeight', 'NetWeight',

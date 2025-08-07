@@ -9,121 +9,97 @@ DROP VIEW IF EXISTS public.trade_data_view;
 -- Create unified view combining ocean and air shipments
 CREATE OR REPLACE VIEW public.trade_data_view AS
 SELECT 
-  -- Unified identifier (using shipment_id if available, otherwise id)
-  COALESCE('ocean_' || shipment_id::text, 'ocean_' || id::text) as unified_id,
+  -- Unified identifier
+  COALESCE(id::text, 'ocean_' || COALESCE(bol_number, 'unknown')) as unified_id,
   'ocean' as shipment_type,
   
-  -- Company information
-  COALESCE(consignee_name, shipper_name, '') as company_name,
+  -- Company information (this is the key field that was missing!)
+  COALESCE(consignee_name, shipper_name, 'Unknown Company') as company_name,
   shipper_name,
   consignee_name,
+  shipper_country as origin_country,
+  consignee_country as destination_country,
+  consignee_city as destination_city,
   
-  -- Geographic data
-  origin_country,
-  destination_country,
-  destination_city,
-  destination_port,
-  origin_port,
+  -- Port information
+  port_of_lading as origin_port,
+  port_of_unlading as destination_port,
   
   -- Commodity data
   hs_code,
-  COALESCE(commodity_description, description, product_description) as description,
+  goods_description as description,
   
   -- Financial data
-  value_usd::numeric as value_usd,
-  freight_amount::numeric as freight_amount,
+  value_usd,
   
   -- Temporal data
-  COALESCE(arrival_date, shipment_date, created_at::date) as shipment_date,
+  COALESCE(arrival_date, shipment_date) as shipment_date,
   arrival_date,
-  departure_date,
   
   -- Logistics data
-  COALESCE(vessel_name, carrier_name) as carrier,
-  container_count,
+  vessel_name as carrier,
   weight_kg,
   
   -- Metadata
   created_at,
-  updated_at,
   raw_xml_filename,
   
-  -- Search helpers
-  LOWER(COALESCE(consignee_name, shipper_name, '')) as company_name_lower,
-  LOWER(COALESCE(commodity_description, description, product_description, '')) as description_lower,
-  EXTRACT(YEAR FROM COALESCE(arrival_date, shipment_date, created_at::date)) as year,
-  EXTRACT(MONTH FROM COALESCE(arrival_date, shipment_date, created_at::date)) as month
+  -- Additional fields for compatibility
+  transport_method,
+  bol_number,
+  consignee_state,
+  consignee_zip
 
 FROM public.ocean_shipments
 WHERE (consignee_name IS NOT NULL OR shipper_name IS NOT NULL)
-  AND (consignee_name != '' OR shipper_name != '')
 
 UNION ALL
 
--- Add airfreight data if table exists
+-- Add airfreight data if table exists (simplified to avoid column errors)
 SELECT 
-  -- Unified identifier (using shipment_id if available, otherwise id)
-  COALESCE('air_' || shipment_id::text, 'air_' || id::text) as unified_id,
+  COALESCE(id::text, 'air_' || COALESCE(bol_number, 'unknown')) as unified_id,
   'air' as shipment_type,
   
   -- Company information
-  COALESCE(consignee_name, shipper_name, '') as company_name,
+  COALESCE(consignee_name, shipper_name, 'Unknown Company') as company_name,
   shipper_name,
   consignee_name,
+  shipper_country as origin_country,
+  consignee_country as destination_country,
+  consignee_city as destination_city,
   
-  -- Geographic data
-  origin_country,
-  destination_country,
-  destination_city,
-  COALESCE(destination_airport, arrival_airport) as destination_port,
-  COALESCE(origin_airport, departure_airport) as origin_port,
+  -- Port information
+  port_of_lading as origin_port,
+  port_of_unlading as destination_port,
   
   -- Commodity data
   hs_code,
-  COALESCE(commodity_description, description, product_description) as description,
+  goods_description as description,
   
   -- Financial data
-  value_usd::numeric as value_usd,
-  freight_amount::numeric as freight_amount,
+  value_usd,
   
   -- Temporal data
-  COALESCE(arrival_date, shipment_date, flight_date, created_at::date) as shipment_date,
+  COALESCE(arrival_date, shipment_date) as shipment_date,
   arrival_date,
-  departure_date,
   
   -- Logistics data
-  airline as carrier,
-  piece_count as container_count,
+  vessel_name as carrier,
   weight_kg,
   
   -- Metadata
   created_at,
-  updated_at,
   raw_xml_filename,
   
-  -- Search helpers
-  LOWER(COALESCE(consignee_name, shipper_name, '')) as company_name_lower,
-  LOWER(COALESCE(commodity_description, description, product_description, '')) as description_lower,
-  EXTRACT(YEAR FROM COALESCE(arrival_date, shipment_date, flight_date, created_at::date)) as year,
-  EXTRACT(MONTH FROM COALESCE(arrival_date, shipment_date, flight_date, created_at::date)) as month
+  -- Additional fields for compatibility
+  transport_method,
+  bol_number,
+  consignee_state,
+  consignee_zip
 
 FROM public.airfreight_shipments
 WHERE (consignee_name IS NOT NULL OR shipper_name IS NOT NULL)
-  AND (consignee_name != '' OR shipper_name != '')
   AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'airfreight_shipments');
-
--- Create indexes for performance
-CREATE INDEX IF NOT EXISTS idx_trade_data_view_company_name 
-  ON public.ocean_shipments USING gin(LOWER(COALESCE(consignee_name, shipper_name, '')) gin_trgm_ops);
-
-CREATE INDEX IF NOT EXISTS idx_trade_data_view_hs_code 
-  ON public.ocean_shipments (hs_code);
-
-CREATE INDEX IF NOT EXISTS idx_trade_data_view_dates 
-  ON public.ocean_shipments (COALESCE(arrival_date, shipment_date, created_at::date));
-
-CREATE INDEX IF NOT EXISTS idx_trade_data_view_origin_dest 
-  ON public.ocean_shipments (origin_country, destination_country);
 
 -- Grant access to the view
 GRANT SELECT ON public.trade_data_view TO public;
@@ -132,10 +108,8 @@ GRANT SELECT ON public.trade_data_view TO authenticated;
 
 -- Test the view
 SELECT 
-  shipment_type,
-  COUNT(*) as record_count,
-  MIN(shipment_date) as earliest_date,
-  MAX(shipment_date) as latest_date,
-  COUNT(DISTINCT company_name) as unique_companies
-FROM public.trade_data_view 
-GROUP BY shipment_type;
+  'Testing trade_data_view...' as status,
+  COUNT(*) as total_records,
+  COUNT(DISTINCT company_name) as unique_companies,
+  COUNT(DISTINCT shipment_type) as shipment_types
+FROM public.trade_data_view;
