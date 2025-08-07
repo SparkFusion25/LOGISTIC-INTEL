@@ -194,6 +194,9 @@ export async function GET(request: NextRequest) {
         container_type: record.container_type || '',
         gross_weight_kg: record.gross_weight_kg || record.weight_kg || 0,
         
+        // NOTE: Contact details (emails, phones) are NOT included in search results
+        // Users must add companies to CRM to unlock contact information (premium feature)
+        
         // Add confidence scoring based on data completeness
         confidence_score: calculateConfidenceScore(record),
         confidence_sources: getConfidenceSources(record),

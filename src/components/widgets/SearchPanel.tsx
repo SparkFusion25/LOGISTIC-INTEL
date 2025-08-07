@@ -859,26 +859,16 @@ export default function SearchPanel() {
                     </div>
                   </div>
 
-                  {/* Contact Details Section */}
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-700">Contact:</span>
-                        <span className="ml-1 text-gray-600">
-                          {record.primary_email || 'Contact via CRM'}
-                        </span>
+                  {/* CRM Call-to-Action Section */}
+                  <div className="mt-3 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-indigo-700">
+                        <Building2 className="w-4 h-4" />
+                        <span className="font-medium">Need contact details?</span>
+                        <span className="text-indigo-600">Add to CRM to unlock emails, phones & decision makers</span>
                       </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Phone:</span>
-                        <span className="ml-1 text-gray-600">
-                          {record.primary_phone || 'Available after enrichment'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Updated:</span>
-                        <span className="ml-1 text-gray-600">
-                          {record.unified_date}
-                        </span>
+                      <div className="text-xs text-indigo-500 font-medium bg-indigo-100 px-2 py-1 rounded">
+                        Premium Feature
                       </div>
                     </div>
                   </div>
@@ -919,10 +909,13 @@ export default function SearchPanel() {
                   
                   <button
                     onClick={() => addToCRM(record)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm"
                   >
                     <Plus className="w-4 h-4" />
                     Add to CRM
+                    <span className="text-xs bg-indigo-500 px-1.5 py-0.5 rounded ml-1">
+                      Get Contacts
+                    </span>
                   </button>
                 </div>
               </div>
