@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
         vessel_name,
         bol_number,
         container_count,
-        container_type,
+
         gross_weight_kg,
         value_usd,
         shipper_name,
@@ -217,9 +217,7 @@ export async function GET(request: NextRequest) {
         const shipments: ShipmentDetail[] = group.shipments.map(s => ({
           bol_number: s.bol_number,
           arrival_date: s.arrival_date,
-          containers: s.container_count && s.container_type 
-            ? `${s.container_count}x${s.container_type}` 
-            : s.container_count?.toString() || null,
+          containers: s.container_count?.toString() || null,
           vessel_name: s.vessel_name,
           weight_kg: s.gross_weight_kg || 0,
           value_usd: s.value_usd || 0,
