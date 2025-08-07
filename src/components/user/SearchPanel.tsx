@@ -453,33 +453,24 @@ export default function SearchPanel() {
       )}
 
       {/* Results */}
-      {hasSearched && companies.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Search Results ({companies.length} companies found)
-            </h2>
-            <button
-              onClick={() => console.log('Export functionality')}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Export
-            </button>
+      <div className="space-y-4">
+        {loading ? (
+          <div className="p-6 text-center text-gray-600">Searching...</div>
+        ) : companies.length === 0 && hasSearched ? (
+          <div className="p-6 text-center text-gray-500 bg-white border border-gray-200 rounded-lg">
+            <p className="text-sm">No companies found. Try adjusting filters or search terms.</p>
           </div>
-
-          <div className="space-y-4">
-            {companies.map((company, index) => (
-              <CompanySummaryCard
-                key={`${company.company_name}-${index}`}
-                company={company}
-                onAddToCRM={handleAddToCRM}
-                isAddingToCRM={addingToCRM === company.company_name}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+        ) : (
+          companies.map((company) => (
+            <CompanySummaryCard
+              key={company.company_name}
+              company={company}
+              onAddToCRM={handleAddToCRM}
+              isAddingToCRM={addingToCRM === company.company_name}
+            />
+          ))
+        )}
+      </div>
 
       {/* No Results */}
       {hasSearched && companies.length === 0 && !loading && (
