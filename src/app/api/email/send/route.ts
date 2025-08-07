@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 interface EmailRequest {
   to: string;
@@ -8,132 +10,117 @@ interface EmailRequest {
   variables?: { [key: string]: string };
   track_opens?: boolean;
   track_clicks?: boolean;
+  contact_id?: string;
+  campaign_id?: string;
 }
-
-// Email logs for tracking
-let emailLogs: Array<{
-  id: string;
-  to: string;
-  subject: string;
-  body: string;
-  sent_at: string;
-  status: 'sent' | 'delivered' | 'opened' | 'clicked' | 'replied' | 'bounced';
-  tracking_id: string;
-  opens: number;
-  clicks: number;
-}> = [];
 
 export async function POST(request: NextRequest) {
   try {
-    const emailData: EmailRequest = await request.json();
-    const { to, subject, body, template_id, variables = {}, track_opens = true, track_clicks = true } = emailData;
+    const supabase = createRouteHandlerClient({ cookies })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+    }
 
-    // Validate required fields
+    const emailData: EmailRequest = await request.json();
+    const { to, subject, body, template_id, variables = {}, track_opens = true, track_clicks = true, contact_id, campaign_id } = emailData;
+
     if (!to || !subject || !body) {
-      return NextResponse.json({
-        success: false,
-        message: 'To, subject, and body are required'
-      }, { status: 400 });
+      return NextResponse.json({ success: false, message: 'To, subject, and body are required' }, { status: 400 });
     }
 
     // Replace template variables
     let finalBody = body;
     let finalSubject = subject;
-    
-    if (variables) {
-      Object.keys(variables).forEach(key => {
-        const placeholder = `{{${key}}}`;
-        finalBody = finalBody.replace(new RegExp(placeholder, 'g'), variables[key]);
-        finalSubject = finalSubject.replace(new RegExp(placeholder, 'g'), variables[key]);
-      });
-    }
+    Object.keys(variables).forEach(key => {
+      const placeholder = `{{${key}}}`;
+      finalBody = finalBody.replace(new RegExp(placeholder, 'g'), variables[key]);
+      finalSubject = finalSubject.replace(new RegExp(placeholder, 'g'), variables[key]);
+    });
 
     // Generate tracking ID
     const trackingId = `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Add tracking pixel if enabled
+    // Optionally append tracking pixel (your webhook would process opens)
     if (track_opens) {
-      finalBody += `\n\n<img src="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/email/track/open/${trackingId}" width="1" height="1" style="display:none;" />`;
+      const base = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+      finalBody += `\n\n<img src="${base}/api/email/track/open/${trackingId}" width="1" height="1" style="display:none;" />`;
     }
 
-    // In production, this would integrate with actual email service (Gmail, Outlook, SendGrid, etc.)
-    // For demo purposes, we'll simulate sending
-    console.log('📧 Sending Email:', {
-      to,
-      subject: finalSubject,
-      tracking_id: trackingId
-    });
+    // Persist email to email_activity
+    const { data: activity, error: activityError } = await supabase
+      .from('email_activity')
+      .insert({
+        user_id: user.id,
+        contact_id: contact_id || null,
+        subject: finalSubject,
+        body: finalBody,
+        status: 'sent',
+        opens: 0,
+        replies: 0
+      })
+      .select()
+      .single()
 
-    // Simulate email sending delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (activityError) {
+      return NextResponse.json({ success: false, message: 'Failed to log email activity', details: activityError.message }, { status: 500 })
+    }
 
-    // Log the email
-    const emailLog = {
-      id: `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      to,
-      subject: finalSubject,
-      body: finalBody,
-      sent_at: new Date().toISOString(),
-      status: 'sent' as const,
-      tracking_id: trackingId,
-      opens: 0,
-      clicks: 0
-    };
+    // Log to outreach_history
+    const { error: historyError } = await supabase
+      .from('outreach_history')
+      .insert({
+        user_id: user.id,
+        contact_id: contact_id || null,
+        campaign_id: campaign_id || null,
+        status: 'sent',
+        opens: 0,
+        replies: 0,
+        next_followup_at: null
+      })
 
-    emailLogs.push(emailLog);
-
-    // Auto-log to CRM if the endpoint exists
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/crm/log`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: to,
-          subject: finalSubject,
-          activity_type: 'email_sent',
-          notes: `Email sent: ${finalSubject}`
-        })
-      });
-    } catch (error) {
-      console.log('CRM logging failed (optional):', error);
+    if (historyError) {
+      // Not fatal to sending, but report back
+      console.warn('outreach_history insert failed:', historyError)
     }
 
     return NextResponse.json({
       success: true,
       message: 'Email sent successfully',
-      email_id: emailLog.id,
+      email_id: activity?.id,
       tracking_id: trackingId,
-      sent_at: emailLog.sent_at
-    });
+      sent_at: activity?.created_at
+    })
 
   } catch (error) {
     console.error('Email send error:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'Failed to send email'
-    }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'Failed to send email' }, { status: 500 });
   }
 }
 
-// Get email sending history
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    const recentEmails = emailLogs
-      .sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime())
-      .slice(0, limit);
+    const { data, error } = await supabase
+      .from('email_activity')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit)
 
-    return NextResponse.json({
-      success: true,
-      emails: recentEmails,
-      total: emailLogs.length
-    });
+    if (error) {
+      return NextResponse.json({ success: false, message: 'Failed to fetch email history' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, emails: data || [], total: data?.length || 0 })
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      message: 'Failed to fetch email history'
-    }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'Failed to fetch email history' }, { status: 500 })
   }
 }

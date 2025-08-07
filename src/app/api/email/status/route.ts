@@ -1,70 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// In production, this would check actual OAuth tokens from database
-// For demo purposes, we'll simulate connected status
-let connectedAccounts: { [key: string]: { email: string; provider: string; connected_at: string } } = {};
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    // In demo mode, simulate some connected accounts
-    const demoConnections = {
-      'user_demo': {
-        email: 'user@demo.com',
-        provider: 'gmail',
-        connected_at: '2024-01-15T10:30:00Z'
-      }
-    };
+    const supabase = createRouteHandlerClient({ cookies })
 
-    // Check for demo user or return connected status
-    const userId = 'user_demo'; // In production, get from auth session
-    const connection = demoConnections[userId] || connectedAccounts[userId];
-
-    if (connection) {
-      return NextResponse.json({
-        success: true,
-        connected: true,
-        email: connection.email,
-        provider: connection.provider,
-        connected_at: connection.connected_at
-      });
-    } else {
-      return NextResponse.json({
-        success: true,
-        connected: false,
-        email: null,
-        provider: null
-      });
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return NextResponse.json({ success: true, connected: false, email: null, provider: null })
     }
-  } catch (error) {
-    return NextResponse.json({
-      success: false,
-      message: 'Failed to check email status'
-    }, { status: 500 });
-  }
-}
 
-export async function POST(request: NextRequest) {
-  try {
-    const { email, provider, access_token } = await request.json();
-    
-    // In production, store OAuth tokens securely in database
-    const userId = 'user_demo'; // Get from auth session
-    connectedAccounts[userId] = {
-      email,
-      provider,
-      connected_at: new Date().toISOString()
-    };
+    const { data: integration, error } = await supabase
+      .from('email_integrations')
+      .select('id, provider, email, access_token, refresh_token, expires_at')
+      .eq('user_id', user.id)
+      .limit(1)
+      .single()
+
+    if (error || !integration) {
+      return NextResponse.json({ success: true, connected: false, email: null, provider: null })
+    }
+
+    const connected = Boolean(integration.access_token)
 
     return NextResponse.json({
       success: true,
-      message: 'Email account connected successfully',
-      email,
-      provider
-    });
+      connected,
+      email: integration.email,
+      provider: integration.provider,
+      expires_at: integration.expires_at
+    })
   } catch (error) {
-    return NextResponse.json({
-      success: false,
-      message: 'Failed to connect email account'
-    }, { status: 400 });
+    return NextResponse.json({ success: false, message: 'Failed to check email status' }, { status: 500 })
   }
 }
