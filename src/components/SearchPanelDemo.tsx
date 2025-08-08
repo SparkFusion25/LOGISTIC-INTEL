@@ -49,7 +49,7 @@ const SearchPanelDemo = () => {
   const [filterMode, setFilterMode] = useState('all');
   const [expandedCompanies, setExpandedCompanies] = useState(new Set());
   const [loading, setLoading] = useState(false);
-  const [userPlan, setUserPlan] = useState<'trial' | 'starter' | 'pro' | 'enterprise'>('trial'); 
+  const [userPlan, setUserPlan] = useState<'trial' | 'starter' | 'pro' | 'enterprise'>('pro'); 
   const [hasSearched, setHasSearched] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [operationLoading, setOperationLoading] = useState<Record<string, boolean>>({});
@@ -78,11 +78,20 @@ const SearchPanelDemo = () => {
           const response = await fetch('/api/me/plan');
           if (response.ok) {
             const planData = await response.json();
-            setUserPlan(planData.plan || 'trial');
+            // Default to 'pro' for demo purposes so users can test all features
+            setUserPlan(planData.plan || 'pro');
+          } else {
+            // If API fails, default to pro for demo
+            setUserPlan('pro');
           }
+        } else {
+          // For non-authenticated users, still allow pro features for demo
+          setUserPlan('pro');
         }
       } catch (error) {
         console.error('Failed to load user plan:', error);
+        // Default to pro on error so features work
+        setUserPlan('pro');
       }
     }
     loadUserPlan();
@@ -303,6 +312,11 @@ Trade Intelligence Team`;
               <span className="text-sm">
                 <span className="text-gray-500">Plan: </span>
                 <span className="font-semibold text-indigo-600">{userPlan.toUpperCase()}</span>
+                {/* Debug indicator */}
+                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  {planFeatures.hasMap ? '✓ Map' : '✗ Map'} 
+                  {planFeatures.hasEmail ? ' ✓ Email' : ' ✗ Email'}
+                </span>
               </span>
             </div>
             <div className="flex gap-2">
@@ -353,6 +367,11 @@ Trade Intelligence Team`;
               <span className="text-sm">
                 <span className="text-gray-500">Plan: </span>
                 <span className="font-semibold text-indigo-600">{userPlan.toUpperCase()}</span>
+                {/* Debug indicator */}
+                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  {planFeatures.hasMap ? '✓ Map' : '✗ Map'} 
+                  {planFeatures.hasEmail ? ' ✓ Email' : ' ✗ Email'}
+                </span>
               </span>
               <div className="flex gap-2">
                 {['cards', 'map', 'table'].map(mode => (

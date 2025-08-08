@@ -25,17 +25,17 @@ export async function GET(request: NextRequest) {
 
     if (profileError) {
       console.error('Error fetching user profile:', profileError);
-      // Default to trial if no profile found
+      // Default to pro for demo purposes so users can test all features
       return NextResponse.json({
         success: true,
-        plan: 'trial',
+        plan: 'pro',
         user_id: user.id
       });
     }
 
     return NextResponse.json({
       success: true,
-      plan: profile?.subscription_plan || 'trial',
+      plan: profile?.subscription_plan || 'pro',
       user_id: user.id
     });
 
