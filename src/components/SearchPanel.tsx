@@ -1,21 +1,54 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Search, TrendingUp, Ship, Plane, Globe, Building2, 
   Package, MapPin, Calendar, DollarSign, Users, Plus,
   ChevronDown, ChevronUp, Mail, Phone, BarChart3, Activity, Send
 } from 'lucide-react';
 
-const SearchPanel = () => {
-  const [viewMode, setViewMode] = useState('cards');
-  const [filterMode, setFilterMode] = useState('all');
-  const [expandedCompanies, setExpandedCompanies] = useState(new Set());
-  const [loading, setLoading] = useState(false);
-  const [userPlan] = useState('pro'); // Demo with Pro plan
+type Shipment = {
+  unified_id: string;
+  bol_number: string;
+  arrival_date: string;
+  vessel_name: string;
+  gross_weight_kg: number;
+  value_usd: number;
+  port_of_loading: string;
+  port_of_discharge: string;
+  hs_code: string;
+  shipment_type: 'ocean' | 'air';
+};
+
+type Contact = {
+  full_name: string;
+  email: string;
+  title: string;
+  phone?: string;
+};
+
+type Company = {
+  company_name: string;
+  shipment_mode: 'ocean' | 'air' | 'mixed';
+  total_shipments: number;
+  total_weight_kg: number;
+  total_value_usd: number;
+  confidence_score: number;
+  first_arrival: string;
+  last_arrival: string;
+  shipments: Shipment[];
+  contacts: Contact[];
+};
+
+const SearchPanel: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'cards' | 'map' | 'table'>('cards');
+  const [filterMode, setFilterMode] = useState<'all' | 'ocean' | 'air'>('all');
+  const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set<string>());
+  const [loading, setLoading] = useState<boolean>(false);
+  const [userPlan] = useState<string>('pro'); // Demo with Pro plan
   
   // Demo data
-  const demoCompanies = [
+  const demoCompanies: Company[] = [
     {
       company_name: "Global Electronics Corp",
       shipment_mode: "ocean",
@@ -125,27 +158,29 @@ const SearchPanel = () => {
     }
   ];
 
-  const [companies, setCompanies] = useState(demoCompanies);
-  const [searchFilters, setSearchFilters] = useState({
-    company: '',
-    originCountry: '',
-    destinationCountry: '',
-    commodity: ''
-  });
+  const [companies, setCompanies] = useState<Company[]>(demoCompanies);
+  const [searchFilters, setSearchFilters] = useState<{ company: string; originCountry: string; destinationCountry: string; commodity: string; }>(
+    {
+      company: '',
+      originCountry: '',
+      destinationCountry: '',
+      commodity: ''
+    }
+  );
 
-  const handleSearch = () => {
+  const handleSearch = (): void => {
     setLoading(true);
     setTimeout(() => {
-      let filtered = demoCompanies;
+      let filtered: Company[] = demoCompanies;
       
       if (searchFilters.company) {
-        filtered = filtered.filter(c => 
+        filtered = filtered.filter((c: Company) => 
           c.company_name.toLowerCase().includes(searchFilters.company.toLowerCase())
         );
       }
       
       if (filterMode !== 'all') {
-        filtered = filtered.filter(c => 
+        filtered = filtered.filter((c: Company) => 
           filterMode === 'ocean' ? c.shipment_mode !== 'air' : c.shipment_mode === 'air'
         );
       }
@@ -155,9 +190,9 @@ const SearchPanel = () => {
     }, 800);
   };
 
-  const toggleCompanyExpansion = (companyName, section = '') => {
+  const toggleCompanyExpansion = (companyName: string, section: string = ''): void => {
     const key = companyName + section;
-    const newExpanded = new Set(expandedCompanies);
+    const newExpanded = new Set<string>(expandedCompanies);
     if (newExpanded.has(key)) {
       newExpanded.delete(key);
     } else {
@@ -166,8 +201,8 @@ const SearchPanel = () => {
     setExpandedCompanies(newExpanded);
   };
 
-  const mapShipments = companies.flatMap(company => 
-    company.shipments.map(s => ({
+  const mapShipments = companies.flatMap((company: Company) => 
+    company.shipments.map((s: Shipment) => ({
       company: company.company_name,
       origin: s.port_of_loading,
       destination: s.port_of_discharge,
@@ -176,13 +211,13 @@ const SearchPanel = () => {
     }))
   );
 
-  const getConfidenceColor = (score) => {
+  const getConfidenceColor = (score: number): string => {
     if (score >= 80) return 'bg-green-100 text-green-800';
     if (score >= 60) return 'bg-yellow-100 text-yellow-800';
     return 'bg-red-100 text-red-800';
   };
 
-  const getModeColor = (mode) => {
+  const getModeColor = (mode: 'ocean' | 'air' | 'mixed'): string => {
     if (mode === 'ocean') return 'bg-blue-100 text-blue-800';
     if (mode === 'air') return 'bg-sky-100 text-sky-800';
     return 'bg-purple-100 text-purple-800';
@@ -210,7 +245,7 @@ const SearchPanel = () => {
                 <span className="font-semibold text-indigo-600">{userPlan.toUpperCase()}</span>
               </span>
               <div className="flex gap-2">
-                {['cards', 'map', 'table'].map(mode => (
+                {(['cards', 'map', 'table'] as const).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setViewMode(mode)}
@@ -260,7 +295,7 @@ const SearchPanel = () => {
             
             <div className="flex justify-between">
               <div className="flex gap-2">
-                {['all', 'ocean', 'air'].map(mode => (
+                {(['all', 'ocean', 'air'] as const).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setFilterMode(mode)}
@@ -363,7 +398,7 @@ const SearchPanel = () => {
         {/* Cards View */}
         {viewMode === 'cards' && (
           <div className="space-y-4">
-            {companies.map(company => (
+            {companies.map((company: Company) => (
               <div key={company.company_name} className="bg-white rounded-lg shadow-sm border">
                 <div className="p-6">
                   {/* Company Header */}
@@ -449,7 +484,7 @@ const SearchPanel = () => {
                       
                       {expandedCompanies.has(company.company_name + '_contacts') && (
                         <div className="mt-3 space-y-2">
-                          {company.contacts.map((contact, idx) => (
+                          {company.contacts.map((contact: Contact, idx: number) => (
                             <div key={idx} className="bg-white rounded p-3">
                               <p className="font-medium">{contact.full_name}</p>
                               <p className="text-sm text-gray-600">{contact.title}</p>
@@ -522,7 +557,7 @@ const SearchPanel = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {company.shipments.map((shipment, idx) => (
+                        {company.shipments.map((shipment: Shipment, idx: number) => (
                           <tr key={idx} className="border-t">
                             <td className="py-2 text-sm font-mono">{shipment.bol_number}</td>
                             <td className="py-2 text-sm">{shipment.arrival_date}</td>
@@ -556,7 +591,7 @@ const SearchPanel = () => {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {companies.map(company => (
+                {companies.map((company: Company) => (
                   <tr key={company.company_name} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
