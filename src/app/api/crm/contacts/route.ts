@@ -144,17 +144,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fire-and-forget enrichment if only company was provided (no email)
-    try {
-      if (!insertData.email && insertData.company_name) {
-        fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/crm/enrich`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ company_name: insertData.company_name })
-        }).catch(() => {});
-      }
-    } catch {}
-
     console.log('✅ Contact added successfully:', data);
 
     return NextResponse.json({

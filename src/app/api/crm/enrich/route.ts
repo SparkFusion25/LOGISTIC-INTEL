@@ -39,11 +39,8 @@ export async function POST(req: NextRequest) {
     const rows = data.contacts.map((c: any) => ({
       company_name: company_name,
       contact_name: c.name || c.full_name || 'Contact',
-      title: c.title || '',
       email: c.email || '',
       phone: c.phone || '',
-      linkedin_url: c.linkedin_url || '',
-      source: 'Apollo',
       status: 'lead',
       notes: '',
       added_by_user: user.id
