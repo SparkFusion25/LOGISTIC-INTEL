@@ -1,267 +1,52 @@
+// app/api/crm/contacts/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+// import your Supabase client
+import { createServerComponentSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
-// Use authenticated route client so RLS applies and we can read auth.uid()
+export async function POST(req: NextRequest) {
+  const supabase = createServerComponentSupabaseClient({ cookies: () => req.cookies });
 
-export async function GET(request: NextRequest) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const { searchParams } = new URL(request.url);
-    const contactId = searchParams.get('id');
-    const companyName = searchParams.get('company');
-    const limit = parseInt(searchParams.get('limit') || '50');
+  // Authenticate user (required in your policy)
+  const {
+    data: { user },
+    error: userErr
+  } = await supabase.auth.getUser();
 
-    if (contactId) {
-      // Get specific contact
-      const { data, error } = await supabase
-        .from('crm_contacts')
-        .select('*')
-        .eq('id', contactId)
-        .single();
-
-      if (error) {
-        return NextResponse.json(
-          { success: false, error: 'Contact not found', details: error.message },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        contact: data
-      });
-    }
-
-    // Get all contacts or filter by company
-    let query = supabase
-      .from('crm_contacts')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (companyName) {
-      query = query.ilike('company_name', `%${companyName}%`);
-    }
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to fetch contacts', details: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      contacts: data || [],
-      total: count || 0
-    });
-
-  } catch (error) {
-    console.error('CRM contacts GET error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error', details: (error as Error).message },
-      { status: 500 }
-    );
+  if (!user) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
-}
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies });
-    // Get authenticated user from session
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+  const body = await req.json();
+  const { company_name, source } = body;
 
-    const contactData = await request.json();
-    
-    console.log('🔄 CRM Contact Add Request:', JSON.stringify(contactData, null, 2));
-    
-    // Validate required fields - only company_name is required for lead capture
-    if (!contactData.company_name || !String(contactData.company_name).trim()) {
-      // Try to infer a reasonable non-empty label from other fields
-      const inferredLabel = contactData.unified_id ? `Company ${contactData.unified_id}` : (contactData.shipper_name || contactData.consignee_name || '').toString().trim()
-      if (inferredLabel) {
-        contactData.company_name = inferredLabel
-      } else {
-      console.error('❌ Missing required field: company_name:', { 
-        company_name: contactData.company_name 
-      });
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Company name is required',
-          received: { company_name: contactData.company_name }
-        },
-        { status: 400 }
-      );
-      }
-    }
+  if (!company_name) {
+    return NextResponse.json({ success: false, error: 'No company_name provided' }, { status: 400 });
+  }
 
-    // Add contact to CRM (whitelist schema-safe columns only)
-    const insertData = {
-      company_name: String(contactData.company_name || '').trim(),
-      contact_name: contactData.contact_name || 'Lead Contact',
-      email: contactData.email || '',
-      phone: contactData.phone || '',
-      status: 'lead',
-      notes: contactData.notes || '',
+  // Check for existing contact (by company_name and user)
+  const { data: existing, error: fetchErr } = await supabase
+    .from('crm_contacts')
+    .select('*')
+    .eq('company_name', company_name)
+    .eq('added_by_user', user.id)
+    .maybeSingle();
+
+  if (existing) {
+    return NextResponse.json({ success: true, alreadyExists: true });
+  }
+
+  // Insert with user linkage (plan gating handled by RLS)
+  const { data, error } = await supabase
+    .from('crm_contacts')
+    .insert([{
+      company_name,
+      source: source || 'Trade Search',
       added_by_user: user.id
-    };
+    }]);
 
-    const { data, error } = await supabase
-      .from('crm_contacts')
-      .insert(insertData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('💥 Supabase insert error:', error);
-      
-      if (error.code === '23505') { // Duplicate key
-        return NextResponse.json(
-          { success: false, error: 'Contact already exists in CRM' },
-          { status: 409 }
-        );
-      }
-      
-      // Plan/RLS errors mapping
-      if (error.code === 'P0001') {
-        // Raised by plan/trigger enforcement
-        return NextResponse.json(
-          { success: false, error: error.message || 'Plan limit reached', code: 'limit_reached' },
-          { status: 403 }
-        );
-      }
-      if (error.code === '42501') { // insufficient_privilege
-        return NextResponse.json(
-          { success: false, error: 'Permission denied by RLS policy', code: 'forbidden' },
-          { status: 403 }
-        );
-      }
-      if (error.code === '42703') { // undefined_column
-        return NextResponse.json(
-          { success: false, error: 'Invalid field in request', code: 'bad_request' },
-          { status: 400 }
-        );
-      }
-      
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Failed to add contact', 
-          details: error.message,
-          code: error.code,
-          hint: error.hint
-        },
-        { status: 500 }
-      );
-    }
-
-    console.log('✅ Contact added successfully:', data);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Contact added to CRM successfully',
-      contact: data
-    });
-
-  } catch (error) {
-    console.error('CRM contacts POST error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error', details: (error as Error).message },
-      { status: 500 }
-    );
+  if (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-}
 
-export async function PUT(request: NextRequest) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const { searchParams } = new URL(request.url);
-    const contactId = searchParams.get('id');
-    const updateData = await request.json();
-
-    if (!contactId) {
-      return NextResponse.json(
-        { success: false, error: 'Contact ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Update contact
-    const { data, error } = await supabase
-      .from('crm_contacts')
-      .update({
-        ...updateData,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', contactId)
-      .select()
-      .single();
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to update contact', details: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Contact updated successfully',
-      contact: data
-    });
-
-  } catch (error) {
-    console.error('CRM contacts PUT error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error', details: (error as Error).message },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const { searchParams } = new URL(request.url);
-    const contactId = searchParams.get('id');
-
-    if (!contactId) {
-      return NextResponse.json(
-        { success: false, error: 'Contact ID is required' },
-        { status: 400 }
-      );
-    }
-
-    // Delete contact
-    const { error } = await supabase
-      .from('crm_contacts')
-      .delete()
-      .eq('id', contactId);
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to delete contact', details: error.message },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Contact removed from CRM successfully'
-    });
-
-  } catch (error) {
-    console.error('CRM contacts DELETE error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error', details: (error as Error).message },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ success: true, data }, { status: 200 });
 }
