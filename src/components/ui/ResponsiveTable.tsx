@@ -15,9 +15,10 @@ interface Props<T> {
   fetchMore?: () => void
   loading?: boolean
   rowHeight?: number
+  onRowClick?: (row: T) => void
 }
 
-export default function ResponsiveTable<T extends Record<string, any>>({ columns, data, fetchMore, loading, rowHeight = 56 }: Props<T>) {
+export default function ResponsiveTable<T extends Record<string, any>>({ columns, data, fetchMore, loading, rowHeight = 56, onRowClick }: Props<T>) {
   const sentinel = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -46,10 +47,14 @@ export default function ResponsiveTable<T extends Record<string, any>>({ columns
             </tr>
           </thead>
           <tbody>
-            {data.map((row, i) => (
-              <tr key={i} className="border-b hover:bg-gray-50" style={{ height: rowHeight }}>
-                {columns.map((col, j) => (
-                  <td key={j} className="px-4 py-2">
+              {data.map((row, i) => (
+                <tr
+                  key={i}
+                  className="border-b hover:bg-gray-50" style={{ height: rowHeight, cursor: onRowClick ? 'pointer' : undefined }}
+                  onClick={() => onRowClick?.(row)}
+                >
+                  {columns.map((col, j) => (
+                    <td key={j} className="px-4 py-2">
                     {col.cell ? col.cell({ row }) : col.accessorFn ? col.accessorFn(row) : (row[col.accessorKey as string] as any)}
                   </td>
                 ))}

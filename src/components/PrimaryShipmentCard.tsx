@@ -1,25 +1,17 @@
-"use client"
-
+'use client'
 import React from 'react'
 
-interface Shipment {
-  company?: string
-  origin: { city?: string; country?: string }
-  destination: { city?: string; country?: string }
-  type?: string
-  progress?: number
-}
-
-export default function PrimaryShipmentCard({ shipment }: { shipment: Shipment }) {
-  if (!shipment) return null
+export default function PrimaryShipmentCard({ shipment }: { shipment: any }) {
   return (
-    <div className="bg-white rounded-lg border p-4">
-      <div className="text-sm text-gray-500">Primary Shipment</div>
-      <div className="text-lg font-semibold text-gray-900">{shipment.company || 'Company'}</div>
-      <div className="text-sm text-gray-700 mt-1">
-        {shipment.origin.city || ''}, {shipment.origin.country || ''} → {shipment.destination.city || ''}, {shipment.destination.country || ''}
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="text-sm text-gray-500">Company</div>
+      <div className="font-semibold">{shipment.unified_company_name}</div>
+      <div className="mt-2 grid grid-cols-2 gap-4 text-sm text-gray-600">
+        <div><span className="font-medium">Mode:</span> {shipment.mode}</div>
+        <div><span className="font-medium">Progress:</span> {shipment.progress}%</div>
+        <div><span className="font-medium">HS:</span> {shipment.hs_code || '—'}</div>
+        <div><span className="font-medium">Arrival:</span> {shipment.unified_date || '—'}</div>
       </div>
-      <div className="mt-2 text-xs text-gray-500">Mode: {shipment.type || 'N/A'} • Transit: {shipment.progress ?? 0}%</div>
     </div>
   )
 }
