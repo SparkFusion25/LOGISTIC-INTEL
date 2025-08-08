@@ -74,4 +74,129 @@ export default function SearchPanel() {
       setCompanies([]);
       setMapShipments([]);
     } finally {
-     
+      setLoading(false);
+    }
+  };
+
+  // Handles add to CRM, including Apollo enrichment if eligible
+  const handleAddToCRM = async (company: Company) => {
+    if (!company?.company_name) return;
+    const crmRes = await fetch('/api/crm/contacts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ company_name: company.company_name, source: 'Trade Search' })
+    });
+    const crmJson = await crmRes.json();
+    if (crmJson.success && (userPlan === 'pro' || userPlan === 'enterprise')) {
+      // trigger enrichment only for pro/enterprise
+      await fetch('/api/enrichment/apollo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyName: company.company_name })
+      });
+      alert(`Added and enriched ${company.company_name} to CRM!`);
+    } else if (crmJson.success) {
+      alert(`Added ${company.company_name} to CRM!`);
+    } else {
+      alert(crmJson.error || 'Failed to add to CRM');
+    }
+  };
+
+  // Handles sending insight email
+  const handleSendInsight = async (company: Company) => {
+    const toEmail = company?.contacts?.[0]?.email || '';
+    if (!toEmail) return alert('No contact email found for this company.');
+    const subject = `Logistics Intelligence for ${company.company_name}`;
+    const body = `We identified ${company.total_shipments} shipments for ${company.company_name}. Value: $${(company.total_value_usd/1_000_000).toFixed(1)}M.`;
+    const emailRes = await fetch('/api/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: toEmail, subject, body })
+    });
+    const emailJson = await emailRes.json();
+    if (emailJson.success) {
+      alert('Email sent!');
+    } else {
+      alert(emailJson.error || 'Failed to send email.');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-[1280px] mx-auto space-y-8">
+        {/* Search Bar */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex flex-col md:flex-row md:items-end gap-4">
+            <input
+              type="text"
+              placeholder="Company name..."
+              value={searchFilters.company}
+              onChange={e => setSearchFilters(f => ({ ...f, company: e.target.value }))}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 flex-1"
+            />
+            <input
+              type="text"
+              placeholder="Origin country..."
+              value={searchFilters.originCountry}
+              onChange={e => setSearchFilters(f => ({ ...f, originCountry: e.target.value }))}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 flex-1"
+            />
+            <input
+              type="text"
+              placeholder="Destination country..."
+              value={searchFilters.destinationCountry}
+              onChange={e => setSearchFilters(f => ({ ...f, destinationCountry: e.target.value }))}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 flex-1"
+            />
+            <input
+              type="text"
+              placeholder="Commodity..."
+              value={searchFilters.commodity}
+              onChange={e => setSearchFilters(f => ({ ...f, commodity: e.target.value }))}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 flex-1"
+            />
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {loading ? 'Searching...' : 'Search'}
+            </button>
+          </div>
+        </div>
+
+        {/* Map View */}
+        <InteractiveShipmentMap
+          shipments={mapShipments}
+          filterType={searchFilters.mode as 'all' | 'ocean' | 'air'}
+          searchQuery={searchFilters.company}
+          isLoading={loading}
+        />
+
+        {/* Company Results */}
+        <div className="space-y-6">
+          {!hasSearched ? (
+            <div className="text-center py-24 text-gray-400 text-xl">
+              Start your search above to see company results.
+            </div>
+          ) : companies.length === 0 ? (
+            <div className="text-center py-24 text-gray-400 text-xl">
+              No results. Try a different search.
+            </div>
+          ) : (
+            companies.map((c, i) =>
+              <CompanySummaryCard
+                key={c.company_name}
+                company={c}
+                userPlan={userPlan}
+                onAddToCRM={handleAddToCRM}
+                onSendInsight={handleSendInsight}
+                isAddingToCRM={false}
+              />
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
