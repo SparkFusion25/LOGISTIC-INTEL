@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { google } from 'googleapis';
 
 export async function GET(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies });
@@ -12,30 +11,38 @@ export async function GET(request: NextRequest) {
   const code = url.searchParams.get('code');
   if (!code) return NextResponse.redirect('/email-hub?error=oauth_no_code');
 
-  const oAuth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.NEXT_PUBLIC_BASE_URL + '/api/auth/gmail/callback'
-  );
-  const { tokens } = await oAuth2Client.getToken(code);
-  oAuth2Client.setCredentials(tokens);
+  // Exchange code for token
+  const tokenRes = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: process.env.OUTLOOK_CLIENT_ID,
+      client_secret: process.env.OUTLOOK_CLIENT_SECRET,
+      redirect_uri: process.env.NEXT_PUBLIC_BASE_URL + '/api/auth/outlook/callback',
+      code,
+      grant_type: 'authorization_code'
+    }).toString()
+  });
+  const tokens = await tokenRes.json();
 
-  // Get email
-  const oauth2 = google.oauth2({ version: 'v2', auth: oAuth2Client });
-  const { data } = await oauth2.userinfo.get();
-  const email = data.email;
+  // Fetch user email
+  const profileRes = await fetch('https://graph.microsoft.com/v1.0/me', {
+    headers: { Authorization: `Bearer ${tokens.access_token}` }
+  });
+  const profile = await profileRes.json();
+  const email = profile.mail || profile.userPrincipalName;
 
   // Save to Supabase
   await supabase.from('user_tokens').upsert({
     user_id: user.id,
-    provider: 'gmail',
+    provider: 'outlook',
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
-    expires_at: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : null,
+    expires_at: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000).toISOString() : null,
     email,
     scopes: tokens.scope?.split(' ') || [],
     updated_at: new Date().toISOString()
   }, { onConflict: 'user_id,provider' });
 
-  return NextResponse.redirect('/email-hub?connected=gmail');
+  return NextResponse.redirect('/email-hub?connected=outlook');
 }
