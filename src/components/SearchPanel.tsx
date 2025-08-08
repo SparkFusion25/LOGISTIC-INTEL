@@ -1,29 +1,33 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Search, TrendingUp, Ship, Plane, Globe, Building2, 
   Package, MapPin, Calendar, DollarSign, Users, Plus,
   ChevronDown, ChevronUp, Mail, Phone, BarChart3, Activity, Send
 } from 'lucide-react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 type Shipment = {
   unified_id: string;
-  bol_number: string;
+  bol_number: string | null;
   arrival_date: string;
-  vessel_name: string;
-  gross_weight_kg: number;
+  vessel_name: string | null;
+  gross_weight_kg?: number;
+  weight_kg?: number;
   value_usd: number;
-  port_of_loading: string;
-  port_of_discharge: string;
-  hs_code: string;
+  port_of_loading: string | null;
+  port_of_discharge: string | null;
+  hs_code: string | null;
   shipment_type: 'ocean' | 'air';
 };
 
 type Contact = {
-  full_name: string;
+  id?: string;
+  full_name?: string;
+  contact_name?: string;
   email: string;
-  title: string;
+  title?: string;
   phone?: string;
 };
 
@@ -37,128 +41,19 @@ type Company = {
   first_arrival: string;
   last_arrival: string;
   shipments: Shipment[];
-  contacts: Contact[];
+  contacts?: Contact[];
 };
 
 const SearchPanel: React.FC = () => {
+  const supabase = createClientComponentClient();
+
   const [viewMode, setViewMode] = useState<'cards' | 'map' | 'table'>('cards');
   const [filterMode, setFilterMode] = useState<'all' | 'ocean' | 'air'>('all');
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set<string>());
   const [loading, setLoading] = useState<boolean>(false);
-  const [userPlan] = useState<string>('pro'); // Demo with Pro plan
-  
-  // Demo data
-  const demoCompanies: Company[] = [
-    {
-      company_name: "Global Electronics Corp",
-      shipment_mode: "ocean",
-      total_shipments: 247,
-      total_weight_kg: 1850000,
-      total_value_usd: 285000000,
-      confidence_score: 85,
-      first_arrival: "2024-01-01",
-      last_arrival: "2024-12-15",
-      shipments: [
-        {
-          unified_id: "SH001",
-          bol_number: "MAEU123456",
-          arrival_date: "2024-12-15",
-          vessel_name: "MAERSK DENVER",
-          gross_weight_kg: 25000,
-          value_usd: 1500000,
-          port_of_loading: "Shanghai",
-          port_of_discharge: "Los Angeles",
-          hs_code: "8517120000",
-          shipment_type: "ocean"
-        },
-        {
-          unified_id: "SH002",
-          bol_number: "MAEU123457",
-          arrival_date: "2024-12-10",
-          vessel_name: "MAERSK ATLANTA",
-          gross_weight_kg: 22000,
-          value_usd: 1300000,
-          port_of_loading: "Shenzhen",
-          port_of_discharge: "Long Beach",
-          hs_code: "8517120000",
-          shipment_type: "ocean"
-        }
-      ],
-      contacts: [
-        {
-          full_name: "Sarah Chen",
-          email: "s.chen@globalelectronics.com",
-          title: "VP Supply Chain",
-          phone: "+1-555-0123"
-        },
-        {
-          full_name: "Michael Zhang",
-          email: "m.zhang@globalelectronics.com",
-          title: "Director of Logistics",
-          phone: "+1-555-0124"
-        }
-      ]
-    },
-    {
-      company_name: "Pacific Textiles Ltd",
-      shipment_mode: "mixed",
-      total_shipments: 156,
-      total_weight_kg: 450000,
-      total_value_usd: 75000000,
-      confidence_score: 72,
-      first_arrival: "2024-02-01",
-      last_arrival: "2024-12-10",
-      shipments: [
-        {
-          unified_id: "SH003",
-          bol_number: "COSU456789",
-          arrival_date: "2024-12-10",
-          vessel_name: "COSCO SHIPPING",
-          gross_weight_kg: 18000,
-          value_usd: 500000,
-          port_of_loading: "Ho Chi Minh",
-          port_of_discharge: "Oakland",
-          hs_code: "6203420000",
-          shipment_type: "ocean"
-        }
-      ],
-      contacts: []
-    },
-    {
-      company_name: "Air Cargo Express",
-      shipment_mode: "air",
-      total_shipments: 89,
-      total_weight_kg: 125000,
-      total_value_usd: 95000000,
-      confidence_score: 91,
-      first_arrival: "2024-03-01",
-      last_arrival: "2024-12-14",
-      shipments: [
-        {
-          unified_id: "SH004",
-          bol_number: "KE789012",
-          arrival_date: "2024-12-14",
-          vessel_name: "Korean Air Cargo",
-          gross_weight_kg: 2500,
-          value_usd: 2000000,
-          port_of_loading: "Seoul",
-          port_of_discharge: "Chicago",
-          hs_code: "8471300000",
-          shipment_type: "air"
-        }
-      ],
-      contacts: [
-        {
-          full_name: "Jennifer Kim",
-          email: "j.kim@aircargoexpress.com",
-          title: "Operations Manager",
-          phone: "+1-555-0125"
-        }
-      ]
-    }
-  ];
+  const [userPlan, setUserPlan] = useState<'trial' | 'starter' | 'pro' | 'enterprise'>('trial');
 
-  const [companies, setCompanies] = useState<Company[]>(demoCompanies);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [searchFilters, setSearchFilters] = useState<{ company: string; originCountry: string; destinationCountry: string; commodity: string; }>(
     {
       company: '',
@@ -168,26 +63,127 @@ const SearchPanel: React.FC = () => {
     }
   );
 
-  const handleSearch = (): void => {
+  useEffect(() => {
+    const loadPlan = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data, error } = await supabase.rpc('get_user_plan', { uid: user.id });
+        if (!error && typeof data === 'string') {
+          const plan = data.toLowerCase() as 'trial' | 'starter' | 'pro' | 'enterprise';
+          setUserPlan(plan);
+        }
+      } catch (e) {
+        // ignore plan load errors
+      }
+    };
+    loadPlan();
+  }, []);
+
+  const fetchContactsForCompany = async (companyName: string): Promise<Contact[]> => {
+    try {
+      const res = await fetch(`/api/crm/contacts?company=${encodeURIComponent(companyName)}&limit=25`, { cache: 'no-store' });
+      const json = await res.json();
+      if (json?.success && Array.isArray(json.contacts)) {
+        // Normalize shape
+        return json.contacts.map((c: any) => ({
+          id: c.id,
+          full_name: c.contact_name || c.full_name,
+          email: c.email || '',
+          phone: c.phone || '',
+        }));
+      }
+    } catch {}
+    return [];
+  };
+
+  const handleSearch = async (): Promise<void> => {
     setLoading(true);
-    setTimeout(() => {
-      let filtered: Company[] = demoCompanies;
-      
-      if (searchFilters.company) {
-        filtered = filtered.filter((c: Company) => 
-          c.company_name.toLowerCase().includes(searchFilters.company.toLowerCase())
-        );
+    try {
+      const params = new URLSearchParams();
+      params.set('mode', filterMode);
+      if (searchFilters.company) params.set('company', searchFilters.company);
+      if (searchFilters.originCountry) params.set('originCountry', searchFilters.originCountry);
+      if (searchFilters.destinationCountry) params.set('destinationCountry', searchFilters.destinationCountry);
+      if (searchFilters.commodity) params.set('commodity', searchFilters.commodity);
+
+      const res = await fetch(`/api/search/unified?${params.toString()}`, { cache: 'no-store' });
+      const json = await res.json();
+
+      if (json?.success && Array.isArray(json.data)) {
+        const mapped: Company[] = json.data.map((c: any) => ({
+          company_name: c.company_name,
+          shipment_mode: c.shipment_mode,
+          total_shipments: c.total_shipments,
+          total_weight_kg: c.total_weight_kg || 0,
+          total_value_usd: c.total_value_usd || 0,
+          confidence_score: c.confidence_score || 0,
+          first_arrival: c.first_arrival || '',
+          last_arrival: c.last_arrival || '',
+          shipments: (c.shipments || []).map((s: any): Shipment => ({
+            unified_id: s.unified_id,
+            bol_number: s.bol_number,
+            arrival_date: s.arrival_date,
+            vessel_name: s.vessel_name,
+            value_usd: Number(s.value_usd) || 0,
+            weight_kg: Number(s.weight_kg) || 0,
+            // normalize field names for UI
+            port_of_loading: s.port_of_lading || s.port_of_loading || null,
+            port_of_discharge: s.port_of_discharge || null,
+            hs_code: s.hs_code || null,
+            shipment_type: (c.shipment_mode === 'mixed' ? (s.shipment_type as 'ocean' | 'air') : c.shipment_mode) as 'ocean' | 'air',
+          })),
+          contacts: [],
+        }));
+        setCompanies(mapped);
+      } else {
+        setCompanies([]);
       }
-      
-      if (filterMode !== 'all') {
-        filtered = filtered.filter((c: Company) => 
-          filterMode === 'ocean' ? c.shipment_mode !== 'air' : c.shipment_mode === 'air'
-        );
-      }
-      
-      setCompanies(filtered);
+    } catch (e) {
+      setCompanies([]);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
+
+  const handleAddToCRM = async (companyName: string): Promise<void> => {
+    try {
+      // Add minimal lead
+      const addRes = await fetch('/api/crm/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_name: companyName, source: 'Trade Search' })
+      });
+      // Proceed even if already exists
+      // Trigger enrichment
+      await fetch('/api/crm/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_name: companyName })
+      });
+      // Refresh contacts for this company
+      const contacts = await fetchContactsForCompany(companyName);
+      setCompanies(prev => prev.map(c => c.company_name === companyName ? { ...c, contacts } : c));
+    } catch {}
+  };
+
+  const handleSendInsight = async (company: Company): Promise<void> => {
+    try {
+      const toEmail = company.contacts && company.contacts.length > 0 ? (company.contacts[0].email || '') : '';
+      if (!toEmail) return; // nothing to send without a contact
+      const subject = `Logistics insight for ${company.company_name}`;
+      const body = `Hi,
+
+We identified ${company.total_shipments} recent shipments for ${company.company_name}. Value: $${(company.total_value_usd/1_000_000).toFixed(1)}M.
+
+Route highlights and trends attached.
+\nRegards,\nYour Team`;
+      await fetch('/api/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: toEmail, subject, body })
+      });
+    } catch {}
   };
 
   const toggleCompanyExpansion = (companyName: string, section: string = ''): void => {
@@ -423,11 +419,17 @@ const SearchPanel: React.FC = () => {
                     </div>
                     
                     <div className="flex gap-2">
-                      <button className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+                      <button
+                        onClick={() => handleAddToCRM(company.company_name)}
+                        className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                      >
                         <Plus className="w-4 h-4" />
                         Add to CRM
                       </button>
-                      <button className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-2">
+                      <button
+                        onClick={() => handleSendInsight(company)}
+                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-2"
+                      >
                         <Send className="w-4 h-4" />
                         Send Insight
                       </button>
@@ -486,13 +488,14 @@ const SearchPanel: React.FC = () => {
                         <div className="mt-3 space-y-2">
                           {company.contacts.map((contact: Contact, idx: number) => (
                             <div key={idx} className="bg-white rounded p-3">
-                              <p className="font-medium">{contact.full_name}</p>
-                              <p className="text-sm text-gray-600">{contact.title}</p>
+                              <p className="font-medium">{contact.full_name || contact.contact_name || 'Contact'}</p>
                               <div className="flex items-center gap-3 mt-1">
-                                <span className="text-sm text-indigo-600 flex items-center gap-1">
-                                  <Mail className="w-3 h-3" />
-                                  {contact.email}
-                                </span>
+                                {contact.email && (
+                                  <span className="text-sm text-indigo-600 flex items-center gap-1">
+                                    <Mail className="w-3 h-3" />
+                                    {contact.email}
+                                  </span>
+                                )}
                                 {contact.phone && (
                                   <span className="text-sm text-gray-600 flex items-center gap-1">
                                     <Phone className="w-3 h-3" />
@@ -622,10 +625,16 @@ const SearchPanel: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                        <button
+                          onClick={() => handleAddToCRM(company.company_name)}
+                          className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+                        >
                           Add to CRM
                         </button>
-                        <button className="text-green-600 hover:text-green-700 text-sm font-medium">
+                        <button
+                          onClick={() => handleSendInsight(company)}
+                          className="text-green-600 hover:text-green-700 text-sm font-medium"
+                        >
                           Send
                         </button>
                       </div>
