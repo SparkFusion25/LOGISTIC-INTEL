@@ -2,7 +2,7 @@
 'use client';
 import React, { useState } from 'react';
 import InteractiveShipmentMap from './InteractiveShipmentMap';
-import { CompanySummaryCard } from './CompanySummaryCard';
+import { CompanySummaryCard } from './search/CompanySummaryCard';
 
 type UserPlan = 'trial' | 'starter' | 'pro' | 'enterprise';
 
