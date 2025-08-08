@@ -1,220 +1,164 @@
-'use client'
-
-import { useState } from 'react'
-import { ChevronDown, ChevronUp, Building2, TrendingUp, Package, DollarSign, Calendar, Ship, Plane, Globe, Plus, Lock } from 'lucide-react'
-import { ShipmentDetailTable } from './ShipmentDetailTable'
+// components/search/CompanySummaryCard.tsx
+'use client';
+import React, { useState } from 'react';
+import { Plus, Send, ChevronDown, ChevronUp, Mail, Phone, Users, Ship, Plane, Globe, TrendingUp, Calendar, DollarSign, Package } from 'lucide-react';
 
 interface ShipmentDetail {
   bol_number: string | null;
   arrival_date: string;
-  containers: string | null;
   vessel_name: string | null;
-  weight_kg: number;
+  gross_weight_kg?: number;
   value_usd: number;
-  shipper_name: string | null;
-  port_of_lading: string | null;
+  port_of_loading: string | null;
   port_of_discharge: string | null;
-  goods_description: string | null;
-  departure_date: string | null;
   hs_code: string | null;
-  unified_id: string;
+  shipment_type: 'ocean' | 'air';
 }
 
-interface GroupedCompanyData {
-  company_name: string;
-  shipment_mode: 'ocean' | 'air' | 'mixed';
-  total_shipments: number;
-  total_weight_kg: number;
-  total_value_usd: number;
-  first_arrival: string;
-  last_arrival: string;
-  confidence_score: number;
-  shipments: ShipmentDetail[];
+interface Contact {
+  id?: string;
+  full_name?: string;
+  email: string;
+  phone?: string;
+  title?: string;
+  linkedin_url?: string;
 }
 
-interface CompanySummaryCardProps {
-  company: GroupedCompanyData;
-  onAddToCRM: (company: GroupedCompanyData) => void;
+interface CompanyProps {
+  company: {
+    company_name: string;
+    shipment_mode: 'ocean' | 'air' | 'mixed';
+    total_shipments: number;
+    total_weight_kg: number;
+    total_value_usd: number;
+    confidence_score: number;
+    first_arrival: string;
+    last_arrival: string;
+    shipments: ShipmentDetail[];
+    contacts?: Contact[];
+  };
+  userPlan: 'trial' | 'starter' | 'pro' | 'enterprise';
+  onAddToCRM: (company: any) => Promise<void>;
+  onSendInsight: (company: any) => Promise<void>;
   isAddingToCRM?: boolean;
 }
 
-export const CompanySummaryCard = ({ company, onAddToCRM, isAddingToCRM = false }: CompanySummaryCardProps) => {
-  const [expanded, setExpanded] = useState(false)
+export const CompanySummaryCard: React.FC<CompanyProps> = ({ company, userPlan, onAddToCRM, onSendInsight, isAddingToCRM }) => {
+  const [expanded, setExpanded] = useState(false);
 
-  // Skip rendering cards without a valid company name
-  if (!company?.company_name || company.company_name.toLowerCase() === 'unknown company') {
-    return null
-  }
-
-  const getModeIcon = (mode: string) => {
-    switch (mode) {
-      case 'air': return <Plane className="w-4 h-4" />
-      case 'ocean': return <Ship className="w-4 h-4" />
-      case 'mixed': return <Globe className="w-4 h-4" />
-      default: return <Ship className="w-4 h-4" />
-    }
-  }
-
-  const getModeColor = (mode: string) => {
-    switch (mode) {
-      case 'air': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'ocean': return 'bg-cyan-100 text-cyan-800 border-cyan-200'
-      case 'mixed': return 'bg-purple-100 text-purple-800 border-purple-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
-
-  const getConfidenceColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50'
-    if (score >= 60) return 'text-yellow-600 bg-yellow-50'
-    return 'text-red-600 bg-red-50'
-  }
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
-    return num.toString()
-  }
-
-  const formatCurrency = (amount: number) => {
-    if (amount === 0) return 'N/A'
-    return `$${formatNumber(amount)}`
-  }
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'N/A'
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    })
-  }
-
-  const getDateRange = () => {
-    if (!company.first_arrival && !company.last_arrival) return 'No dates'
-    if (company.first_arrival === company.last_arrival) return formatDate(company.first_arrival)
-    return `${formatDate(company.first_arrival)} → ${formatDate(company.last_arrival)}`
-  }
+  const canViewContacts = userPlan === 'pro' || userPlan === 'enterprise';
+  const canSendInsight = userPlan === 'pro' || userPlan === 'enterprise';
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-      {/* Card Header */}
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          {/* Left Column - Company Info */}
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getModeColor(company.shipment_mode)}`}>
-                {getModeIcon(company.shipment_mode)}
-                {company.shipment_mode.toUpperCase()}
-              </span>
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(company.confidence_score)}`}>
-                <TrendingUp className="w-3 h-3" />
-                {company.confidence_score}% Confidence
-              </span>
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-gray-600" />
-              {company.company_name}
-            </h2>
-          </div>
-
-          {/* Right Column - Actions */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onAddToCRM(company)}
-              disabled={isAddingToCRM}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isAddingToCRM ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  Add to CRM
-                </>
-              )}
-            </button>
+    <div className="bg-white rounded-lg shadow-sm border p-6 w-full max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Globe className="w-5 h-5" />
+            {company.company_name}
+          </h3>
+          <div className="flex items-center gap-3 mt-2">
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+              company.shipment_mode === 'ocean' ? 'bg-blue-100 text-blue-800' :
+              company.shipment_mode === 'air' ? 'bg-sky-100 text-sky-800' :
+              'bg-purple-100 text-purple-800'
+            }`}>
+              {company.shipment_mode === 'ocean' ? <Ship className="w-3 h-3" /> :
+               company.shipment_mode === 'air' ? <Plane className="w-3 h-3" /> :
+               <Globe className="w-3 h-3" />}
+              {company.shipment_mode.toUpperCase()}
+            </span>
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+              company.confidence_score >= 80 ? 'bg-green-100 text-green-800' :
+              company.confidence_score >= 60 ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800'
+            }`}>
+              <TrendingUp className="w-3 h-3" />
+              {company.confidence_score}% Confidence
+            </span>
           </div>
         </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <Ship className="w-4 h-4 text-gray-500" />
-            <div>
-              <p className="text-sm text-gray-600">Shipments</p>
-              <p className="text-lg font-semibold text-gray-900">{company.total_shipments}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-gray-500" />
-            <div>
-              <p className="text-sm text-gray-600">Weight</p>
-              <p className="text-lg font-semibold text-gray-900">{formatNumber(company.total_weight_kg)} kg</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-gray-500" />
-            <div>
-              <p className="text-sm text-gray-600">Value</p>
-              <p className="text-lg font-semibold text-gray-900">{formatCurrency(company.total_value_usd)}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <div>
-              <p className="text-sm text-gray-600">Date Range</p>
-              <p className="text-sm font-medium text-gray-900">{getDateRange()}</p>
-            </div>
-          </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onAddToCRM(company)}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-50"
+            disabled={isAddingToCRM}
+          >
+            {isAddingToCRM ? "Adding..." : (<><Plus className="w-4 h-4" /> Add to CRM</>)}
+          </button>
+          <button
+            onClick={() => onSendInsight(company)}
+            className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-2 disabled:opacity-50"
+            disabled={!canSendInsight}
+          >
+            <Send className="w-4 h-4" />
+            Send Insight
+          </button>
         </div>
-
-        {/* Contact Info Gating Message */}
-        <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
-          <Lock className="w-4 h-4 text-yellow-600" />
-          <p className="text-sm text-yellow-800">
-            <span className="font-medium">🔒 Contact Details Protected</span>
-            {' '}• Add to CRM to unlock contact information
-          </p>
-        </div>
-
-        {/* Expand/Collapse Button */}
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors"
-        >
-          {expanded ? (
-            <>
-              <ChevronUp className="w-4 h-4" />
-              Hide Shipments ({company.total_shipments})
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-4 h-4" />
-              Show Shipments ({company.total_shipments})
-            </>
-          )}
-        </button>
       </div>
 
-      {/* Expandable Shipment Details */}
-      {expanded && (
-        <div className="border-t border-gray-200">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Shipment Details ({company.shipments.length} records)
-            </h3>
-            <ShipmentDetailTable shipments={company.shipments} />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="bg-gray-50 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-gray-600 mb-1">
+            <Package className="w-4 h-4" />
+            <span className="text-sm">Shipments</span>
           </div>
+          <p className="text-xl font-bold">{company.total_shipments}</p>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-gray-600 mb-1">
+            <DollarSign className="w-4 h-4" />
+            <span className="text-sm">Value</span>
+          </div>
+          <p className="text-xl font-bold">${(company.total_value_usd / 1000000).toFixed(1)}M</p>
+        </div>
+        <div className="bg-gray-50 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-gray-600 mb-1">
+            <Calendar className="w-4 h-4" />
+            <span className="text-sm">Latest</span>
+          </div>
+          <p className="text-sm font-medium">{company.last_arrival}</p>
+        </div>
+      </div>
+
+      {/* Expand for Shipments */}
+      <button
+        onClick={() => setExpanded((ex) => !ex)}
+        className="w-full mt-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center gap-2"
+      >
+        {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        {expanded ? 'Hide' : 'Show'} Shipment Details
+      </button>
+      {expanded && (
+        <div className="border-t bg-gray-50 p-4 mt-2">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-gray-600">
+                <th className="pb-2">BOL#</th>
+                <th className="pb-2">Date</th>
+                <th className="pb-2">Route</th>
+                <th className="pb-2">Vessel</th>
+                <th className="pb-2">Value</th>
+                <th className="pb-2">Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {company.shipments.slice(0, 10).map((s, i) => (
+                <tr key={i} className="border-t">
+                  <td className="py-2 font-mono">{s.bol_number}</td>
+                  <td className="py-2">{s.arrival_date}</td>
+                  <td className="py-2">{s.port_of_loading} → {s.port_of_discharge}</td>
+                  <td className="py-2">{s.vessel_name}</td>
+                  <td className="py-2 text-green-700">${(s.value_usd / 1000).toFixed(0)}K</td>
+                  <td className="py-2">{s.shipment_type?.toUpperCase() || 'N/A'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
