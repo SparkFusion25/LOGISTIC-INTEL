@@ -102,15 +102,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Add contact to CRM
+    // Add contact to CRM (whitelist schema-safe columns only)
     const insertData = {
       company_name: String(contactData.company_name || '').trim(),
       contact_name: contactData.contact_name || 'Lead Contact',
-      title: contactData.title || '',
       email: contactData.email || '',
       phone: contactData.phone || '',
-      linkedin_url: contactData.linkedin_url || '',
-      source: contactData.source || 'Trade Search',
       status: 'lead',
       notes: contactData.notes || '',
       added_by_user: user.id
@@ -129,6 +126,27 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { success: false, error: 'Contact already exists in CRM' },
           { status: 409 }
+        );
+      }
+      
+      // Plan/RLS errors mapping
+      if (error.code === 'P0001') {
+        // Raised by plan/trigger enforcement
+        return NextResponse.json(
+          { success: false, error: error.message || 'Plan limit reached', code: 'limit_reached' },
+          { status: 403 }
+        );
+      }
+      if (error.code === '42501') { // insufficient_privilege
+        return NextResponse.json(
+          { success: false, error: 'Permission denied by RLS policy', code: 'forbidden' },
+          { status: 403 }
+        );
+      }
+      if (error.code === '42703') { // undefined_column
+        return NextResponse.json(
+          { success: false, error: 'Invalid field in request', code: 'bad_request' },
+          { status: 400 }
         );
       }
       
