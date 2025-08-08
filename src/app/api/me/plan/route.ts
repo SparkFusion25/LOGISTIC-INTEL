@@ -1,49 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+import { supabaseServer } from '@/lib/supabase-server';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+type Plan = 'trial'|'starter'|'pro'|'enterprise';
+const ENTITLEMENTS: Record<Plan, any> = {
+  trial:      { companies: 100,  modes: { ocean: true, air: false }, contacts: false, export: false },
+  starter:    { companies: 1000, modes: { ocean: true, air: false }, contacts: false, export: true  },
+  pro:        { companies: 10000,modes: { ocean: true, air: true  }, contacts: true,  export: true  },
+  enterprise: { companies: Infinity, modes: { ocean: true, air: true }, contacts: true,  export: true }
+};
+
+export async function GET(){
+  const s = supabaseServer();
+  const { data: { user } } = await s.auth.getUser();
+  if (!user) return NextResponse.json({ success:false, error:'Not authenticated' }, { status: 401 });
+
+  let plan: Plan = 'trial';
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const { data } = await s.rpc('get_user_plan', { p_uid: user.id });
+    const p = (Array.isArray(data) ? data[0] : data) as string | null;
+    if (p && ['trial','starter','pro','enterprise'].includes(p)) plan = p as Plan;
+  } catch {}
 
-    // Get user's subscription plan from user_profiles
-    const { data: profile, error: profileError } = await supabase
-      .from('user_profiles')
-      .select('subscription_plan')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError) {
-      console.error('Error fetching user profile:', profileError);
-      // Default to pro for demo purposes so users can test all features
-      return NextResponse.json({
-        success: true,
-        plan: 'pro',
-        user_id: user.id
-      });
-    }
-
-    return NextResponse.json({
-      success: true,
-      plan: profile?.subscription_plan || 'pro',
-      user_id: user.id
-    });
-
-  } catch (error) {
-    console.error('Error fetching user plan:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ success:true, plan, entitlements: ENTITLEMENTS[plan] });
 }

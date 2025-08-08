@@ -1,139 +1,85 @@
-// app/api/crm/contacts/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+import { supabaseServer } from '@/lib/supabase-server';
+export const runtime='nodejs'; export const dynamic='force-dynamic';
 
-export async function POST(req: NextRequest) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies });
+function norm(t?:string|null){ return t? t.toLowerCase().trim().replace(/\s+/g,' ') : null; }
 
-    // Authenticate user
-    const { data: { user }, error: userErr } = await supabase.auth.getUser();
+async function resolveCompany(s: any, user: any, company_name: string, country?: string, industry?: string) {
+  // Try find existing for this user (RLS scoped)
+  const { data: existing } = await s.from('companies')
+    .select('id, company_name, country')
+    .eq('added_by_user', user.id)
+    .ilike('company_name', company_name)
+    .maybeSingle();
 
-    if (!user || userErr) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+  if (existing?.id) return { success: true, company_id: existing.id, company: existing };
 
-    const body = await req.json();
-    const { company_name, source, metadata } = body;
+  // Insert new
+  const insert = {
+    company_name: company_name.trim(),
+    country: country || null,
+    industry: industry || null,
+    added_by_user: user.id
+  };
 
-    if (!company_name) {
-      return NextResponse.json({ success: false, error: 'No company_name provided' }, { status: 400 });
-    }
-
-    // Get user's subscription plan to check limits
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('subscription_plan')
-      .eq('id', user.id)
-      .single();
-
-    const plan: 'trial' | 'starter' | 'pro' | 'enterprise' = (profile?.subscription_plan as 'trial' | 'starter' | 'pro' | 'enterprise') || 'trial';
-    
-    // Check subscription limits
-    const limits: Record<'trial' | 'starter' | 'pro' | 'enterprise', number> = {
-      trial: 10,
-      starter: 100,
-      pro: 1000,
-      enterprise: Infinity
-    };
-
-    const { count } = await supabase
-      .from('crm_contacts')
-      .select('*', { count: 'exact', head: true })
-      .eq('added_by_user', user.id);
-
-    if ((count || 0) >= limits[plan]) {
-      return NextResponse.json({ 
-        success: false, 
-        error: `Contact limit reached (${count || 0}/${limits[plan]}). Please upgrade your plan.` 
-      }, { status: 403 });
-    }
-
-    // Check for existing contact (by company_name and user)
-    const { data: existing } = await supabase
-      .from('crm_contacts')
-      .select('*')
-      .eq('company_name', company_name)
-      .eq('added_by_user', user.id)
-      .maybeSingle();
-
-    if (existing) {
-      return NextResponse.json({ 
-        success: true, 
-        alreadyExists: true,
-        message: `${company_name} is already in your CRM` 
-      });
-    }
-
-    // Insert with user linkage and metadata
-    const { data, error } = await supabase
-      .from('crm_contacts')
-      .insert([{
-        company_name,
-        source: source || 'Trade Search',
-        added_by_user: user.id,
-        owner_user_id: user.id,
-        metadata: metadata || {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }])
-      .select();
-
-    if (error) {
-      console.error('CRM insert error:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      data: data?.[0],
-      message: `${company_name} added to CRM successfully!`
-    });
-
-  } catch (error) {
-    console.error('CRM API error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to add contact to CRM' 
-    }, { status: 500 });
-  }
+  const { data, error } = await s.from('companies').insert(insert).select('id, company_name, country').single();
+  if (error) return { success: false, error: error.message };
+  return { success: true, company_id: data.id, company: data };
 }
 
-export async function GET(req: NextRequest) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies });
+export async function POST(req: Request){
+  const s = supabaseServer();
+  const { data: { user } } = await s.auth.getUser();
+  if (!user) return NextResponse.json({ success:false, error:'Not authenticated' }, { status: 401 });
+  const body = await req.json().catch(()=>({}));
 
-    // Authenticate user
-    const { data: { user }, error: userErr } = await supabase.auth.getUser();
+  // Required inputs from callers
+  const company_name = body.company_name as string | undefined;
+  const email = body.email as string | undefined;
+  const full_name = body.contact_name || body.full_name || null;
+  const phone = body.phone || null;
+  const title = body.title || null;
+  const hs_code = body.hs_code || null;
+  const notes = body.notes || null;
 
-    if (!user || userErr) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-    }
+  if (!company_name) return NextResponse.json({ success:false, error:'company_name required' }, { status: 400 });
 
-    // Get all CRM contacts for this user
-    const { data: contacts, error } = await supabase
-      .from('crm_contacts')
-      .select('*')
-      .eq('added_by_user', user.id)
-      .order('created_at', { ascending: false });
+  // Resolve company_id directly
+  const companyResult = await resolveCompany(s, user, company_name, body.country||null, body.industry||null);
+  if (!companyResult.success) return NextResponse.json({ success:false, error: companyResult.error||'resolve failed' }, { status: 400 });
 
-    if (error) {
-      console.error('CRM fetch error:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    }
+  const insert = {
+    company_id: companyResult.company_id,
+    full_name,
+    email: email || null,
+    phone,
+    title,
+    added_by_user: user.id,
+    notes,
+    hs_code,
+    created_at: new Date().toISOString()
+  } as any;
 
-    return NextResponse.json({ 
-      success: true, 
-      data: contacts || [],
-      total: contacts?.length || 0
-    });
-
-  } catch (error) {
-    console.error('CRM GET API error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Failed to fetch CRM contacts' 
-    }, { status: 500 });
+  const { data, error } = await s.from('crm_contacts').insert(insert).select('id, company_id, full_name, email');
+  if (error) {
+    if (error.message.toLowerCase().includes('duplicate key'))
+      return NextResponse.json({ success:false, error:'Contact already exists in CRM' }, { status: 409 });
+    return NextResponse.json({ success:false, error: error.message }, { status: 400 });
   }
+
+  return NextResponse.json({ success:true, contact: Array.isArray(data)?data[0]:data });
+}
+
+export async function GET(req: Request) {
+  const s = supabaseServer();
+  const { data: { user } } = await s.auth.getUser();
+  if (!user) return NextResponse.json({ success:false, error:'Not authenticated' }, { status: 401 });
+
+  const { data: contacts, error } = await s.from('crm_contacts').select('*').eq('added_by_user', user.id).order('created_at', { ascending: false });
+  if (error) {
+    console.error('CRM fetch error:', error);
+    return NextResponse.json({ success:false, error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success:true, data: contacts || [], total: contacts?.length || 0 });
 }

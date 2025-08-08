@@ -19,7 +19,7 @@ interface ShipmentMapProps {
 }
 
 // Port coordinates database
-const PORT_COORDINATES = {
+const PORT_COORDINATES: Record<string, [number, number]> = {
   // Major Asian ports
   'Shanghai': [31.2304, 121.4737],
   'Shenzhen': [22.5431, 114.0579],
@@ -101,7 +101,7 @@ const InteractiveShipmentMap: React.FC<ShipmentMapProps> = ({
   const getPortCoordinates = (portName: string): [number, number] | null => {
     // Try exact match first
     if (PORT_COORDINATES[portName]) {
-      return PORT_COORDINATES[portName] as [number, number];
+      return PORT_COORDINATES[portName];
     }
     
     // Try partial match
@@ -110,8 +110,8 @@ const InteractiveShipmentMap: React.FC<ShipmentMapProps> = ({
       portName.toLowerCase().includes(port.toLowerCase())
     );
     
-    if (fuzzyMatch) {
-      return PORT_COORDINATES[fuzzyMatch] as [number, number];
+    if (fuzzyMatch && PORT_COORDINATES[fuzzyMatch]) {
+      return PORT_COORDINATES[fuzzyMatch];
     }
     
     return null;

@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: false,
       error: 'Failed to fix CRM schema',
-      details: error.message
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: false,
       error: 'Failed to check CRM schema',
-      details: error.message
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }
