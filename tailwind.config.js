@@ -10,13 +10,15 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          900: '#1e3a8a',
+          50:  '#EDF2FB', 100: '#D0D9F6', 200: '#A1B3EE',
+          300: '#728DE6', 400: '#4367DE', 500: '#1541D6',
+          600: '#1135AD', 700: '#0D297F', 800: '#091B51', 900: '#050C26',
         },
+        accent:    '#2971FF',
+        secondary: '#9333EA',
+        surface:   '#F3F4F6',
+        onSurface: '#374151',
+        success:   '#10B981',
         admin: {
           bg: '#f8fafc',
           card: '#ffffff',
@@ -26,7 +28,10 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      maxWidth: {
+        'screen-wider': '1600px',
       },
     },
   },
