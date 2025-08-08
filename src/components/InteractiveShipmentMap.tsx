@@ -1,44 +1,58 @@
+// components/search/InteractiveShipmentMap.tsx
+'use client';
 import React from 'react';
 
 interface ShipmentPoint {
-  origin: { city?: string; country?: string; coords?: [number, number] }
-  destination: { city?: string; country?: string; coords?: [number, number] }
-  type?: string
+  origin: { city?: string; country?: string; coords?: [number, number] };
+  destination: { city?: string; country?: string; coords?: [number, number] };
+  type?: string; // 'air' | 'ocean'
 }
 
 interface Props {
-  shipments: ShipmentPoint[]
-  filterType: 'all'|'ocean'|'air'
-  searchQuery: string
-  onSelect?: (s: any)=>void
-  isLoading?: boolean
+  shipments: ShipmentPoint[];
+  filterType: 'all' | 'ocean' | 'air';
+  searchQuery: string;
+  onSelect?: (s: any) => void;
+  isLoading?: boolean;
 }
 
-// Equirectangular projection (SVG): lat/lng → x/y
-function latLngToXY([lat, lng]: [number, number], width: number, height: number) {
-  const x = ((lng + 180) / 360) * width;
-  const y = ((90 - lat) / 180) * height;
-  return [x, y];
+const PORT_COORDINATES: Record<string, [number, number]> = {
+  'Shanghai': [121.4737, 31.2304],
+  'Singapore': [103.8198, 1.3521],
+  'Los Angeles': [-118.1892, 33.7676],
+  'Long Beach': [-118.1892, 33.7676],
+  'New York': [-74.0060, 40.7128],
+  'Hamburg': [9.9937, 53.5511],
+  'Rotterdam': [4.4792, 51.9225],
+  // Add more as needed
+  'default': [0, 0],
+};
+
+function getCoords(city: string | undefined): [number, number] {
+  if (!city) return PORT_COORDINATES.default;
+  return PORT_COORDINATES[city] || PORT_COORDINATES.default;
 }
 
 export default function InteractiveShipmentMap({ shipments, filterType, searchQuery, onSelect, isLoading }: Props) {
-  const mapUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/BlankMap-World-noborders.png/1024px-BlankMap-World-noborders.png";
-  const width = 900;
-  const height = 400;
+  // SVG dimensions
+  const w = 900, h = 400, padding = 40;
+
+  // Project coords onto SVG (for demo)
+  function project([lng, lat]: [number, number]) {
+    const x = ((lng + 180) / 360) * (w - 2 * padding) + padding;
+    const y = ((90 - lat) / 180) * (h - 2 * padding) + padding;
+    return [x, y];
+  }
 
   return (
-    <div className="w-full h-[420px] relative bg-white rounded-lg border shadow">
-      <svg width={width} height={height} className="absolute inset-0">
-        {/* World map image */}
-        <image x="0" y="0" width={width} height={height} href={mapUrl} opacity="0.88" />
-
-        {/* Draw shipment arcs */}
+    <div className="relative bg-white rounded-lg shadow p-4" style={{ minHeight: 420 }}>
+      <svg width={w} height={h} className="block rounded-lg border border-gray-200 bg-slate-900 w-full h-[400px]">
+        {/* Map routes */}
         {shipments.map((s, i) => {
-          if (!s.origin.coords || !s.destination.coords) return null;
-          const [x1, y1] = latLngToXY(s.origin.coords, width, height);
-          const [x2, y2] = latLngToXY(s.destination.coords, width, height);
+          const [x1, y1] = project(getCoords(s.origin.city));
+          const [x2, y2] = project(getCoords(s.destination.city));
           const mx = (x1 + x2) / 2;
-          const my = (y1 + y2) / 2 - 60;
+          const my = Math.min(y1, y2) - 60 + Math.abs(i % 50 - 25) * 1.5; // Arc spread for visibility
 
           return (
             <g key={i}>
@@ -47,13 +61,13 @@ export default function InteractiveShipmentMap({ shipments, filterType, searchQu
                 fill="none"
                 stroke={s.type === 'air' ? '#0ea5e9' : '#3b82f6'}
                 strokeWidth={2}
-                opacity={0.7}
+                opacity={0.8}
                 style={{ cursor: 'pointer' }}
                 onClick={() => onSelect?.(s)}
               />
-              {/* Origin/Destination Markers */}
-              <circle cx={x1} cy={y1} r={6} fill="#10b981" stroke="#fff" strokeWidth={1.5} />
-              <circle cx={x2} cy={y2} r={6} fill="#f59e0b" stroke="#fff" strokeWidth={1.5} />
+              {/* Animated origin/destination markers */}
+              <circle cx={x1} cy={y1} r={7} fill="#10b981" stroke="#fff" strokeWidth={2} />
+              <circle cx={x2} cy={y2} r={7} fill="#f59e0b" stroke="#fff" strokeWidth={2} />
             </g>
           );
         })}
