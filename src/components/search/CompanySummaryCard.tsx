@@ -41,6 +41,11 @@ interface CompanySummaryCardProps {
 export const CompanySummaryCard = ({ company, onAddToCRM, isAddingToCRM = false }: CompanySummaryCardProps) => {
   const [expanded, setExpanded] = useState(false)
 
+  // Skip rendering cards without a valid company name
+  if (!company?.company_name || company.company_name.toLowerCase() === 'unknown company') {
+    return null
+  }
+
   const getModeIcon = (mode: string) => {
     switch (mode) {
       case 'air': return <Plane className="w-4 h-4" />

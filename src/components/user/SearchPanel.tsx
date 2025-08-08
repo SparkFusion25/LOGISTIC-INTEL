@@ -137,12 +137,8 @@ export default function SearchPanel() {
     }
   }
 
-  // Auto-load default results on component mount
-  useEffect(() => {
-    if (!hasSearched) {
-      handleSearch()
-    }
-  }, [])
+  // Do not auto-load results; wait for user to search
+  // (Intentionally left blank to keep initial state empty)
 
   const handleAddToCRM = async (company: GroupedCompanyData) => {
     setAddingToCRM(company.company_name)
@@ -156,6 +152,11 @@ export default function SearchPanel() {
         return
       }
 
+      if (!company.company_name || company.company_name.toLowerCase() === 'unknown company') {
+        setError('This result does not have a valid company name. Refine your search and try again.')
+        return
+      }
+
       const crmData = {
         company_name: company.company_name,
         total_shipments: company.total_shipments,
@@ -163,8 +164,7 @@ export default function SearchPanel() {
         total_value_usd: company.total_value_usd,
         shipment_mode: company.shipment_mode,
         confidence_score: company.confidence_score,
-        source: 'Trade Search',
-        added_by_user: user.id
+        source: 'Trade Search'
       }
 
       console.log('Adding to CRM:', crmData)
@@ -185,6 +185,12 @@ export default function SearchPanel() {
       } else {
         if (result.error?.includes('already exists')) {
           alert(`${company.company_name} is already in your CRM`)
+        } else if (result.code === 'limit_reached') {
+          setError(result.error || 'Plan limit reached. Upgrade to add more contacts.')
+        } else if (result.code === 'forbidden') {
+          setError('Permission denied. Please sign in again or contact support.')
+        } else if (result.code === 'bad_request') {
+          setError('Invalid request. Please refresh and try again.')
         } else {
           setError(result.error || 'Failed to add to CRM')
         }
@@ -453,33 +459,24 @@ export default function SearchPanel() {
       )}
 
       {/* Results */}
-      {hasSearched && companies.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Search Results ({companies.length} companies found)
-            </h2>
-            <button
-              onClick={() => console.log('Export functionality')}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Export
-            </button>
+      <div className="space-y-4">
+        {loading ? (
+          <div className="p-6 text-center text-gray-600">Searching...</div>
+        ) : companies.length === 0 && hasSearched ? (
+          <div className="p-6 text-center text-gray-500 bg-white border border-gray-200 rounded-lg">
+            <p className="text-sm">No companies found. Try adjusting filters or search terms.</p>
           </div>
-
-          <div className="space-y-4">
-            {companies.map((company, index) => (
-              <CompanySummaryCard
-                key={`${company.company_name}-${index}`}
-                company={company}
-                onAddToCRM={handleAddToCRM}
-                isAddingToCRM={addingToCRM === company.company_name}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+        ) : (
+          companies.map((company) => (
+            <CompanySummaryCard
+              key={company.company_name}
+              company={company}
+              onAddToCRM={handleAddToCRM}
+              isAddingToCRM={addingToCRM === company.company_name}
+            />
+          ))
+        )}
+      </div>
 
       {/* No Results */}
       {hasSearched && companies.length === 0 && !loading && (

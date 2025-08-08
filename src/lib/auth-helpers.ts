@@ -27,24 +27,54 @@ export const getAuthUser = async (): Promise<AuthUser | null> => {
   const supabase = createClientComponentClient();
   
   try {
+    // Ensure session is loaded and refreshed if needed (avoids stale cached metadata)
+    await supabase.auth.getSession();
+
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error || !user) {
       return null;
     }
 
-    // Get user metadata from auth.users
-    const role = user.app_metadata?.role || 'user';
-    const plan = user.app_metadata?.plan || 'free';
-    const adminLevel = user.app_metadata?.admin_level || 'none';
-    
-    // Check if user is admin or premium
-    const isAdmin = role === 'admin' || adminLevel === 'full';
-    const isPremium = plan === 'pro' || plan === 'enterprise' || isAdmin;
-    
-    // Get permissions from user metadata
-    const permissions = user.app_metadata?.permissions || [];
-    
+    // Try to read authoritative profile from public.user_profiles (live DB source of truth)
+    let profile: UserProfile | null = null;
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (!profileError) {
+        profile = profileData as unknown as UserProfile;
+      }
+    } catch (profileReadError) {
+      console.warn('Profile read failed (will fall back to metadata):', profileReadError);
+    }
+
+    // Merge role/plan from strongest sources first: profile → user_metadata → app_metadata
+    const metaUser = (user as any) || {};
+    const userMeta = (metaUser.user_metadata || {}) as Record<string, any>;
+    const appMeta = (metaUser.app_metadata || {}) as Record<string, any>;
+
+    const role = (profile?.role || userMeta.role || appMeta.role || 'user') as string;
+    const plan = (profile?.plan || userMeta.plan || appMeta.plan || 'free') as string;
+
+    // Permissions: prefer explicit admin permissions/features from profile, then metadata
+    const permissions: string[] = (
+      (profile?.admin_permissions || []) as string[]
+    ).concat(
+      (Array.isArray(profile?.features_enabled) ? profile!.features_enabled! : []) as string[]
+    ).concat(
+      (Array.isArray(userMeta.permissions) ? userMeta.permissions : []) as string[]
+    ).concat(
+      (Array.isArray(appMeta.permissions) ? appMeta.permissions : []) as string[]
+    );
+
+    // Determine admin/premium flags
+    const isAdmin = role === 'admin' || (userMeta.admin_level === 'full') || (appMeta.admin_level === 'full');
+    const isPremium = isAdmin || plan === 'pro' || plan === 'enterprise';
+
     return {
       id: user.id,
       email: user.email || '',
@@ -52,7 +82,7 @@ export const getAuthUser = async (): Promise<AuthUser | null> => {
       plan,
       isAdmin,
       isPremium,
-      permissions
+      permissions,
     };
   } catch (error) {
     console.error('Error fetching auth user:', error);
@@ -75,7 +105,7 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
       return null;
     }
     
-    return data;
+    return data as unknown as UserProfile;
   } catch (error) {
     console.error('Error in getUserProfile:', error);
     return null;

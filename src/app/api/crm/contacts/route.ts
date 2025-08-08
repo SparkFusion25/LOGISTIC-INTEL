@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
-// Create Supabase client
-const supabase = createClient(
-  'https://zupuxlrtixhfnbuhxhum.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1cHV4bHJ0aXhoZm5idWh4aHVtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDQzOTIxNiwiZXhwIjoyMDcwMDE1MjE2fQ.F-dshtyWdNBMeQjFBdvEOdmgZnz3X8W_ZH1X5qdVGcU'
-);
+// Use authenticated route client so RLS applies and we can read auth.uid()
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('id');
     const companyName = searchParams.get('company');
@@ -72,16 +70,24 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
+    // Get authenticated user from session
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const contactData = await request.json();
     
     console.log('🔄 CRM Contact Add Request:', JSON.stringify(contactData, null, 2));
-
-    // Get authenticated user from session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    const currentUserId = user?.id || 'c90f60b4-d3b2-4c3a-8b1b-123456789012'; // Fallback for demo
     
     // Validate required fields - only company_name is required for lead capture
-    if (!contactData.company_name) {
+    if (!contactData.company_name || !String(contactData.company_name).trim()) {
+      // Try to infer a reasonable non-empty label from other fields
+      const inferredLabel = contactData.unified_id ? `Company ${contactData.unified_id}` : (contactData.shipper_name || contactData.consignee_name || '').toString().trim()
+      if (inferredLabel) {
+        contactData.company_name = inferredLabel
+      } else {
       console.error('❌ Missing required field: company_name:', { 
         company_name: contactData.company_name 
       });
@@ -93,29 +99,23 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+      }
     }
 
-    // Add contact to CRM
+    // Add contact to CRM (whitelist schema-safe columns only)
+    const insertData = {
+      company_name: String(contactData.company_name || '').trim(),
+      contact_name: contactData.contact_name || 'Lead Contact',
+      email: contactData.email || '',
+      phone: contactData.phone || '',
+      status: 'lead',
+      notes: contactData.notes || '',
+      added_by_user: user.id
+    };
+
     const { data, error } = await supabase
       .from('crm_contacts')
-      .insert({
-        company_name: contactData.company_name,
-        contact_name: contactData.contact_name || 'Lead Contact', // Default for company leads
-        title: contactData.title || '',
-        email: contactData.email || '',
-        phone: contactData.phone || '',
-        linkedin_url: contactData.linkedin_url || '',
-        source: contactData.source || 'Trade Search',
-        status: 'lead', // Mark as lead until enriched
-        tags: contactData.tags || [],
-        notes: contactData.notes || '',
-        enriched_at: new Date().toISOString(),
-        apollo_id: contactData.apollo_id || null,
-        // Shipment data linking
-        unified_id: contactData.unified_id || null,
-        hs_code: contactData.hs_code || null,
-        added_by_user: currentUserId
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -126,6 +126,27 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { success: false, error: 'Contact already exists in CRM' },
           { status: 409 }
+        );
+      }
+      
+      // Plan/RLS errors mapping
+      if (error.code === 'P0001') {
+        // Raised by plan/trigger enforcement
+        return NextResponse.json(
+          { success: false, error: error.message || 'Plan limit reached', code: 'limit_reached' },
+          { status: 403 }
+        );
+      }
+      if (error.code === '42501') { // insufficient_privilege
+        return NextResponse.json(
+          { success: false, error: 'Permission denied by RLS policy', code: 'forbidden' },
+          { status: 403 }
+        );
+      }
+      if (error.code === '42703') { // undefined_column
+        return NextResponse.json(
+          { success: false, error: 'Invalid field in request', code: 'bad_request' },
+          { status: 400 }
         );
       }
       
@@ -160,6 +181,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('id');
     const updateData = await request.json();
@@ -206,6 +228,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('id');
 
