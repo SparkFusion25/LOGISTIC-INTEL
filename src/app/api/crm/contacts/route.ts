@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
-// Create Supabase client
-const supabase = createClient(
-  'https://zupuxlrtixhfnbuhxhum.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1cHV4bHJ0aXhoZm5idWh4aHVtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDQzOTIxNiwiZXhwIjoyMDcwMDE1MjE2fQ.F-dshtyWdNBMeQjFBdvEOdmgZnz3X8W_ZH1X5qdVGcU'
-);
+// Use authenticated route client so RLS applies and we can read auth.uid()
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('id');
     const companyName = searchParams.get('company');
@@ -72,13 +70,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
+    // Get authenticated user from session
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
     const contactData = await request.json();
     
     console.log('🔄 CRM Contact Add Request:', JSON.stringify(contactData, null, 2));
-
-    // Get authenticated user from session
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    const currentUserId = user?.id || 'c90f60b4-d3b2-4c3a-8b1b-123456789012'; // Fallback for demo
     
     // Validate required fields - only company_name is required for lead capture
     if (!contactData.company_name || !String(contactData.company_name).trim()) {
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
         // Shipment data linking
         unified_id: contactData.unified_id || null,
         hs_code: contactData.hs_code || null,
-        added_by_user: currentUserId
+        added_by_user: user.id
       })
       .select()
       .single();
@@ -166,6 +167,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('id');
     const updateData = await request.json();
@@ -212,6 +214,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = createRouteHandlerClient({ cookies });
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('id');
 
