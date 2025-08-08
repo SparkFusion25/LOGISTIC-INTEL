@@ -103,26 +103,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Add contact to CRM
+    const insertData = {
+      company_name: String(contactData.company_name || '').trim(),
+      contact_name: contactData.contact_name || 'Lead Contact',
+      title: contactData.title || '',
+      email: contactData.email || '',
+      phone: contactData.phone || '',
+      linkedin_url: contactData.linkedin_url || '',
+      source: contactData.source || 'Trade Search',
+      status: 'lead',
+      notes: contactData.notes || '',
+      added_by_user: user.id
+    };
+
     const { data, error } = await supabase
       .from('crm_contacts')
-      .insert({
-        company_name: contactData.company_name,
-        contact_name: contactData.contact_name || 'Lead Contact', // Default for company leads
-        title: contactData.title || '',
-        email: contactData.email || '',
-        phone: contactData.phone || '',
-        linkedin_url: contactData.linkedin_url || '',
-        source: contactData.source || 'Trade Search',
-        status: 'lead', // Mark as lead until enriched
-        tags: contactData.tags || [],
-        notes: contactData.notes || '',
-        enriched_at: new Date().toISOString(),
-        apollo_id: contactData.apollo_id || null,
-        // Shipment data linking
-        unified_id: contactData.unified_id || null,
-        hs_code: contactData.hs_code || null,
-        added_by_user: user.id
-      })
+      .insert(insertData)
       .select()
       .single();
 
