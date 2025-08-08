@@ -1,54 +1,41 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { google } from 'googleapis';
 
 export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url)
-  const code = requestUrl.searchParams.get('code')
-  const error = requestUrl.searchParams.get('error')
-  const error_description = requestUrl.searchParams.get('error_description')
+  const supabase = createRouteHandlerClient({ cookies });
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.redirect('/login');
 
-  if (error) {
-    console.error('Auth callback error:', error, error_description)
-    // Redirect to login with error message
-    return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(error_description || error)}`, requestUrl.origin)
-    )
-  }
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code');
+  if (!code) return NextResponse.redirect('/email-hub?error=oauth_no_code');
 
-  if (code) {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    
-    try {
-      // Exchange the code for a session
-      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-      
-      if (exchangeError) {
-        console.error('Error exchanging code for session:', exchangeError)
-        return NextResponse.redirect(
-          new URL(`/login?error=${encodeURIComponent('Email verification failed. Please try again.')}`, requestUrl.origin)
-        )
-      }
+  const oAuth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.NEXT_PUBLIC_BASE_URL + '/api/auth/gmail/callback'
+  );
+  const { tokens } = await oAuth2Client.getToken(code);
+  oAuth2Client.setCredentials(tokens);
 
-      // Check if this is the admin test user
-      if (data.user?.email === 'info@getb3acon.com') {
-        // Redirect admin to test page
-        return NextResponse.redirect(new URL('/test-admin', requestUrl.origin))
-      }
+  // Get email
+  const oauth2 = google.oauth2({ version: 'v2', auth: oAuth2Client });
+  const { data } = await oauth2.userinfo.get();
+  const email = data.email;
 
-      // Redirect regular users to dashboard
-      return NextResponse.redirect(new URL('/dashboard', requestUrl.origin))
-    } catch (error) {
-      console.error('Callback handler error:', error)
-      return NextResponse.redirect(
-        new URL(`/login?error=${encodeURIComponent('Authentication failed. Please try again.')}`, requestUrl.origin)
-      )
-    }
-  }
+  // Save to Supabase
+  await supabase.from('user_tokens').upsert({
+    user_id: user.id,
+    provider: 'gmail',
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expires_at: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : null,
+    email,
+    scopes: tokens.scope?.split(' ') || [],
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id,provider' });
 
-  // No code provided, redirect to login
-  return NextResponse.redirect(
-    new URL('/login?error=No verification code provided', requestUrl.origin)
-  )
+  return NextResponse.redirect('/email-hub?connected=gmail');
 }
