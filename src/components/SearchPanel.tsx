@@ -125,4 +125,233 @@ export default function SearchPanel() {
     return 'bg-red-100 text-red-800';
   };
 
-  const getModeColor = (mode: 'ocean' | 'air' | 'mixed'): string =
+  const getModeColor = (mode: 'ocean' | 'air' | 'mixed'): string => {
+    if (mode === 'ocean') return 'bg-blue-100 text-blue-800';
+    if (mode === 'air') return 'bg-sky-100 text-sky-800';
+    return 'bg-purple-100 text-purple-800';
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 px-6 md:px-12 py-6">
+      <div className="max-w-screen-2xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Globe className="w-6 h-6 text-indigo-600" />
+                Global Trade Intelligence Platform
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Search shipments, analyze trends, and connect with decision makers
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm">
+                <span className="text-gray-500">Plan: </span>
+                <span className="font-semibold text-indigo-600">{userPlan.toUpperCase()}</span>
+              </span>
+              <div className="flex gap-2">
+                {(['cards', 'map', 'table'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    className={`p-2 rounded ${viewMode === mode ? 'bg-indigo-100 text-indigo-600' : 'text-gray-500'}`}
+                  >
+                    {mode === 'cards' && <Building2 className="w-5 h-5" />}
+                    {mode === 'map' && <MapPin className="w-5 h-5" />}
+                    {mode === 'table' && <BarChart3 className="w-5 h-5" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Search Filters */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <input
+                type="text"
+                placeholder="Company name..."
+                value={searchFilters.company}
+                onChange={(e) => setSearchFilters({...searchFilters, company: e.target.value})}
+                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="text"
+                placeholder="Origin country..."
+                value={searchFilters.originCountry}
+                onChange={(e) => setSearchFilters({...searchFilters, originCountry: e.target.value})}
+                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="text"
+                placeholder="Destination country..."
+                value={searchFilters.destinationCountry}
+                onChange={(e) => setSearchFilters({...searchFilters, destinationCountry: e.target.value})}
+                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
+              <input
+                type="text"
+                placeholder="HS Code or commodity..."
+                value={searchFilters.commodity}
+                onChange={(e) => setSearchFilters({...searchFilters, commodity: e.target.value})}
+                className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            
+            <div className="flex justify-between">
+              <div className="flex gap-2">
+                {(['all', 'ocean', 'air'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setFilterMode(mode)}
+                    className={`px-4 py-2 rounded-lg font-medium ${
+                      filterMode === mode ? 'bg-indigo-600 text-white' : 'bg-gray-100'
+                    }`}
+                  >
+                    {mode === 'all' && 'All Modes'}
+                    {mode === 'ocean' && (
+                      <span className="flex items-center gap-2">
+                        <Ship className="w-4 h-4" />
+                        Ocean
+                      </span>
+                    )}
+                    {mode === 'air' && (
+                      <span className="flex items-center gap-2">
+                        <Plane className="w-4 h-4" />
+                        Air
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-5 h-5" />
+                    Search
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Map View */}
+        {viewMode === 'map' && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4">Interactive Shipment Routes</h3>
+            <InteractiveShipmentMap
+              shipments={mapShipments}
+              filterType={filterMode}
+              searchQuery={searchFilters.company}
+              isLoading={loading}
+              onSelect={(s) => alert(`Selected shipment from ${s.origin.city} to ${s.destination.city}`)}
+            />
+          </div>
+        )}
+
+        {/* Cards View */}
+        {viewMode === 'cards' && (
+          <div className="space-y-4">
+            {companies.map((company: Company) => (
+              <div key={company.company_name} className="bg-white rounded-lg shadow-sm border">
+                <div className="p-6">
+                  {/* Company Header */}
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <Building2 className="w-5 h-5" />
+                        {company.company_name}
+                      </h3>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getModeColor(company.shipment_mode)}`}>
+                          {company.shipment_mode === 'ocean' && <Ship className="w-3 h-3" />}
+                          {company.shipment_mode === 'air' && <Plane className="w-3 h-3" />}
+                          {company.shipment_mode === 'mixed' && <Globe className="w-3 h-3" />}
+                          {company.shipment_mode.toUpperCase()}
+                        </span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(company.confidence_score)}`}>
+                          <TrendingUp className="w-3 h-3" />
+                          {company.confidence_score}% Confidence
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleAddToCRM(company.company_name)}
+                        className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add to CRM
+                      </button>
+                      <button
+                        onClick={() => handleSendInsight(company)}
+                        className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-2"
+                      >
+                        <Send className="w-4 h-4" />
+                        Send Insight
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-4 gap-4 mb-4">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-gray-600 mb-1">
+                        <Package className="w-4 h-4" />
+                        <span className="text-sm">Shipments</span>
+                      </div>
+                      <p className="text-xl font-bold">{company.total_shipments}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-gray-600 mb-1">
+                        <DollarSign className="w-4 h-4" />
+                        <span className="text-sm">Value</span>
+                      </div>
+                      <p className="text-xl font-bold">${(company.total_value_usd / 1000000).toFixed(1)}M</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-gray-600 mb-1">
+                        <Activity className="w-4 h-4" />
+                        <span className="text-sm">Weight</span>
+                      </div>
+                      <p className="text-xl font-bold">{(company.total_weight_kg / 1000).toFixed(0)}T</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-gray-600 mb-1">
+                        <Calendar className="w-4 h-4" />
+                        <span className="text-sm">Latest</span>
+                      </div>
+                      <p className="text-sm font-medium">{company.last_arrival}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {companies.length === 0 && !loading && (
+              <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+                <p className="text-gray-600">Try adjusting your search filters or search for different criteria</p>
+              </div>
+            )}
+          </div>
+        )}
+        {/* Table View (unchanged, optional) */}
+        {/* ... */}
+      </div>
+    </div>
+  );
+}
