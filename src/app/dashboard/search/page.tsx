@@ -4,7 +4,7 @@
 
 import dynamic from 'next/dynamic';
 
-const SearchPanel = dynamic(() => import('@/components/user/SearchPanel'), { 
+const SearchPanel = dynamic(() => import('@/components/SearchPanel'), { 
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-64">
@@ -16,7 +16,7 @@ const SearchPanel = dynamic(() => import('@/components/user/SearchPanel'), {
 
 export default function SearchPage() {
   return (
-    <div>
+    <div className="px-8 py-6 max-w-screen-wider mx-auto">
       <div className="mb-6">
         <p className="text-gray-600 text-lg">
           Search global trade data and shipment records to identify new business opportunities and track competitor activity.
