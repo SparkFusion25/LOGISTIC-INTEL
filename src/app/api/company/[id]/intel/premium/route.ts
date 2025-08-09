@@ -1,35 +1,33 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const COOKIE = 'crm_companies';
 
-function getCookie(req: Request, name: string): string | null {
-  const cookieHeader = req.headers.get('cookie') ?? '';
-  const parts = cookieHeader.split(';').map(s => s.trim());
-  const hit = parts.find(p => p.startsWith(`${name}=`));
-  if (!hit) return null;
-  const raw = hit.split('=')[1] ?? '';
-  try {
-    return decodeURIComponent(raw);
-  } catch {
-    return raw;
-  }
+function hasDemoFlag(req: NextRequest) {
+  const url = new URL(req.url);
+  return url.searchParams.get('demo') === '1' || req.headers.get('x-demo-premium') === '1';
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const url = new URL(req.url);
-  const hasDemo = url.searchParams.get('demo') === '1' || req.headers.get('x-demo-premium') === '1';
+function isInCrm(req: NextRequest, companyId: string) {
+  const raw = req.cookies.get(COOKIE)?.value ?? '';
+  let decoded = raw;
+  try { decoded = decodeURIComponent(raw); } catch {}
+  const list = decoded.split(',').filter(Boolean);
+  return list.includes(companyId);
+}
 
-  // Unlock if cookie shows this company is “in CRM”
-  const list = (getCookie(req, COOKIE) ?? '').split(',').filter(Boolean);
-  const isInCRM = list.includes(params.id);
-
-  if (!hasDemo && !isInCRM) {
-    return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
-  }
-
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
 
-  return NextResponse.json({
+  if (!hasDemoFlag(req) && !isInCrm(req, id)) {
+    const res = NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
+  }
+
+  const res = NextResponse.json({
     ok: true,
     data: {
       contacts: [
@@ -55,4 +53,6 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       basic: { id, name: 'Unknown Company' }
     }
   });
+  res.headers.set('Cache-Control', 'no-store');
+  return res;
 }
