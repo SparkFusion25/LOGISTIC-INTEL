@@ -1,7 +1,17 @@
 'use client'
 
-import SearchPanel from '@/components/SearchPanel'
+import dynamic from 'next/dynamic'
 import EmailIntegration from '@/components/EmailIntegration'
+
+const SearchPanelDemo = dynamic(() => import('@/components/SearchPanelDemo'), { 
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <span className="ml-3 text-gray-600">Loading Trade Intelligence...</span>
+    </div>
+  )
+});
 
 export default function IntegratedDashboard() {
   return (
@@ -15,7 +25,7 @@ export default function IntegratedDashboard() {
           </div>
 
           {/* Main Components */}
-          <SearchPanel />
+          <SearchPanelDemo />
           <EmailIntegration />
         </div>
       </div>
