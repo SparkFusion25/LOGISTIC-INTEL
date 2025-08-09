@@ -3,10 +3,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 
-// Keep "@/..." if your tsconfig paths are set; otherwise change to relative imports.
-import InteractiveShipmentMap from '@/components/InteractiveShipmentMap';
-import PrimaryShipmentCard from '@/components/PrimaryShipmentCard';
-import ResponsiveTable from '@/components/ui/ResponsiveTable';
+import InteractiveShipmentMap from './InteractiveShipmentMap';
+import PrimaryShipmentCard from './PrimaryShipmentCard';
+import ResponsiveTable from './ui/ResponsiveTable';
 
 type Mode = 'all' | 'ocean' | 'air';
 
@@ -50,7 +49,7 @@ export default function SearchPanel() {
       company,
       mode,
       limit: String(pageSize),
-      offset: String(offset),
+      offset: String(offset)
     });
 
     try {
@@ -65,7 +64,6 @@ export default function SearchPanel() {
       setHasMore(Boolean(json.pagination?.hasMore));
       setPage(reset ? 1 : page + 1);
     } catch {
-      // marketing surface: swallow network errors
       setHasMore(false);
     } finally {
       setLoading(false);
@@ -82,13 +80,13 @@ export default function SearchPanel() {
       { header: 'Company', accessorKey: 'unified_company_name' },
       { header: 'Route', accessorFn: (r: ShipmentRow) => `${r.unified_destination || '—'}` },
       { header: 'Mode', accessorKey: 'mode' },
-      { header: 'Progress', accessorFn: (r: ShipmentRow) => `${r.progress || 0}%` },
+      { header: 'Progress', accessorFn: (r: ShipmentRow) => `${r.progress || 0}%` }
     ],
     []
   );
 
   return (
-    <div className="px-8 py-6 max-w-screen-wider mx-auto space-y-8">
+    <div className="px-8 py-6 max-w-screen-xl mx-auto space-y-8">
       <div className="bg-white rounded-lg shadow px-6 py-4 flex flex-wrap gap-4 items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
