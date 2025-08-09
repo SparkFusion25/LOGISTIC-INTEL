@@ -41,7 +41,7 @@ export default function CompanyDrawer({
   const [premium, setPremium] = useState<PremiumIntel | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
-  // Load standard intel (matches our new /api/company/[id]/intel shape)
+  // Load standard intel
   useEffect(() => {
     const run = async () => {
       try {
