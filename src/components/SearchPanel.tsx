@@ -1,200 +1,142 @@
-// components/search/SearchPanel.tsx
 'use client';
-import React, { useState } from 'react';
-import InteractiveShipmentMap from './InteractiveShipmentMap';
-import { CompanySummaryCard } from './search/CompanySummaryCard';
 
-type UserPlan = 'trial' | 'starter' | 'pro' | 'enterprise';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
 
-interface ShipmentDetail {
-  bol_number: string | null;
-  arrival_date: string;
-  vessel_name: string | null;
-  gross_weight_kg?: number;
-  value_usd: number;
-  port_of_loading: string | null;
-  port_of_discharge: string | null;
-  hs_code: string | null;
-  shipment_type: 'ocean' | 'air';
-}
+// Keep "@/..." if your tsconfig paths are set; otherwise change to relative imports.
+import InteractiveShipmentMap from '@/components/InteractiveShipmentMap';
+import PrimaryShipmentCard from '@/components/PrimaryShipmentCard';
+import ResponsiveTable from '@/components/ui/ResponsiveTable';
 
-interface Company {
-  company_name: string;
-  shipment_mode: 'ocean' | 'air' | 'mixed';
-  total_shipments: number;
-  total_weight_kg: number;
-  total_value_usd: number;
-  confidence_score: number;
-  first_arrival: string;
-  last_arrival: string;
-  shipments: ShipmentDetail[];
-  contacts?: any[];
+type Mode = 'all' | 'ocean' | 'air';
+
+export interface ShipmentRow {
+  id: string;
+  unified_company_name: string;
+  unified_destination?: string | null;
+  unified_value?: number | null;
+  unified_weight?: number | null;
+  unified_date?: string | null;
+  unified_carrier?: string | null;
+  hs_code?: string | null;
+  mode: 'ocean' | 'air';
+  progress: number;
+  company_id: string;
+  bol_number?: string | null;
+  vessel_name?: string | null;
+  shipper_name?: string | null;
+  port_of_loading?: string | null;
+  port_of_discharge?: string | null;
+  gross_weight_kg?: number | null;
 }
 
 export default function SearchPanel() {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [mapShipments, setMapShipments] = useState<any[]>([]);
-  const [searchFilters, setSearchFilters] = useState({
-    company: '',
-    originCountry: '',
-    destinationCountry: '',
-    commodity: '',
-    hsCode: '',
-    mode: 'all'
-  });
+  const [company, setCompany] = useState('');
+  const [mode, setMode] = useState<Mode>('all');
+  const [data, setData] = useState<ShipmentRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userPlan, setUserPlan] = useState<UserPlan>('trial'); // TODO: Load from user profile
-  const [hasSearched, setHasSearched] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [selected, setSelected] = useState<ShipmentRow | null>(null);
 
-  // Handles search/filter submit
-  const handleSearch = async () => {
+  const pageSize = 100;
+
+  const fetchPage = async (reset = false) => {
+    if (loading) return;
     setLoading(true);
-    setHasSearched(true);
+
+    const offset = reset ? 0 : page * pageSize;
+    const qs = new URLSearchParams({
+      company,
+      mode,
+      limit: String(pageSize),
+      offset: String(offset),
+    });
+
     try {
-      const params = new URLSearchParams();
-      Object.entries(searchFilters).forEach(([k, v]) => { if (v) params.append(k, v); });
-      const res = await fetch(`/api/search/unified?${params.toString()}`);
+      const res = await fetch(`/api/search/unified?${qs.toString()}`, { cache: 'no-store' });
       const json = await res.json();
-      if (json?.success && Array.isArray(json.data)) {
-        setCompanies(json.data);
-        // Prepare for the map
-        const mapped = json.data.flatMap((c: Company) => 
-          c.shipments.map((s: ShipmentDetail) => ({
-            origin: { city: s.port_of_loading, country: '' },
-            destination: { city: s.port_of_discharge, country: '' },
-            type: s.shipment_type
-          }))
-        );
-        setMapShipments(mapped);
-      } else {
-        setCompanies([]);
-        setMapShipments([]);
+      if (!json?.success) {
+        setHasMore(false);
+        if (reset) setData([]);
+        return;
       }
-    } catch (e) {
-      setCompanies([]);
-      setMapShipments([]);
+      setData(reset ? json.data : [...data, ...json.data]);
+      setHasMore(Boolean(json.pagination?.hasMore));
+      setPage(reset ? 1 : page + 1);
+    } catch {
+      // marketing surface: swallow network errors
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handles add to CRM, including Apollo enrichment if eligible
-  const handleAddToCRM = async (company: Company) => {
-    if (!company?.company_name) return;
-    const crmRes = await fetch('/api/crm/contacts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ company_name: company.company_name, source: 'Trade Search' })
-    });
-    const crmJson = await crmRes.json();
-    if (crmJson.success && (userPlan === 'pro' || userPlan === 'enterprise')) {
-      // trigger enrichment only for pro/enterprise
-      await fetch('/api/enrichment/apollo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ companyName: company.company_name })
-      });
-      alert(`Added and enriched ${company.company_name} to CRM!`);
-    } else if (crmJson.success) {
-      alert(`Added ${company.company_name} to CRM!`);
-    } else {
-      alert(crmJson.error || 'Failed to add to CRM');
-    }
-  };
+  useEffect(() => {
+    void fetchPage(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company, mode]);
 
-  // Handles sending insight email
-  const handleSendInsight = async (company: Company) => {
-    const toEmail = company?.contacts?.[0]?.email || '';
-    if (!toEmail) return alert('No contact email found for this company.');
-    const subject = `Logistics Intelligence for ${company.company_name}`;
-    const body = `We identified ${company.total_shipments} shipments for ${company.company_name}. Value: $${(company.total_value_usd/1_000_000).toFixed(1)}M.`;
-    const emailRes = await fetch('/api/email/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: toEmail, subject, body })
-    });
-    const emailJson = await emailRes.json();
-    if (emailJson.success) {
-      alert('Email sent!');
-    } else {
-      alert(emailJson.error || 'Failed to send email.');
-    }
-  };
+  const columns = useMemo(
+    () => [
+      { header: 'Company', accessorKey: 'unified_company_name' },
+      { header: 'Route', accessorFn: (r: ShipmentRow) => `${r.unified_destination || '—'}` },
+      { header: 'Mode', accessorKey: 'mode' },
+      { header: 'Progress', accessorFn: (r: ShipmentRow) => `${r.progress || 0}%` },
+    ],
+    []
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-[1280px] mx-auto space-y-8">
-        {/* Search Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex flex-col md:flex-row md:items-end gap-4">
-            <input
-              type="text"
-              placeholder="Company name..."
-              value={searchFilters.company}
-              onChange={e => setSearchFilters(f => ({ ...f, company: e.target.value }))}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 flex-1"
-            />
-            <input
-              type="text"
-              placeholder="Origin country..."
-              value={searchFilters.originCountry}
-              onChange={e => setSearchFilters(f => ({ ...f, originCountry: e.target.value }))}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 flex-1"
-            />
-            <input
-              type="text"
-              placeholder="Destination country..."
-              value={searchFilters.destinationCountry}
-              onChange={e => setSearchFilters(f => ({ ...f, destinationCountry: e.target.value }))}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 flex-1"
-            />
-            <input
-              type="text"
-              placeholder="Commodity..."
-              value={searchFilters.commodity}
-              onChange={e => setSearchFilters(f => ({ ...f, commodity: e.target.value }))}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 flex-1"
-            />
+    <div className="px-8 py-6 max-w-screen-wider mx-auto space-y-8">
+      <div className="bg-white rounded-lg shadow px-6 py-4 flex flex-wrap gap-4 items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            value={company}
+            onChange={(e) => setCompany(e.target.value)}
+            placeholder="Search company…"
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
+          />
+        </div>
+        <div className="flex gap-2">
+          {(['all', 'ocean', 'air'] as Mode[]).map((m) => (
             <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                mode === m ? 'bg-black text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+              }`}
             >
-              {loading ? 'Searching...' : 'Search'}
+              {m === 'all' ? 'All Modes' : m === 'ocean' ? 'Ocean' : 'Air'}
             </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="lg:w-2/3 space-y-4">
+          <div className="h-96 rounded-lg overflow-hidden border border-gray-200">
+            <InteractiveShipmentMap
+              shipments={data}
+              filterType={mode}
+              searchQuery={company}
+              onSelect={setSelected}
+              isLoading={loading}
+            />
           </div>
+          {selected && <PrimaryShipmentCard shipment={selected} />}
         </div>
 
-        {/* Map View */}
-        <InteractiveShipmentMap
-          shipments={mapShipments}
-          filterType={searchFilters.mode as 'all' | 'ocean' | 'air'}
-          searchQuery={searchFilters.company}
-          isLoading={loading}
-        />
-
-        {/* Company Results */}
-        <div className="space-y-6">
-          {!hasSearched ? (
-            <div className="text-center py-24 text-gray-400 text-xl">
-              Start your search above to see company results.
-            </div>
-          ) : companies.length === 0 ? (
-            <div className="text-center py-24 text-gray-400 text-xl">
-              No results. Try a different search.
-            </div>
-          ) : (
-            companies.map((c, i) =>
-              <CompanySummaryCard
-                key={c.company_name}
-                company={c}
-                userPlan={userPlan}
-                onAddToCRM={handleAddToCRM}
-                onSendInsight={handleSendInsight}
-                isAddingToCRM={false}
-              />
-            )
-          )}
+        <div className="lg:w-1/3 h-[600px] rounded-lg border border-gray-200 overflow-hidden">
+          <ResponsiveTable
+            columns={columns}
+            data={data}
+            fetchMore={hasMore ? () => fetchPage(false) : undefined}
+            loading={loading}
+            rowHeight={60}
+            onRowClick={(row: ShipmentRow) => setSelected(row)}
+          />
         </div>
       </div>
     </div>
