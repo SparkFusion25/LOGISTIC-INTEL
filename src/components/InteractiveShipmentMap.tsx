@@ -12,18 +12,15 @@ type Props = {
 };
 
 /**
- * Build-friendly map stub:
- * - No external mapbox-gl dependency (avoids type/css issues on Vercel).
- * - Visual placeholder with basic stats.
- * - Keeps the same props/signature used by SearchPanel.
- * Swap in a real map later via dynamic import when ready.
+ * Build-friendly map stub.
+ * No mapbox-gl (avoids types/css on Vercel). Keeps the props identical.
  */
 export default function InteractiveShipmentMap({
   shipments,
   filterType,
   searchQuery,
   onSelect,
-  isLoading,
+  isLoading
 }: Props) {
   const shown = shipments.length;
   return (
@@ -44,7 +41,6 @@ export default function InteractiveShipmentMap({
         </div>
       </div>
 
-      {/* Click grid: makes the surface interactive for demos */}
       <div className="absolute inset-0 grid grid-cols-6 grid-rows-4">
         {shipments.slice(0, 24).map((s, i) => (
           <button
