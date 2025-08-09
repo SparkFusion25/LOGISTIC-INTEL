@@ -1,5 +1,5 @@
 // src/app/company/[id]/page.tsx
-import CompanyDrawer from '@/components/drawer/CompanyDrawer';
+import CompanyDrawer from '../../../components/drawer/CompanyDrawer';
 
 export default function CompanyPage({ params }: { params: { id: string } }) {
   const { id } = params; // company_id from the URL
