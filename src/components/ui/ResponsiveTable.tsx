@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef } from 'react';
 
-type Column<T> =
-  | { header: string; accessorKey: keyof T }
+export type Column<T> =
+  | { header: string; accessorKey: keyof T | string }
   | { header: string; accessorFn: (row: T) => React.ReactNode };
 
 interface Props<T> {
@@ -21,7 +21,7 @@ export default function ResponsiveTable<T>({
   rowHeight = 48,
   loading,
   fetchMore,
-  onRowClick
+  onRowClick,
 }: Props<T>) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -36,6 +36,12 @@ export default function ResponsiveTable<T>({
     el.addEventListener('scroll', onScroll);
     return () => el.removeEventListener('scroll', onScroll);
   }, [fetchMore, rowHeight]);
+
+  const getCell = (row: T, col: Column<T>) => {
+    if ('accessorFn' in col) return col.accessorFn(row);
+    const key = col.accessorKey as any;
+    return String((row as any)?.[key] ?? '—');
+  };
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -52,20 +58,17 @@ export default function ResponsiveTable<T>({
             className="grid grid-cols-4 gap-2 w-full text-left px-3"
             style={{ height: rowHeight }}
           >
-            {columns.map((c, j) => {
-              let content: React.ReactNode = null;
-              if ('accessorKey' in c) content = String((row as any)[c.accessorKey] ?? '—');
-              else content = c.accessorFn(row);
-              return (
-                <div key={j} className="border-b border-gray-100 py-2 text-sm text-gray-800">
-                  {content}
-                </div>
-              );
-            })}
+            {columns.map((c, j) => (
+              <div key={j} className="border-b border-gray-100 py-2 text-sm text-gray-800">
+                {getCell(row, c)}
+              </div>
+            ))}
           </button>
         ))}
         {loading && <div className="px-3 py-2 text-sm text-gray-500">Loading…</div>}
-        {!loading && data.length === 0 && <div className="px-3 py-2 text-sm text-gray-500">No data</div>}
+        {!loading && data.length === 0 && (
+          <div className="px-3 py-2 text-sm text-gray-500">No data</div>
+        )}
       </div>
     </div>
   );
