@@ -21,7 +21,7 @@ export default function ResponsiveTable<T>({
   rowHeight = 48,
   loading,
   fetchMore,
-  onRowClick,
+  onRowClick
 }: Props<T>) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -64,12 +64,8 @@ export default function ResponsiveTable<T>({
             })}
           </button>
         ))}
-        {loading && (
-          <div className="px-3 py-2 text-sm text-gray-500">Loading…</div>
-        )}
-        {!loading && data.length === 0 && (
-          <div className="px-3 py-2 text-sm text-gray-500">No data</div>
-        )}
+        {loading && <div className="px-3 py-2 text-sm text-gray-500">Loading…</div>}
+        {!loading && data.length === 0 && <div className="px-3 py-2 text-sm text-gray-500">No data</div>}
       </div>
     </div>
   );
