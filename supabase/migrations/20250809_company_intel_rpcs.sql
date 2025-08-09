@@ -33,7 +33,7 @@ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='companies') THEN
     SELECT name INTO v_name FROM public.companies WHERE id = company_id::bigint LIMIT 1;
   END IF;
-  IF v_name IS NULL THEN
+  IF v_name IS NULL AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='companies') THEN
     SELECT cp.company_name INTO v_name
     FROM public.company_profiles cp
     WHERE (cp.company_name IS NOT NULL)
@@ -101,12 +101,18 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 AS $$
+DECLARE
+  v_cname text;
 BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='companies') THEN
+    SELECT name INTO v_cname FROM public.companies WHERE id = p_company_id::bigint LIMIT 1;
+  END IF;
+
   RETURN QUERY
   WITH base AS (
     SELECT * FROM public.v_company_standard_intel v
     WHERE (v.company_id_int = p_company_id)
-       OR (EXISTS (SELECT 1 FROM public.companies c WHERE c.id = p_company_id::bigint AND TRIM(LOWER(c.name)) = TRIM(LOWER(v.company_name))))
+       OR (v_cname IS NOT NULL AND TRIM(LOWER(v.company_name)) = TRIM(LOWER(v_cname)))
     LIMIT 1
   )
   SELECT
@@ -144,12 +150,18 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 STABLE
 AS $$
+DECLARE
+  v_cname text;
 BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='companies') THEN
+    SELECT name INTO v_cname FROM public.companies WHERE id = p_company_id::bigint LIMIT 1;
+  END IF;
+
   RETURN QUERY
   WITH base AS (
     SELECT * FROM public.v_company_premium_intel v
     WHERE (v.company_id_int = p_company_id)
-       OR (EXISTS (SELECT 1 FROM public.companies c WHERE c.id = p_company_id::bigint AND TRIM(LOWER(c.name)) = TRIM(LOWER(v.company_name))))
+       OR (v_cname IS NOT NULL AND TRIM(LOWER(v.company_name)) = TRIM(LOWER(v_cname)))
     LIMIT 1
   )
   SELECT
@@ -183,25 +195,25 @@ DECLARE
   v_user uuid := auth.uid();
   v_row_id uuid;
 BEGIN
-  -- Resolve name from companies, fallback to company_profiles
+  -- Resolve name from companies
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='companies') THEN
     SELECT name INTO v_company_name FROM public.companies WHERE id = p_company_id::bigint LIMIT 1;
-  END IF;
-  IF v_company_name IS NULL THEN
-    SELECT company_name INTO v_company_name
-    FROM public.company_profiles cp
-    WHERE TRIM(LOWER(cp.company_name)) = TRIM(LOWER((SELECT name FROM public.companies WHERE id = p_company_id::bigint LIMIT 1)))
-    OR p_company_id IS NOT NULL
-    LIMIT 1;
   END IF;
 
   v_company_name := COALESCE(NULLIF(TRIM(v_company_name),''), 'Unknown Company');
 
-  INSERT INTO public.crm_contacts (id, company_name, contact_name, title, email, linkedin_url, industry, added_by_user)
-  VALUES (gen_random_uuid(), v_company_name, NULL, NULL, NULL, NULL, NULL, v_user)
-  ON CONFLICT (company_name)
-  DO UPDATE SET company_name = EXCLUDED.company_name
-  RETURNING id INTO v_row_id;
+  -- Try find existing contact by normalized company name
+  SELECT id INTO v_row_id
+  FROM public.crm_contacts
+  WHERE TRIM(LOWER(company_name)) = TRIM(LOWER(v_company_name))
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  IF v_row_id IS NULL THEN
+    INSERT INTO public.crm_contacts (id, company_name, contact_name, title, email, linkedin_url, industry, added_by_user)
+    VALUES (gen_random_uuid(), v_company_name, NULL, NULL, NULL, NULL, NULL, v_user)
+    RETURNING id INTO v_row_id;
+  END IF;
 
   RETURN v_row_id;
 END;
