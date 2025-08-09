@@ -1,17 +1,29 @@
 import { NextResponse } from 'next/server';
 
-// Simple gate for preview:
-// - default: 403 (locked)
-// - if URL has ?demo=1 or request has header x-demo-premium: return 200 with sample premium intel
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const url = new URL(req.url);
-  const hasDemo = url.searchParams.get('demo') === '1' ||
-                  req.headers.get('x-demo-premium') === '1';
+const COOKIE = 'crm_companies';
 
-  if (!hasDemo) {
+function getCookie(req: Request, name: string): string | null {
+  const cookieHeader = req.headers.get('cookie') ?? '';
+  const parts = cookieHeader.split(';').map(s => s.trim());
+  const hit = parts.find(p => p.startsWith(`${name}=`));
+  if (!hit) return null;
+  const raw = hit.split('=')[1] ?? '';
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  const url = new URL(req.url);
+  const hasDemo = url.searchParams.get('demo') === '1' || req.headers.get('x-demo-premium') === '1';
+
+  // Unlock if cookie shows this company is “in CRM”
+  const list = (getCookie(req, COOKIE) ?? '').split(',').filter(Boolean);
+  const isInCRM = list.includes(params.id);
+
+  if (!hasDemo && !isInCRM) {
     return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
   }
 
