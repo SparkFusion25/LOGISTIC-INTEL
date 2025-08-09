@@ -1,22 +1,18 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase-server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
-function norm(t:string){ return t?.trim().toLowerCase().replace(/\s+/g,' ') || ''; }
-export const runtime='nodejs'; export const dynamic='force-dynamic';
-export async function POST(req:Request){
-  const s = supabaseServer();
-  const { data:{ user } } = await s.auth.getUser();
-  if(!user) return NextResponse.json({success:false,error:'Not authenticated'},{status:401});
-  const { company_name, country } = await req.json();
-  if(!company_name) return NextResponse.json({ success:false, error:'company_name required' },{status:400});
-  const nname = norm(company_name); const ncountry = norm(country||'');
-  const { data:existing } = await supabaseAdmin.from('companies')
-    .select('id, company_name, country')
-    .ilike('company_name', company_name)
-    .limit(1);
-  if(existing && existing[0]) return NextResponse.json({ success:true, company_id: existing[0].id, company: existing[0] });
-  const insert = { id: crypto.randomUUID(), company_name, country: country||null, added_by_user: user.id };
-  const { data:created, error } = await supabaseAdmin.from('companies').insert(insert).select('id, company_name, country').maybeSingle();
-  if(error) return NextResponse.json({ success:false, error:error.message },{status:400});
-  return NextResponse.json({ success:true, company_id: created!.id, company: created });
+import { createClient } from '@supabase/supabase-js';
+
+function norm(n: string){ return (n||'').toLowerCase().replace(/\s+/g,' ').trim(); }
+
+export async function GET(req: Request){
+  const { searchParams } = new URL(req.url);
+  const name = searchParams.get('name')||'';
+  if (!name) return NextResponse.json({ success:false, error:'name is required' }, { status:400 });
+
+  const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { data, error } = await s.from('companies').select('id, company_name').ilike('company_name', `%${name}%`).limit(10);
+  if (error) return NextResponse.json({ success:false, error:error.message }, { status:500 });
+  // Best effort: exact (case-insensitive) first, else top result
+  const exact = data.find(d => norm(d.company_name) === norm(name));
+  const pick = exact || data[0];
+  return NextResponse.json({ success: !!pick, company: pick || null });
 }

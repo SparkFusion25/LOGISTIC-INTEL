@@ -33,6 +33,7 @@ interface Contact {
 
 interface Company {
   company_name: string;
+  unified_company_name?: string;
   shipment_mode: 'ocean' | 'air' | 'mixed';
   total_shipments: number;
   total_weight_kg: number;
@@ -47,6 +48,8 @@ interface Company {
 const SearchPanelDemo = () => {
   const [viewMode, setViewMode] = useState('cards');
   const [filterMode, setFilterMode] = useState('all');
+  const [modeCounts, setModeCounts] = useState<{ ocean:number; air:number }>({ ocean:0, air:0 });
+  const airAvailable = modeCounts.air > 0;
   const [expandedCompanies, setExpandedCompanies] = useState(new Set());
   const [loading, setLoading] = useState(false);
   const [userPlan, setUserPlan] = useState<'trial' | 'starter' | 'pro' | 'enterprise'>('pro'); 
@@ -97,6 +100,15 @@ const SearchPanelDemo = () => {
     loadUserPlan();
   }, []);
 
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/search/mode-counts')
+      .then(r=>r.json())
+      .then(res=>{ if (!alive || !res?.success) return; const oc=res.data.find((x:any)=>x.shipment_type==='ocean')?.count||0; const ac=res.data.find((x:any)=>x.shipment_type==='air')?.count||0; setModeCounts({ ocean:oc, air:ac }); })
+      .catch(()=>{});
+    return () => { alive=false; };
+  }, []);
+
   // Add notification helper
   const addNotification = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
     const id = Date.now();
@@ -115,13 +127,16 @@ const SearchPanelDemo = () => {
       Object.entries(searchFilters).forEach(([key, value]) => {
         if (value) params.append(key, value);
       });
-      params.append('mode', filterMode);
+      const modeParam = (filterMode==='air' && !airAvailable) ? 'ocean' : filterMode;
+      params.append('mode', modeParam);
       
       const response = await fetch(`/api/search/unified?${params.toString()}`);
       const data = await response.json();
       
       if (data.success) {
         setCompanies(data.data || []);
+        // auto-expand details for first 10 companies so shipments list is visible
+        setExpandedCompanies(()=>{ const s=new Set<string>(); const n=Math.min((data.data||[]).length,10); for(let i=0;i<n;i++){ s.add((data.data||[])[i].unified_company_name + '_details'); } return s; });
         addNotification(`Found ${data.data?.length || 0} companies`, 'success');
       } else {
         setCompanies([]);
@@ -142,11 +157,19 @@ const SearchPanelDemo = () => {
     setOperationLoading(prev => ({ ...prev, [opKey]: true }));
     
     try {
+      // resolve company_id
+      let company_id: string | undefined;
+      try {
+        const r = await fetch(`/api/crm/resolve-company?name=${encodeURIComponent(company.unified_company_name || company.company_name)}`);
+        const j = await r.json();
+        if (j?.success && j.company?.id) company_id = j.company.id;
+      } catch {}
       const response = await fetch('/api/crm/contacts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          company_name: company.company_name,
+          company_id,
+          company_name: company.unified_company_name || company.company_name,
           source: 'Trade Search',
           metadata: {
             total_shipments: company.total_shipments,
@@ -452,7 +475,7 @@ Trade Intelligence Team`;
                     className={`px-3 py-2 lg:px-4 lg:py-2 rounded-lg font-medium text-sm lg:text-base ${
                       filterMode === mode ? 'bg-indigo-600 text-white' : 'bg-gray-100'
                     }`}
-                    disabled={mode === 'air' && userPlan === 'trial'}
+                    disabled={mode === 'air' && (userPlan === 'trial' || !airAvailable)}
                   >
                     {mode === 'all' && 'All Modes'}
                     {mode === 'ocean' && (
