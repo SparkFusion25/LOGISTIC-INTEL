@@ -1,39 +1,34 @@
 import { NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/supabase-server';
-
-async function admin(){ 
-  const s = supabaseServer(); 
-  const { data:{user} } = await s.auth.getUser(); 
-  if(!user) return {ok:false, res:NextResponse.json({success:false,error:'Not authenticated'},{status:401})}; 
-  const { data } = await s.rpc('is_admin',{p_uid:user.id}); 
-  const val = Array.isArray(data)?data[0]:data; 
-  if(!val) return {ok:false, res:NextResponse.json({success:false,error:'Forbidden'},{status:403})}; 
-  return {ok:true, s};
+import { supabaseAdmin } from '@/lib/supabase-admin';
+export const runtime='nodejs'; export const dynamic='force-dynamic';
+export async function GET(){
+  const s = supabaseServer();
+  const { data:{ user } } = await s.auth.getUser();
+  if(!user) return NextResponse.json({success:false,error:'Not authenticated'},{status:401});
+  const { data:me } = await supabaseAdmin.from('user_profiles').select('role').eq('id', user.id).maybeSingle();
+  if(me?.role!=='admin') return NextResponse.json({success:false,error:'Forbidden'},{status:403});
+  const { data:accounts } = await supabaseAdmin.from('affiliate_accounts').select('id,name,email,default_rate_percent,is_active,created_at');
+  const { data:links } = await supabaseAdmin.from('affiliate_links').select('id,affiliate_id,code,landing_url,is_active');
+  const { data:refs } = await supabaseAdmin.from('affiliate_referrals').select('*').order('created_at',{ascending:false});
+  return NextResponse.json({ success:true, accounts:accounts||[], links:links||[], referrals:refs||[] });
 }
-
-export async function GET(){ 
-  const a = await admin(); 
-  if(!a.ok) return a.res; 
-  const { data, error } = await a.s!.from('affiliate_accounts').select('*, affiliate_links(*), affiliate_payouts(*)').order('created_at',{ascending:false}); 
-  if(error) return NextResponse.json({success:false,error:error.message},{status:400}); 
-  return NextResponse.json({success:true, affiliates:data}); 
-}
-
-export async function POST(req:Request){ 
-  const a = await admin(); 
-  if(!a.ok) return a.res; 
-  const body = await req.json(); 
-  const { data, error } = await a.s!.from('affiliate_accounts').insert(body).select('*').single(); 
-  if(error) return NextResponse.json({success:false,error:error.message},{status:400}); 
-  return NextResponse.json({success:true, affiliate:data}); 
-}
-
-export async function PATCH(req:Request){ 
-  const a = await admin(); 
-  if(!a.ok) return a.res; 
-  const body = await req.json(); 
-  if(!body.id) return NextResponse.json({success:false,error:'id required'},{status:400}); 
-  const { data, error } = await a.s!.from('affiliate_accounts').update(body).eq('id', body.id).select('*').single(); 
-  if(error) return NextResponse.json({success:false,error:error.message},{status:400}); 
-  return NextResponse.json({success:true, affiliate:data}); 
+export async function POST(req:Request){
+  const s = supabaseServer();
+  const { data:{ user } } = await s.auth.getUser();
+  if(!user) return NextResponse.json({success:false,error:'Not authenticated'},{status:401});
+  const { data:me } = await supabaseAdmin.from('user_profiles').select('role').eq('id', user.id).maybeSingle();
+  if(me?.role!=='admin') return NextResponse.json({success:false,error:'Forbidden'},{status:403});
+  const body = await req.json();
+  if(body.type==='account'){
+    const { data, error } = await supabaseAdmin.from('affiliate_accounts').insert({ name:body.name, email:body.email, default_rate_percent: body.default_rate_percent||20 }).select('*').maybeSingle();
+    if(error) return NextResponse.json({ success:false, error:error.message },{status:400});
+    return NextResponse.json({ success:true, account:data });
+  }
+  if(body.type==='link'){
+    const { data, error } = await supabaseAdmin.from('affiliate_links').insert({ affiliate_id: body.affiliate_id, code: body.code, landing_url: body.landing_url||null }).select('*').maybeSingle();
+    if(error) return NextResponse.json({ success:false, error:error.message },{status:400});
+    return NextResponse.json({ success:true, link:data });
+  }
+  return NextResponse.json({ success:false, error:'Unknown type' },{status:400});
 }

@@ -8,6 +8,6 @@ export async function GET(){
   if(!user) return NextResponse.json({success:false,error:'Not authenticated'},{status:401});
   const { data:me } = await supabaseAdmin.from('user_profiles').select('role').eq('id', user.id).maybeSingle();
   if(me?.role!=='admin') return NextResponse.json({success:false,error:'Forbidden'},{status:403});
-  const { data } = await supabaseAdmin.from('user_profiles').select('id,email,full_name,company,plan,subscription_status,created_at');
-  return NextResponse.json({ success:true, users:data||[] });
+  const { data:subs } = await supabaseAdmin.from('billing_subscriptions').select('user_id,stripe_subscription_id,plan,status,current_period_end');
+  return NextResponse.json({ success:true, subscriptions: subs||[] });
 }
