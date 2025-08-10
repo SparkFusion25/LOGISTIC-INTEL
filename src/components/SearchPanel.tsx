@@ -41,10 +41,12 @@ export default function SearchPanel() {
   // Transform ShipmentRow data to match InteractiveShipmentMap expected format
   const transformedShipments = useMemo(() => {
     return data.map(row => ({
+      id: row.id,
       company: row.unified_company_name || 'Unknown Company',
-      origin: row.port_of_loading || 'Unknown Origin',
-      destination: row.port_of_discharge || row.unified_destination || 'Unknown Destination',
+      origin: row.port_of_loading || '—',
+      destination: row.unified_destination || '—',
       type: row.mode as 'ocean' | 'air',
+      date: row.unified_date || null, // optional, if your map shows dates
       value: row.unified_value || undefined
     }));
   }, [data]);

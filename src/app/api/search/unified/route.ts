@@ -1,64 +1,127 @@
-import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+// src/app/api/search/unified/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const company = (searchParams.get('company') || '').trim()
-  const mode = (searchParams.get('mode') || 'all').trim() as 'all'|'ocean'|'air'
-  const limit = Math.min(Number(searchParams.get('limit') || 100), 200)
-  const offset = Math.max(Number(searchParams.get('offset') || 0), 0)
+type Row = Record<string, any>;
 
-  const supabase = createRouteHandlerClient({ cookies })
+function mapToUnified(row: Row) {
+  return {
+    id: row.unified_id ?? row.id ?? crypto.randomUUID(),
 
-  // Base query from shipments; RLS will enforce ownership and plan
-  let q = supabase.from('shipments')
-    .select(`
-      id, company_id, bol_number, departure_date, arrival_date,
-      origin_country, destination_country, hs_code, product_description,
-      gross_weight_kg, transport_mode, progress,
-      companies:company_id ( id, company_name, owner_user_id )
-    `, { count: 'exact' })
-    .order('arrival_date', { ascending: false })
-    .range(offset, offset + limit - 1)
+    // Names
+    unified_company_name:
+      row.unified_company_name ??
+      row.company_name ??
+      row.consignee_name ??
+      row.shipper_name ??
+      'Unknown Company',
 
-  if (company) {
-    // join filter via related companies.company_name (ilike)
-    q = q.ilike('companies.company_name', `%${company}%`)
+    // Route / places
+    unified_destination:
+      row.unified_destination ??
+      row.destination ??
+      row.port_of_discharge ??
+      row.final_destination ??
+      null,
+
+    // Numbers
+    unified_value:
+      row.unified_value ??
+      row.total_value ??
+      row.value ??
+      null,
+
+    unified_weight:
+      row.unified_weight ??
+      row.gross_weight_kg ??
+      row.weight_kg ??
+      row.weight ??
+      null,
+
+    // Dates — coalesce to unified_date
+    unified_date:
+      row.unified_date ??
+      row.shipment_date ??
+      row.departure_date ??
+      row.arrival_date ??
+      null,
+
+    // Carrier & HS
+    unified_carrier:
+      row.unified_carrier ??
+      row.carrier ??
+      row.vessel_name ??
+      row.airline ??
+      null,
+
+    hs_code: row.hs_code ?? row.hscode ?? row.hs ?? null,
+
+    // Mode
+    mode: (row.mode ?? row.transport_mode ?? row.ship_mode ?? 'ocean') as 'ocean' | 'air',
+
+    // Optional odds & ends
+    progress: typeof row.progress === 'number' ? row.progress : 0,
+    company_id: row.company_id ?? row.unified_company_id ?? null,
+
+    bol_number: row.bol_number ?? null,
+    vessel_name: row.vessel_name ?? null,
+    shipper_name: row.shipper_name ?? null,
+    port_of_loading: row.port_of_loading ?? null,
+    port_of_discharge: row.port_of_discharge ?? null,
+    gross_weight_kg: row.gross_weight_kg ?? null,
+  };
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const url = new URL(req.url);
+    const company = (url.searchParams.get('company') ?? '').trim();
+    const mode = (url.searchParams.get('mode') ?? 'all').trim();
+    const limit = Math.min(Number(url.searchParams.get('limit') ?? 100), 500);
+    const offset = Math.max(Number(url.searchParams.get('offset') ?? 0), 0);
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY! // server-only key
+    );
+
+    // If your unified view/table has a different name, adjust here:
+    let q = supabase
+      .from('trade_data_view')
+      .select('*', { count: 'exact' })
+      .range(offset, offset + limit - 1);
+
+    if (company) {
+      q = q.ilike('company_name', `%${company}%`);
+    }
+    if (mode !== 'all') {
+      q = q.eq('mode', mode); // 'ocean' | 'air'
+    }
+
+    const { data, error, count } = await q;
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      );
+    }
+
+    const mapped = (data ?? []).map(mapToUnified);
+
+    return NextResponse.json({
+      success: true,
+      data: mapped,
+      pagination: {
+        total: count ?? mapped.length,
+        limit,
+        offset,
+        hasMore: count ? offset + limit < count : mapped.length === limit,
+      },
+    });
+  } catch (err: any) {
+    return NextResponse.json(
+      { success: false, error: err?.message ?? 'unknown error' },
+      { status: 500 }
+    );
   }
-
-  if (mode && mode !== 'all') {
-    q = q.eq('transport_mode', mode)
-  }
-
-  const { data, error, count } = await q
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 400 })
-
-  // Map to UI shape (some fields are optional on FE)
-  const records = (data || []).map((r: any) => ({
-    id: r.id,
-    unified_company_name: r.companies?.company_name || 'Unknown',
-    unified_destination: r.destination_country || null,
-    unified_value: null,
-    unified_weight: r.gross_weight_kg || null,
-    unified_date: r.arrival_date || r.departure_date,
-    unified_carrier: r.vessel_name || r.airline || null,
-    hs_code: r.hs_code || null,
-    mode: r.transport_mode,
-    progress: r.progress || 0,
-    company_id: r.company_id,
-    bol_number: r.bol_number || null,
-    vessel_name: r.vessel_name || null,
-    shipper_name: r.shipper_name || null,
-    port_of_loading: r.port_of_loading || null,
-    port_of_discharge: r.port_of_discharge || null,
-    gross_weight_kg: r.gross_weight_kg || null,
-  }))
-
-  return NextResponse.json({
-    success: true,
-    data: records,
-    total: count || 0,
-    pagination: { hasMore: (offset + limit) < (count || 0) }
-  })
 }
