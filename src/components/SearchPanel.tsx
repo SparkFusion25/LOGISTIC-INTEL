@@ -38,6 +38,17 @@ export default function SearchPanel() {
   const [hasMore, setHasMore] = useState(false);
   const [selected, setSelected] = useState<ShipmentRow | null>(null);
 
+  // Transform ShipmentRow data to match InteractiveShipmentMap expected format
+  const transformedShipments = useMemo(() => {
+    return data.map(row => ({
+      company: row.unified_company_name || 'Unknown Company',
+      origin: row.port_of_loading || 'Unknown Origin',
+      destination: row.port_of_discharge || row.unified_destination || 'Unknown Destination',
+      type: row.mode as 'ocean' | 'air',
+      value: row.unified_value || undefined
+    }));
+  }, [data]);
+
   const pageSize = 100;
 
   const fetchPage = async (reset = false) => {
@@ -116,10 +127,9 @@ export default function SearchPanel() {
         <div className="lg:w-2/3 space-y-4">
           <div className="h-96 rounded-lg overflow-hidden border border-gray-200">
             <InteractiveShipmentMap
-              shipments={data}
+              shipments={transformedShipments}
               filterType={mode}
               searchQuery={company}
-              onSelect={setSelected}
               isLoading={loading}
             />
           </div>
