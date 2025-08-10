@@ -1,0 +1,6 @@
+# Require review from core team
+* @your-org/engineering
+
+# Optional: match specific paths
+/src/app/api/ @your-org/backend
+/src/components/ @your-org/frontend
