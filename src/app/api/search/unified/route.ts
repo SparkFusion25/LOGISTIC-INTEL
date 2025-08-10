@@ -1,260 +1,124 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-/**
- * 🚀 UNIFIED TRADE SEARCH - GROUPED BY COMPANY
- * Returns companies with aggregated shipment data and expandable shipment details
- * Fixes duplicate company listings and implements proper UI/UX structure
- */
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const mode = (searchParams.get('mode')||'all').toLowerCase();
+  const company = searchParams.get('company')||'';
+  const commodity = searchParams.get('commodity')||''; // maps to product_description
+  const origin_country = searchParams.get('origin_country')||searchParams.get('originCountry')||'';
+  const destination_country = searchParams.get('destination_country')||searchParams.get('destinationCountry')||'';
+  const hs_code = searchParams.get('hs_code')||searchParams.get('hsCode')||'';
+  const date_from = searchParams.get('date_from')||searchParams.get('startDate')||'';
+  const date_to = searchParams.get('date_to')||searchParams.get('endDate')||'';
+  const limit = Math.min(parseInt(searchParams.get('limit')||'50',10), 100);
+  const offset = Math.max(parseInt(searchParams.get('offset')||'0',10), 0);
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!; // server-only
+  if (!url || !key) return NextResponse.json({ success:false, error:'Missing Supabase env' }, { status:500 });
+  const s = createClient(url, key);
 
-interface ShipmentDetail {
-  bol_number: string | null;
-  arrival_date: string;
-  containers: string | null;
-  vessel_name: string | null;
-  weight_kg: number;
-  value_usd: number;
-  shipper_name: string | null;
-  port_of_lading: string | null;
-  port_of_discharge: string | null;
-  goods_description: string | null;
-  departure_date: string | null;
-  hs_code: string | null;
-  unified_id: string;
-}
+  // Base filter for shipments
+  let q = s.from('shipments').select('id, company_id, shipment_id, shipment_type, arrival_date, origin_country, destination_country, hs_code, product_description, weight_kg, port_of_loading, port_of_discharge, vessel_name, gross_weight_kg, value_usd')
+    .order('arrival_date', { ascending:false });
 
-interface GroupedCompanyData {
-  company_name: string;
-  shipment_mode: 'ocean' | 'air' | 'mixed';
-  total_shipments: number;
-  total_weight_kg: number;
-  total_value_usd: number;
-  first_arrival: string;
-  last_arrival: string;
-  confidence_score: number;
-  shipments: ShipmentDetail[];
-  // Contact info is NOT included in search results (CRM gating)
-}
+  if (mode === 'ocean') q = q.eq('shipment_type', 'ocean');
+  if (mode === 'air')   q = q.eq('shipment_type', 'air');
 
-export async function GET(request: NextRequest) {
-  try {
-    console.log('🚀 UNIFIED SEARCH - QUERYING GROUPED COMPANY DATA');
-    
-    const { searchParams } = new URL(request.url);
-    
-    // Extract search filters
-    const mode = searchParams.get('mode') || 'all'; // air, ocean, all
-    const company = searchParams.get('company') || '';
-    const originCountry = searchParams.get('originCountry') || '';
-    const destinationCountry = searchParams.get('destinationCountry') || '';
-    const destinationCity = searchParams.get('destinationCity') || '';
-    const commodity = searchParams.get('commodity') || '';
-    const hsCode = searchParams.get('hsCode') || '';
-    const startDate = searchParams.get('startDate') || '';
-    const endDate = searchParams.get('endDate') || '';
-    const portOfLoading = searchParams.get('portOfLoading') || '';
-    const portOfDischarge = searchParams.get('portOfDischarge') || '';
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+  if (company) q = q.ilike('product_description', `%${company}%`); // fallback when we only have shipments; we will map by company_id later
+  if (commodity) q = q.ilike('product_description', `%${commodity}%`);
+  if (origin_country) q = q.ilike('origin_country', `%${origin_country}%`);
+  if (destination_country) q = q.ilike('destination_country', `%${destination_country}%`);
+  if (hs_code) q = q.ilike('hs_code', `%${hs_code}%`);
+  if (date_from) q = q.gte('arrival_date', date_from);
+  if (date_to) q = q.lte('arrival_date', date_to);
 
-    console.log('Search filters:', {
-      mode, company, originCountry, destinationCountry, 
-      destinationCity, commodity, hsCode, startDate, endDate, 
-      portOfLoading, portOfDischarge, limit
-    });
+  const { data: shipRows, error } = await q;
+  if (error) return NextResponse.json({ success:false, error:error.message }, { status:500 });
 
-    // Build dynamic query for trade_data_view (fixed with correct columns)
-    let query = supabase
-      .from('trade_data_view')
-      .select(`
-        unified_id,
-        company_name,
-        shipment_type,
-        arrival_date,
-        departure_date,
-        vessel_name,
-        bol_number,
-        container_count,
-
-        gross_weight_kg,
-        value_usd,
-        shipper_name,
-        consignee_name,
-        port_of_loading,
-        port_of_discharge,
-        origin_country,
-        destination_city,
-        hs_code,
-        goods_description
-      `)
-      .not('company_name', 'is', null)
-      .neq('company_name', '');
-
-    // Apply filters
-    if (company) {
-      query = query.ilike('company_name', `%${company}%`);
-    }
-
-    if (mode !== 'all') {
-      query = query.eq('shipment_type', mode);
-    }
-
-    if (originCountry) {
-      query = query.ilike('origin_country', `%${originCountry}%`);
-    }
-
-    if (destinationCountry) {
-      query = query.ilike('destination_city', `%${destinationCountry}%`);
-    }
-
-    if (destinationCity) {
-      query = query.ilike('destination_city', `%${destinationCity}%`);
-    }
-
-    if (commodity) {
-      query = query.ilike('goods_description', `%${commodity}%`);
-    }
-
-    if (hsCode) {
-      query = query.ilike('hs_code', `%${hsCode}%`);
-    }
-
-    if (startDate) {
-      query = query.gte('arrival_date', startDate);
-    }
-
-    if (endDate) {
-      query = query.lte('arrival_date', endDate);
-    }
-
-    if (portOfLoading) {
-      query = query.ilike('port_of_loading', `%${portOfLoading}%`);
-    }
-
-    if (portOfDischarge) {
-      query = query.ilike('port_of_discharge', `%${portOfDischarge}%`);
-    }
-
-    // Execute query with limit
-    const { data: rawData, error } = await query
-      .order('arrival_date', { ascending: false })
-      .limit(1000); // Get more records for grouping
-
-    if (error) {
-      console.error('Supabase query error:', error);
-      throw error;
-    }
-
-    console.log(`✅ Retrieved ${rawData?.length || 0} raw shipment records`);
-
-    if (!rawData || rawData.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No shipments found matching your criteria',
-        data: [],
-        total_records: 0,
-        search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode, portOfLoading, portOfDischarge }
-      });
-    }
-
-    // Group shipments by company
-    const companyGroups = new Map<string, {
-      shipments: any[];
-      shipment_modes: Set<string>;
-      total_weight: number;
-      total_value: number;
-      arrival_dates: string[];
-    }>();
-
-    rawData.forEach(record => {
-      const companyName = record.company_name || 'Unknown Company';
-      
-      if (!companyGroups.has(companyName)) {
-        companyGroups.set(companyName, {
-          shipments: [],
-          shipment_modes: new Set(),
-          total_weight: 0,
-          total_value: 0,
-          arrival_dates: []
-        });
-      }
-
-      const group = companyGroups.get(companyName)!;
-      group.shipments.push(record);
-      group.shipment_modes.add(record.shipment_type);
-      group.total_weight += record.gross_weight_kg || 0;
-      group.total_value += record.value_usd || 0;
-      if (record.arrival_date) {
-        group.arrival_dates.push(record.arrival_date);
-      }
-    });
-
-    // Convert to grouped format
-    let groupedData: GroupedCompanyData[] = Array.from(companyGroups.entries())
-      .map(([companyName, group]) => {
-        // Sort arrival dates
-        const sortedDates = group.arrival_dates.sort();
-        
-        const shipmentMode = group.shipment_modes.size === 1
-          ? (Array.from(group.shipment_modes)[0] as 'air' | 'ocean')
-          : 'mixed';
-
-        const shipments: ShipmentDetail[] = group.shipments.map((r: any) => ({
-          bol_number: r.bol_number,
-          arrival_date: r.arrival_date,
-          containers: r.container_count ? String(r.container_count) : null,
-          vessel_name: r.vessel_name,
-          weight_kg: Number(r.gross_weight_kg) || 0,
-          value_usd: Number(r.value_usd) || 0,
-          shipper_name: r.shipper_name,
-          port_of_lading: r.port_of_loading,
-          port_of_discharge: r.port_of_discharge,
-          goods_description: r.goods_description,
-          departure_date: r.departure_date,
-          hs_code: r.hs_code,
-          unified_id: r.unified_id,
-        }));
-
-        const confidence_score = Math.min(99, Math.max(30, Math.round((group.total_value / 1_000_000) + (shipments.length))));
-
-        return {
-          company_name: companyName,
-          shipment_mode: shipmentMode,
-          total_shipments: shipments.length,
-          total_weight_kg: group.total_weight,
-          total_value_usd: group.total_value,
-          first_arrival: sortedDates[0] || '',
-          last_arrival: sortedDates[sortedDates.length - 1] || '',
-          confidence_score,
-          shipments,
-        } as GroupedCompanyData;
-      })
-      .filter((g) => g.company_name && g.company_name.toLowerCase() !== 'unknown company');
-
-    // Basic summary
-    const totalCompanies = groupedData.length;
-    const totalShipments = groupedData.reduce((sum, g) => sum + g.total_shipments, 0);
-
-    return NextResponse.json({
-      success: true,
-      data: groupedData,
-      total_companies: totalCompanies,
-      total_shipments: totalShipments,
-      search_filters: { mode, company, originCountry, destinationCountry, destinationCity, commodity, hsCode, startDate, endDate, portOfLoading, portOfDischarge }
-    });
-
-  } catch (error: any) {
-    console.error('❌ UNIFIED SEARCH ERROR:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Failed to search trade data',
-      data: [],
-      total_records: 0
-    }, { status: 500 });
+  // Get related companies
+  const companyIds = Array.from(new Set(shipRows.map(r=>r.company_id))).filter(Boolean);
+  let companies: any[] = [];
+  if (companyIds.length) {
+    const { data: compRows, error: compErr } = await s
+      .from('companies')
+      .select('id, company_name, country')
+      .in('id', companyIds);
+    if (compErr) return NextResponse.json({ success:false, error:compErr.message }, { status:500 });
+    companies = compRows||[];
   }
+
+  // Filter by company name if requested
+  const companyNameLC = (company||'').toLowerCase();
+  const compMap = new Map(companies.map(c=>[c.id, c]));
+  const shipsByCompany: Record<string, any[]> = {};
+  for (const row of shipRows) {
+    const comp = compMap.get(row.company_id);
+    if (companyNameLC && comp && !comp.company_name.toLowerCase().includes(companyNameLC)) continue;
+    if (!shipsByCompany[row.company_id]) shipsByCompany[row.company_id] = [];
+    shipsByCompany[row.company_id].push(row);
+  }
+
+  // Build grouped response (limit companies + include up to 50 shipments each)
+  const groups = Object.keys(shipsByCompany)
+    .slice(offset, offset+limit)
+    .map(cid => {
+      const shipments = shipsByCompany[cid].slice(0, 50);
+      const comp = compMap.get(cid);
+      const totals = shipments.reduce((acc:any, s:any)=>{
+        acc.total_shipments += 1;
+        acc.total_value_usd += s.value_usd || 0;
+        acc.total_weight_kg += s.gross_weight_kg || s.weight_kg || 0;
+        acc.first_arrival = acc.first_arrival ? Math.min(acc.first_arrival, new Date(s.arrival_date).getTime()) : new Date(s.arrival_date).getTime();
+        acc.last_arrival = acc.last_arrival ? Math.max(acc.last_arrival, new Date(s.arrival_date).getTime()) : new Date(s.arrival_date).getTime();
+        return acc;
+      }, { total_shipments:0, total_value_usd:0, total_weight_kg:0, first_arrival:0, last_arrival:0 });
+
+      return {
+        id: cid,
+        unified_id: cid,
+        unified_company_name: comp?.company_name || 'Unknown',
+        shipment_mode: 'ocean',
+        total_shipments: totals.total_shipments,
+        total_weight_kg: totals.total_weight_kg,
+        total_value_usd: totals.total_value_usd,
+        first_arrival: new Date(totals.first_arrival||Date.now()).toISOString().slice(0,10),
+        last_arrival: new Date(totals.last_arrival||Date.now()).toISOString().slice(0,10),
+        confidence_score: 75,
+        shipments: shipments.map(s=>({
+          unified_id: s.id,
+          bol_number: s.shipment_id,
+          arrival_date: s.arrival_date,
+          container_count: null,
+          vessel_name: s.vessel_name,
+          gross_weight_kg: s.gross_weight_kg || s.weight_kg,
+          value_usd: s.value_usd || 0,
+          shipper_name: null,
+          consignee_name: null,
+          port_of_loading: s.port_of_loading,
+          port_of_discharge: s.port_of_discharge,
+          goods_description: s.product_description,
+          hs_code: s.hs_code,
+          shipment_type: s.shipment_type,
+          origin_country: s.origin_country,
+          destination_city: null,
+          destination_country: s.destination_country
+        }))
+      };
+    });
+
+  const summary = {
+    total_records: shipRows.length,
+    total_value_usd: shipRows.reduce((a:any,s:any)=>a+(s.value_usd||0),0),
+    total_weight_kg: shipRows.reduce((a:any,s:any)=>a+(s.gross_weight_kg||s.weight_kg||0),0),
+    average_shipment_value: shipRows.length? Math.round(shipRows.reduce((a:any,s:any)=>a+(s.value_usd||0),0)/shipRows.length):0,
+    unique_companies: Object.keys(shipsByCompany).length,
+    unique_carriers: 0,
+    unique_commodities: 0,
+    mode_breakdown: { air: shipRows.filter(r=>r.shipment_type==='air').length, ocean: shipRows.filter(r=>r.shipment_type==='ocean').length },
+    value_per_kg: 0
+  };
+
+  return NextResponse.json({ success:true, data: groups, total: groups.length, summary, pagination: { hasMore: false } });
 }
