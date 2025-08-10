@@ -19,33 +19,36 @@ export default function CompanyDrawer({
 
   const premiumAllowed = hasPremiumForCompany(plan, isInCRM);
 
+  // Standard intel
   useEffect(() => {
     const run = async () => {
       const res = await fetch(`/api/company/${companyId}/intel`);
       const json = await res.json();
-      // handle both { ok:true, data } and direct payloads
       setStandard(json?.data ?? json);
     };
     run();
   }, [companyId]);
 
+  // Premium intel (only if allowed)
   useEffect(() => {
     if (!premiumAllowed) return;
     const run = async () => {
       const res = await fetch(`/api/company/${companyId}/intel/premium`);
       const json = await res.json();
+      if (json?.ok === false && json?.error) return; // gated or error
       setPremium(json?.data ?? json);
     };
     run();
   }, [companyId, premiumAllowed]);
 
+  // Optimistic Add to CRM -> flips gate
   const addToCrm = async () => {
     await fetch('/api/crm/company', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ company_id: companyId }),
     });
-    setIsInCRM(true); // optimistic; effect above will fetch premium
+    setIsInCRM(true);
   };
 
   return (
@@ -77,6 +80,9 @@ export default function CompanyDrawer({
         <div className="text-sm text-gray-700">
           Last shipment: {standard?.stats?.lastShipment ?? '—'}
         </div>
+        <div className="text-sm text-gray-700">
+          HS chapters: {(standard?.stats?.hsChapters ?? []).join(', ') || '—'}
+        </div>
       </section>
 
       {/* Recent Shipments */}
@@ -94,6 +100,11 @@ export default function CompanyDrawer({
           <div className="text-sm text-gray-700">
             Heat score: {premium?.heatScore ?? '—'}
           </div>
+          <ul className="mt-2 text-sm text-gray-700 list-disc pl-5">
+            {(premium?.reasons ?? []).map((r: string, i: number) => (
+              <li key={i}>{r}</li>
+            ))}
+          </ul>
         </section>
       ) : (
         <section className="border rounded p-3 bg-indigo-50">
