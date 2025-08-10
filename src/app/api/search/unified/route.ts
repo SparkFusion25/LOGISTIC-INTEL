@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   // Base query from shipments; RLS will enforce ownership and plan
   let q = supabase.from('shipments')
     .select(`
-      id, company_id, bol_number, departure_date, arrival_date,
+      id, company_id, bol_number, arrival_date,
       origin_country, destination_country, hs_code, product_description,
       gross_weight_kg, transport_mode, progress,
       companies:company_id ( id, company_name, owner_user_id )
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
     unified_destination: r.destination_country || null,
     unified_value: null,
     unified_weight: r.gross_weight_kg || null,
-    unified_date: r.arrival_date || r.departure_date,
+    unified_date: r.arrival_date || null, // FIXED: removed departure_date reference
     unified_carrier: r.vessel_name || r.airline || null,
     hs_code: r.hs_code || null,
     mode: r.transport_mode,
