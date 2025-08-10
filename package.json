@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "jest",
+    "test:ci": "jest --ci",
     "test:deployment": "node test-deployment.js",
     "test:local": "node test-deployment.js http://localhost:3000",
     "test:production": "node test-deployment.js"
@@ -17,6 +19,7 @@
     "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.39.0",
+    "@types/leaflet": "^1.9.20",
     "@types/node": "20.17.6",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
@@ -26,25 +29,38 @@
     "clsx": "2.0.0",
     "date-fns": "2.30.0",
     "fast-xml-parser": "^5.2.5",
+    "leaflet": "^1.9.4",
     "lucide-react": "0.292.0",
-    "next": "14.2.31",
+    "mapbox-gl": "^2.15.0",
+    "next": "13.4.19",
     "next-auth": "^4.24.7",
     "postcss": "8.4.31",
-    "react": "18.3.1",
+    "react": "18.2.0",
     "react-chartjs-2": "5.2.0",
-    "react-dom": "18.3.1",
+    "react-dom": "18.2.0",
     "react-hot-toast": "^2.5.2",
     "stripe": "^18.4.0",
+    "swr": "^2.3.4",
     "tailwindcss": "3.3.0",
     "typescript": "5.6.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "eslint": "8.57.1",
-    "eslint-config-next": "14.2.31"
+    "eslint-config-next": "14.2.31",
+    "jest": "29.7.0",
+    "jest-environment-jsdom": "29.7.0",
+    "@testing-library/react": "14.3.1",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/user-event": "14.6.1",
+    "ts-node": "10.9.2"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }

@@ -1,69 +1,75 @@
-'use client'
+'use client';
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react';
 
-interface Column<T> {
-  header: string
-  accessorKey?: keyof T
-  accessorFn?: (row: T) => React.ReactNode
-  cell?: (ctx: { row: T }) => React.ReactNode
-}
+export type Column<T> =
+  | { header: string; accessorKey: keyof T | string }
+  | { header: string; accessorFn: (row: T) => React.ReactNode };
 
 interface Props<T> {
-  columns: Column<T>[]
-  data: T[]
-  fetchMore?: () => void
-  loading?: boolean
-  rowHeight?: number
+  columns: Column<T>[];
+  data: T[];
+  rowHeight?: number;
+  loading?: boolean;
+  fetchMore?: () => void;
+  onRowClick?: (row: T) => void;
 }
 
-export default function ResponsiveTable<T extends Record<string, any>>({ columns, data, fetchMore, loading, rowHeight = 56 }: Props<T>) {
-  const sentinel = useRef<HTMLDivElement | null>(null)
+export default function ResponsiveTable<T>({
+  columns,
+  data,
+  rowHeight = 48,
+  loading,
+  fetchMore,
+  onRowClick,
+}: Props<T>) {
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!fetchMore || !sentinel.current) return
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) fetchMore()
-      })
-    })
-    io.observe(sentinel.current)
-    return () => io.disconnect()
-  }, [fetchMore])
+    if (!ref.current || !fetchMore) return;
+    const el = ref.current;
+    const onScroll = () => {
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - rowHeight * 2) {
+        fetchMore();
+      }
+    };
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [fetchMore, rowHeight]);
+
+  const getCell = (row: T, col: Column<T>) => {
+    if ('accessorFn' in col) return col.accessorFn(row);
+    const key = col.accessorKey as any;
+    return String((row as any)?.[key] ?? '—');
+  };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="bg-surface px-4 py-2 border-b border-gray-200 text-sm font-semibold text-onSurface">
-        Results
+    <div className="h-full w-full flex flex-col">
+      <div className="grid grid-cols-4 gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600">
+        {columns.map((c, i) => (
+          <div key={i}>{c.header}</div>
+        ))}
       </div>
-      <div className="overflow-auto">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 sticky top-0 z-10">
-            <tr>
-              {columns.map((col, i) => (
-                <th key={i} className="text-left px-4 py-2 font-medium text-gray-600 border-b">{col.header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row, i) => (
-              <tr key={i} className="border-b hover:bg-gray-50" style={{ height: rowHeight }}>
-                {columns.map((col, j) => (
-                  <td key={j} className="px-4 py-2">
-                    {col.cell ? col.cell({ row }) : col.accessorFn ? col.accessorFn(row) : (row[col.accessorKey as string] as any)}
-                  </td>
-                ))}
-              </tr>
+      <div ref={ref} className="flex-1 overflow-auto">
+        {data.map((row, i) => (
+          <button
+            key={i}
+            onClick={() => onRowClick?.(row)}
+            className="grid grid-cols-4 gap-2 w-full text-left px-3"
+            style={{ height: rowHeight }}
+          >
+            {columns.map((c, j) => (
+              <div key={j} className="border-b border-gray-100 py-2 text-sm text-gray-800">
+                {getCell(row, c)}
+              </div>
             ))}
-          </tbody>
-        </table>
-        {fetchMore && (
-          <div ref={sentinel} className="w-full h-8" />
-        )}
-        {loading && (
-          <div className="p-3 text-center text-gray-500 text-xs">Loading…</div>
+          </button>
+        ))}
+        {loading && <div className="px-3 py-2 text-sm text-gray-500">Loading…</div>}
+        {!loading && data.length === 0 && (
+          <div className="px-3 py-2 text-sm text-gray-500">No data</div>
         )}
       </div>
     </div>
-  )
+  );
 }

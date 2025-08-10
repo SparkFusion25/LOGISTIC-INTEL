@@ -19,6 +19,7 @@ export default function CompanyDrawer({
 
   const premiumAllowed = hasPremiumForCompany(plan, isInCRM);
 
+  // Standard intel
   useEffect(() => {
     const run = async () => {
       const res = await fetch(`/api/company/${companyId}/intel`);
@@ -29,16 +30,19 @@ export default function CompanyDrawer({
     run();
   }, [companyId]);
 
+  // Premium intel (only if allowed)
   useEffect(() => {
     if (!premiumAllowed) return;
     const run = async () => {
       const res = await fetch(`/api/company/${companyId}/intel/premium`);
       const json = await res.json();
+      if (json?.ok === false && json?.error) return; // gated or error
       setPremium(json?.data ?? json);
     };
     run();
   }, [companyId, premiumAllowed]);
 
+  // Optimistic Add to CRM -> flips gate
   const addToCrm = async () => {
     await fetch('/api/crm/company', {
       method: 'POST',
@@ -77,6 +81,9 @@ export default function CompanyDrawer({
         <div className="text-sm text-gray-700">
           Last shipment: {standard?.stats?.lastShipment ?? '—'}
         </div>
+        <div className="text-sm text-gray-700">
+          HS chapters: {(standard?.stats?.hsChapters ?? []).join(', ') || '—'}
+        </div>
       </section>
 
       {/* Recent Shipments */}
@@ -94,6 +101,11 @@ export default function CompanyDrawer({
           <div className="text-sm text-gray-700">
             Heat score: {premium?.heatScore ?? '—'}
           </div>
+          <ul className="mt-2 text-sm text-gray-700 list-disc pl-5">
+            {(premium?.reasons ?? []).map((r: string, i: number) => (
+              <li key={i}>{r}</li>
+            ))}
+          </ul>
         </section>
       ) : (
         <section className="border rounded p-3 bg-indigo-50">

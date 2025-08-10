@@ -143,143 +143,143 @@ export default function AnalyticsPage() {
   if (!analyticsData) return null
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-100 p-3 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 lg:space-y-6">
         {/* Header */}
-        <div className="glass-card p-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="glass-card p-4 lg:p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4 lg:mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
-              <p className="text-gray-600">Track campaign performance, email engagement, and widget usage</p>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
+              <p className="text-sm lg:text-base text-gray-600">Track campaign performance, email engagement, and widget usage</p>
             </div>
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row gap-2 lg:gap-3">
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
-                className="form-input py-2"
+                className="form-input py-2 text-sm lg:text-base"
               >
                 <option value="7d">Last 7 days</option>
                 <option value="30d">Last 30 days</option>
                 <option value="90d">Last 90 days</option>
               </select>
-              <button className="btn-secondary">
-                <RefreshCw className="w-4 h-4 mr-2" />
+              <button className="btn-secondary text-sm lg:text-base">
+                <RefreshCw className="w-3 h-3 lg:w-4 lg:h-4 mr-2" />
                 Refresh
               </button>
-              <button className="btn-primary">
-                <Download className="w-4 h-4 mr-2" />
-                Export Report
+              <button className="btn-primary text-sm lg:text-base">
+                <Download className="w-3 h-3 lg:w-4 lg:h-4 mr-2" />
+                Export
               </button>
             </div>
           </div>
         </div>
 
         {/* Campaign Analytics Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
           <div className="stats-card">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Campaigns</p>
-                <p className="text-2xl font-bold text-gray-900">{analyticsData.campaigns.totalCampaigns}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs lg:text-sm text-gray-600 truncate">Total Campaigns</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{analyticsData.campaigns.totalCampaigns}</p>
                 <div className="flex items-center mt-1">
-                  <span className="text-sm text-green-600 flex items-center">
+                  <span className="text-xs lg:text-sm text-green-600 flex items-center">
                     <ArrowUp className="w-3 h-3 mr-1" />
                     +2 this month
                   </span>
                 </div>
               </div>
-              <Target className="w-8 h-8 text-blue-600" />
+              <Target className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600 flex-shrink-0" />
             </div>
           </div>
 
           <div className="stats-card">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg. Open Rate</p>
-                <p className="text-2xl font-bold text-green-600">{analyticsData.campaigns.avgOpenRate}%</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs lg:text-sm text-gray-600 truncate">Avg. Open Rate</p>
+                <p className="text-xl lg:text-2xl font-bold text-green-600">{analyticsData.campaigns.avgOpenRate}%</p>
                 <div className="flex items-center mt-1">
-                  <span className="text-sm text-green-600 flex items-center">
+                  <span className="text-xs lg:text-sm text-green-600 flex items-center">
                     <ArrowUp className="w-3 h-3 mr-1" />
                     +3.2% vs industry
                   </span>
                 </div>
               </div>
-              <Eye className="w-8 h-8 text-green-600" />
+              <Eye className="w-6 h-6 lg:w-8 lg:h-8 text-green-600 flex-shrink-0" />
             </div>
           </div>
 
           <div className="stats-card">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg. Click Rate</p>
-                <p className="text-2xl font-bold text-orange-600">{analyticsData.campaigns.avgClickRate}%</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs lg:text-sm text-gray-600 truncate">Avg. Click Rate</p>
+                <p className="text-xl lg:text-2xl font-bold text-orange-600">{analyticsData.campaigns.avgClickRate}%</p>
                 <div className="flex items-center mt-1">
-                  <span className="text-sm text-green-600 flex items-center">
+                  <span className="text-xs lg:text-sm text-green-600 flex items-center">
                     <ArrowUp className="w-3 h-3 mr-1" />
                     +1.8% vs last month
                   </span>
                 </div>
               </div>
-              <MousePointer className="w-8 h-8 text-orange-600" />
+              <MousePointer className="w-6 h-6 lg:w-8 lg:h-8 text-orange-600 flex-shrink-0" />
             </div>
           </div>
 
           <div className="stats-card">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg. Reply Rate</p>
-                <p className="text-2xl font-bold text-purple-600">{analyticsData.campaigns.avgReplyRate}%</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs lg:text-sm text-gray-600 truncate">Avg. Reply Rate</p>
+                <p className="text-xl lg:text-2xl font-bold text-purple-600">{analyticsData.campaigns.avgReplyRate}%</p>
                 <div className="flex items-center mt-1">
-                  <span className="text-sm text-green-600 flex items-center">
+                  <span className="text-xs lg:text-sm text-green-600 flex items-center">
                     <ArrowUp className="w-3 h-3 mr-1" />
                     +0.5% vs last month
                   </span>
                 </div>
               </div>
-              <MessageCircle className="w-8 h-8 text-purple-600" />
+              <MessageCircle className="w-6 h-6 lg:w-8 lg:h-8 text-purple-600 flex-shrink-0" />
             </div>
           </div>
         </div>
 
         {/* Email Tracking & Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Email Performance</h3>
-              <Mail className="w-5 h-5 text-gray-400" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          <div className="glass-card p-4 lg:p-6">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <h3 className="text-base lg:text-lg font-semibold text-gray-900">Email Performance</h3>
+              <Mail className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
             </div>
             
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm text-gray-600">Total Sent</p>
-                  <p className="text-xl font-bold text-gray-900">{analyticsData.emailTracking.totalSent.toLocaleString()}</p>
+            <div className="space-y-3 lg:space-y-4">
+              <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-50 rounded-lg">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs lg:text-sm text-gray-600">Total Sent</p>
+                  <p className="text-lg lg:text-xl font-bold text-gray-900">{analyticsData.emailTracking.totalSent.toLocaleString()}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">This Month</p>
-                  <p className="text-sm text-green-600">+12.5%</p>
+                  <p className="text-xs lg:text-sm text-gray-600">This Month</p>
+                  <p className="text-xs lg:text-sm text-green-600">+12.5%</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{analyticsData.emailTracking.opened}</p>
-                  <p className="text-sm text-gray-600">Opened</p>
+              <div className="grid grid-cols-2 gap-2 lg:gap-4">
+                <div className="text-center p-2 lg:p-3 bg-green-50 rounded-lg">
+                  <p className="text-lg lg:text-2xl font-bold text-green-600">{analyticsData.emailTracking.opened}</p>
+                  <p className="text-xs lg:text-sm text-gray-600">Opened</p>
                   <p className="text-xs text-green-600">{analyticsData.emailTracking.openRate}%</p>
                 </div>
-                <div className="text-center p-3 bg-blue-50 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">{analyticsData.emailTracking.clicked}</p>
-                  <p className="text-sm text-gray-600">Clicked</p>
+                <div className="text-center p-2 lg:p-3 bg-blue-50 rounded-lg">
+                  <p className="text-lg lg:text-2xl font-bold text-blue-600">{analyticsData.emailTracking.clicked}</p>
+                  <p className="text-xs lg:text-sm text-gray-600">Clicked</p>
                   <p className="text-xs text-blue-600">{analyticsData.emailTracking.clickRate}%</p>
                 </div>
-                <div className="text-center p-3 bg-purple-50 rounded-lg">
-                  <p className="text-2xl font-bold text-purple-600">{analyticsData.emailTracking.replied}</p>
-                  <p className="text-sm text-gray-600">Replied</p>
+                <div className="text-center p-2 lg:p-3 bg-purple-50 rounded-lg">
+                  <p className="text-lg lg:text-2xl font-bold text-purple-600">{analyticsData.emailTracking.replied}</p>
+                  <p className="text-xs lg:text-sm text-gray-600">Replied</p>
                   <p className="text-xs text-purple-600">{analyticsData.emailTracking.replyRate}%</p>
                 </div>
-                <div className="text-center p-3 bg-red-50 rounded-lg">
-                  <p className="text-2xl font-bold text-red-600">{analyticsData.emailTracking.bounced}</p>
-                  <p className="text-sm text-gray-600">Bounced</p>
+                <div className="text-center p-2 lg:p-3 bg-red-50 rounded-lg">
+                  <p className="text-lg lg:text-2xl font-bold text-red-600">{analyticsData.emailTracking.bounced}</p>
+                  <p className="text-xs lg:text-sm text-gray-600">Bounced</p>
                   <p className="text-xs text-red-600">1.3%</p>
                 </div>
               </div>
@@ -287,43 +287,41 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Widget Usage Analytics */}
-          <div className="glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Widget Usage</h3>
-              <BarChart3 className="w-5 h-5 text-gray-400" />
+          <div className="glass-card p-4 lg:p-6">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <h3 className="text-base lg:text-lg font-semibold text-gray-900">Widget Usage</h3>
+              <BarChart3 className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm text-gray-600">Monthly Usage</p>
-                  <p className="text-xl font-bold text-gray-900">
+            <div className="space-y-3 lg:space-y-4">
+              <div className="flex items-center justify-between p-3 lg:p-4 bg-gray-50 rounded-lg">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs lg:text-sm text-gray-600">Monthly Usage</p>
+                  <p className="text-base lg:text-xl font-bold text-gray-900">
                     {analyticsData.widgetUsage.monthlyUsage.toLocaleString()} / {analyticsData.widgetUsage.usageLimit.toLocaleString()}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Usage Rate</p>
-                  <p className="text-sm font-medium text-blue-600">
+                  <p className="text-xs lg:text-sm text-gray-600">Usage Rate</p>
+                  <p className="text-xs lg:text-sm font-medium text-blue-600">
                     {((analyticsData.widgetUsage.monthlyUsage / analyticsData.widgetUsage.usageLimit) * 100).toFixed(1)}%
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Top Widgets</h4>
+              <div className="space-y-2 lg:space-y-3">
+                <h4 className="text-sm lg:text-base font-medium text-gray-900">Top Widgets</h4>
                 {analyticsData.widgetUsage.topWidgets.map((widget, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-900">{widget.name}</span>
-                        <span className="text-sm text-gray-600">{widget.usage}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${widget.percentage}%` }}
-                        ></div>
-                      </div>
+                  <div key={index} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs lg:text-sm font-medium text-gray-900 truncate pr-2">{widget.name}</span>
+                      <span className="text-xs lg:text-sm text-gray-600 flex-shrink-0">{widget.usage}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 lg:h-2">
+                      <div 
+                        className="bg-blue-600 h-1.5 lg:h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${widget.percentage}%` }}
+                      ></div>
                     </div>
                   </div>
                 ))}
@@ -333,80 +331,80 @@ export default function AnalyticsPage() {
         </div>
 
         {/* CRM Activity & Time Series */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* CRM Activity */}
-          <div className="glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">CRM Activity</h3>
-              <Users className="w-5 h-5 text-gray-400" />
+          <div className="glass-card p-4 lg:p-6">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <h3 className="text-base lg:text-lg font-semibold text-gray-900">CRM Activity</h3>
+              <Users className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
             </div>
 
-            <div className="space-y-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">{analyticsData.crmActivity.totalContacts}</p>
-                <p className="text-sm text-gray-600">Total Contacts</p>
+            <div className="space-y-3 lg:space-y-4">
+              <div className="text-center p-3 lg:p-4 bg-blue-50 rounded-lg">
+                <p className="text-xl lg:text-2xl font-bold text-blue-600">{analyticsData.crmActivity.totalContacts}</p>
+                <p className="text-xs lg:text-sm text-gray-600">Total Contacts</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <p className="text-lg font-bold text-green-600">{analyticsData.crmActivity.newContacts}</p>
+              <div className="grid grid-cols-2 gap-2 lg:gap-3">
+                <div className="text-center p-2 lg:p-3 bg-green-50 rounded-lg">
+                  <p className="text-base lg:text-lg font-bold text-green-600">{analyticsData.crmActivity.newContacts}</p>
                   <p className="text-xs text-gray-600">New This Month</p>
                 </div>
-                <div className="text-center p-3 bg-orange-50 rounded-lg">
-                  <p className="text-lg font-bold text-orange-600">{analyticsData.crmActivity.touchpoints}</p>
+                <div className="text-center p-2 lg:p-3 bg-orange-50 rounded-lg">
+                  <p className="text-base lg:text-lg font-bold text-orange-600">{analyticsData.crmActivity.touchpoints}</p>
                   <p className="text-xs text-gray-600">Touchpoints</p>
                 </div>
               </div>
 
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-xl font-bold text-purple-600">{analyticsData.crmActivity.pipelineValue}</p>
-                <p className="text-sm text-gray-600">Pipeline Value</p>
+              <div className="text-center p-3 lg:p-4 bg-purple-50 rounded-lg">
+                <p className="text-lg lg:text-xl font-bold text-purple-600">{analyticsData.crmActivity.pipelineValue}</p>
+                <p className="text-xs lg:text-sm text-gray-600">Pipeline Value</p>
               </div>
             </div>
           </div>
 
           {/* Performance Trends */}
-          <div className="lg:col-span-2 glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Performance Trends</h3>
-              <TrendingUp className="w-5 h-5 text-gray-400" />
+          <div className="lg:col-span-2 glass-card p-4 lg:p-6">
+            <div className="flex items-center justify-between mb-4 lg:mb-6">
+              <h3 className="text-base lg:text-lg font-semibold text-gray-900">Performance Trends</h3>
+              <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-4 gap-4 text-center">
+            <div className="space-y-3 lg:space-y-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4 text-center">
                 <div>
-                  <p className="text-sm text-gray-600">Avg Opens/Day</p>
-                  <p className="text-lg font-bold text-blue-600">
+                  <p className="text-xs lg:text-sm text-gray-600">Avg Opens/Day</p>
+                  <p className="text-base lg:text-lg font-bold text-blue-600">
                     {Math.round(timeSeriesData.reduce((sum, d) => sum + d.opens, 0) / timeSeriesData.length)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Avg Clicks/Day</p>
-                  <p className="text-lg font-bold text-green-600">
+                  <p className="text-xs lg:text-sm text-gray-600">Avg Clicks/Day</p>
+                  <p className="text-base lg:text-lg font-bold text-green-600">
                     {Math.round(timeSeriesData.reduce((sum, d) => sum + d.clicks, 0) / timeSeriesData.length)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Avg Replies/Day</p>
-                  <p className="text-lg font-bold text-purple-600">
+                  <p className="text-xs lg:text-sm text-gray-600">Avg Replies/Day</p>
+                  <p className="text-base lg:text-lg font-bold text-purple-600">
                     {Math.round(timeSeriesData.reduce((sum, d) => sum + d.replies, 0) / timeSeriesData.length)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">New Contacts/Day</p>
-                  <p className="text-lg font-bold text-orange-600">
+                  <p className="text-xs lg:text-sm text-gray-600">New Contacts/Day</p>
+                  <p className="text-base lg:text-lg font-bold text-orange-600">
                     {Math.round(timeSeriesData.reduce((sum, d) => sum + d.newContacts, 0) / timeSeriesData.length)}
                   </p>
                 </div>
               </div>
 
               {/* Simple Chart Visualization */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-3">7-Day Performance</h4>
-                <div className="grid grid-cols-7 gap-2 h-32">
+              <div className="bg-gray-50 rounded-lg p-3 lg:p-4">
+                <h4 className="text-sm lg:text-base font-medium text-gray-900 mb-2 lg:mb-3">7-Day Performance</h4>
+                <div className="grid grid-cols-7 gap-1 lg:gap-2 h-24 lg:h-32">
                   {timeSeriesData.map((data, index) => (
                     <div key={index} className="flex flex-col justify-end items-center space-y-1">
-                      <div className="w-full flex flex-col justify-end space-y-1 h-24">
+                      <div className="w-full flex flex-col justify-end space-y-1 h-16 lg:h-24">
                         <div 
                           className="w-full bg-blue-500 rounded-sm"
                           style={{ height: `${(data.opens / 80) * 100}%` }}
@@ -427,17 +425,17 @@ export default function AnalyticsPage() {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center justify-center space-x-4 mt-3 text-xs">
+                <div className="flex items-center justify-center space-x-2 lg:space-x-4 mt-2 lg:mt-3 text-xs">
                   <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    <div className="w-2 h-2 lg:w-3 lg:h-3 bg-blue-500 rounded"></div>
                     <span>Opens</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <div className="w-2 h-2 lg:w-3 lg:h-3 bg-green-500 rounded"></div>
                     <span>Clicks</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <div className="w-3 h-3 bg-purple-500 rounded"></div>
+                    <div className="w-2 h-2 lg:w-3 lg:h-3 bg-purple-500 rounded"></div>
                     <span>Replies</span>
                   </div>
                 </div>
@@ -447,66 +445,66 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Real-time Email Tracking */}
-        <div className="glass-card p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Real-time Email Tracking</h3>
+        <div className="glass-card p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-4 lg:mb-6">
+            <h3 className="text-base lg:text-lg font-semibold text-gray-900">Real-time Email Tracking</h3>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-600">Live</span>
+              <span className="text-xs lg:text-sm text-gray-600">Live</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Recent Opens</h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Sarah Chen - Global Freight</span>
-                  <span className="text-gray-500">2 min ago</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+            <div className="space-y-2 lg:space-y-3">
+              <h4 className="text-sm lg:text-base font-medium text-gray-900">Recent Opens</h4>
+              <div className="space-y-1 lg:space-y-2 max-h-24 lg:max-h-32 overflow-y-auto">
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">Sarah Chen - Global Freight</span>
+                  <span className="text-gray-500 flex-shrink-0">2 min ago</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Michael Rodriguez - Ocean Logistics</span>
-                  <span className="text-gray-500">5 min ago</span>
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">Michael Rodriguez - Ocean Logistics</span>
+                  <span className="text-gray-500 flex-shrink-0">5 min ago</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Jennifer Kim - Pacific Textiles</span>
-                  <span className="text-gray-500">8 min ago</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Recent Clicks</h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Case Study Link</span>
-                  <span className="text-gray-500">12 min ago</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Schedule Meeting</span>
-                  <span className="text-gray-500">18 min ago</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Pricing Information</span>
-                  <span className="text-gray-500">25 min ago</span>
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">Jennifer Kim - Pacific Textiles</span>
+                  <span className="text-gray-500 flex-shrink-0">8 min ago</span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Recent Replies</h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                <div className="flex items-center justify-between text-sm">
-                  <span>David Thompson</span>
-                  <span className="text-green-600">Interested</span>
+            <div className="space-y-2 lg:space-y-3">
+              <h4 className="text-sm lg:text-base font-medium text-gray-900">Recent Clicks</h4>
+              <div className="space-y-1 lg:space-y-2 max-h-24 lg:max-h-32 overflow-y-auto">
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">Case Study Link</span>
+                  <span className="text-gray-500 flex-shrink-0">12 min ago</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Jennifer Kim</span>
-                  <span className="text-blue-600">Questions</span>
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">Schedule Meeting</span>
+                  <span className="text-gray-500 flex-shrink-0">18 min ago</span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Sarah Chen</span>
-                  <span className="text-orange-600">Meeting Req</span>
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">Pricing Information</span>
+                  <span className="text-gray-500 flex-shrink-0">25 min ago</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 lg:space-y-3">
+              <h4 className="text-sm lg:text-base font-medium text-gray-900">Recent Replies</h4>
+              <div className="space-y-1 lg:space-y-2 max-h-24 lg:max-h-32 overflow-y-auto">
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">David Thompson</span>
+                  <span className="text-green-600 flex-shrink-0">Interested</span>
+                </div>
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">Jennifer Kim</span>
+                  <span className="text-blue-600 flex-shrink-0">Questions</span>
+                </div>
+                <div className="flex items-center justify-between text-xs lg:text-sm">
+                  <span className="truncate pr-2">Sarah Chen</span>
+                  <span className="text-orange-600 flex-shrink-0">Meeting Req</span>
                 </div>
               </div>
             </div>
