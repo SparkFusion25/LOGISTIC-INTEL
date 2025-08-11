@@ -12,12 +12,24 @@ export async function GET(req: Request) {
   const supabase = createRouteHandlerClient({ cookies })
 
   // Base query from shipments; RLS will enforce ownership and plan
+  // IMPORTANT: removed `progress` from select to avoid "column ... does not exist"
   let q = supabase.from('shipments')
     .select(`
-      id, company_id, bol_number, arrival_date,
-      origin_country, destination_country, hs_code, product_description,
-      gross_weight_kg, transport_mode, progress,
-      companies:company_id ( id, company_name, owner_user_id )
+      id,
+      company_id,
+      bol_number,
+      arrival_date,
+      origin_country,
+      destination_country,
+      hs_code,
+      product_description,
+      gross_weight_kg,
+      transport_mode,
+      companies:company_id (
+        id,
+        company_name,
+        owner_user_id
+      )
     `, { count: 'exact' })
     .order('arrival_date', { ascending: false })
     .range(offset, offset + limit - 1)
@@ -32,28 +44,39 @@ export async function GET(req: Request) {
   }
 
   const { data, error, count } = await q
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 400 })
+  if (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 400 })
+  }
 
-  // Map to UI shape (some fields are optional on FE)
-  const records = (data || []).map((r: any) => ({
-    id: r.id,
-    unified_company_name: r.companies?.company_name || 'Unknown',
-    unified_destination: r.destination_country || null,
-    unified_value: null,
-    unified_weight: r.gross_weight_kg || null,
-    unified_date: r.arrival_date || null, // FIXED: removed departure_date reference
-    unified_carrier: r.vessel_name || r.airline || null,
-    hs_code: r.hs_code || null,
-    mode: r.transport_mode,
-    progress: r.progress || 0,
-    company_id: r.company_id,
-    bol_number: r.bol_number || null,
-    vessel_name: r.vessel_name || null,
-    shipper_name: r.shipper_name || null,
-    port_of_loading: r.port_of_loading || null,
-    port_of_discharge: r.port_of_discharge || null,
-    gross_weight_kg: r.gross_weight_kg || null,
-  }))
+  // Derive a progress value instead of selecting a non-existent DB column
+  // Simple heuristic: award points for key fields present
+  const records = (data || []).map((r: any) => {
+    const progressScore =
+      (r.hs_code ? 1 : 0) +
+      (r.gross_weight_kg ? 1 : 0) +
+      (r.arrival_date ? 1 : 0)
+    const derivedProgress = Math.round((progressScore / 3) * 100)
+
+    return {
+      id: r.id,
+      unified_company_name: r.companies?.company_name || 'Unknown',
+      unified_destination: r.destination_country || null,
+      unified_value: null,
+      unified_weight: r.gross_weight_kg || null,
+      unified_date: r.arrival_date || null,
+      unified_carrier: r.vessel_name || r.airline || null, // may be undefined if not in schema; safe fallback
+      hs_code: r.hs_code || null,
+      mode: r.transport_mode,
+      progress: derivedProgress, // <- derived, not from DB
+      company_id: r.company_id,
+      bol_number: r.bol_number || null,
+      vessel_name: r.vessel_name || null,            // will be undefined if column not selected/doesn't exist; OK
+      shipper_name: r.shipper_name || null,
+      port_of_loading: r.port_of_loading || null,
+      port_of_discharge: r.port_of_discharge || null,
+      gross_weight_kg: r.gross_weight_kg || null,
+    }
+  })
 
   return NextResponse.json({
     success: true,
