@@ -1,11 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Create Supabase client
-const supabase = createClient(
-  'https://zupuxlrtixhfnbuhxhum.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1cHV4bHJ0aXhoZm5idWh4aHVtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDQzOTIxNiwiZXhwIjoyMDcwMDE1MjE2fQ.F-dshtyWdNBMeQjFBdvEOdmgZnz3X8W_ZH1X5qdVGcU'
-);
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+let cachedClient: SupabaseClient | null = null;
+function getDb(): SupabaseClient {
+  if (!cachedClient) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error('Supabase environment not configured');
+    }
+    cachedClient = createClient(url, key, { auth: { persistSession: false } });
+  }
+  return cachedClient;
+}
 
 interface AirfreightQuery {
   hs_code?: string;
@@ -30,6 +41,7 @@ interface AirfreightQuery {
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getDb();
     const { searchParams } = new URL(request.url);
     
     const query: AirfreightQuery = {
@@ -71,6 +83,7 @@ export async function GET(request: NextRequest) {
 
 async function handleDetailedQuery(query: AirfreightQuery) {
   try {
+    const supabase = getDb();
     // Build base query
     let supabaseQuery = supabase
       .from('airfreight_insights')
@@ -169,6 +182,7 @@ async function handleDetailedQuery(query: AirfreightQuery) {
 
 async function handleAggregatedQuery(query: AirfreightQuery) {
   try {
+    const supabase = getDb();
     let result;
 
     switch (query.aggregation) {
@@ -212,6 +226,7 @@ async function handleAggregatedQuery(query: AirfreightQuery) {
 
 async function calculateSummaryStats(query: AirfreightQuery) {
   // Build a summary query with the same filters
+  const supabase = getDb();
   let summaryQuery = supabase
     .from('airfreight_insights')
     .select('value_usd, weight_kg, quantity');
@@ -247,6 +262,7 @@ async function calculateSummaryStats(query: AirfreightQuery) {
 }
 
 async function getOverallSummary(query: AirfreightQuery) {
+  const supabase = getDb();
   const { data } = await supabase
     .from('airfreight_insights')
     .select(`
@@ -289,6 +305,7 @@ async function getOverallSummary(query: AirfreightQuery) {
 }
 
 async function getMonthlySummary(query: AirfreightQuery) {
+  const supabase = getDb();
   const { data } = await supabase
     .from('airfreight_monthly_summary')
     .select('*')
@@ -298,6 +315,7 @@ async function getMonthlySummary(query: AirfreightQuery) {
 }
 
 async function getCarrierPerformance(query: AirfreightQuery) {
+  const supabase = getDb();
   const { data } = await supabase
     .from('airfreight_carrier_performance')
     .select('*')
@@ -308,6 +326,7 @@ async function getCarrierPerformance(query: AirfreightQuery) {
 }
 
 async function getTradeLanes(query: AirfreightQuery) {
+  const supabase = getDb();
   const { data } = await supabase
     .from('airfreight_trade_lanes')
     .select('*')
@@ -318,6 +337,7 @@ async function getTradeLanes(query: AirfreightQuery) {
 }
 
 async function getCommoditySummary(query: AirfreightQuery) {
+  const supabase = getDb();
   const { data } = await supabase
     .from('airfreight_insights')
     .select(`
