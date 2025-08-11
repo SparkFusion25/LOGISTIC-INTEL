@@ -1,9 +1,9 @@
+export const runtime='nodejs';
+export const dynamic='force-dynamic';
+export const revalidate=0;
+
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-export const dynamic='force-dynamic';
-
-// Use service key to bypass RLS for unauth inserts OR rely on public-insert policy we set
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 const GIF = Buffer.from('R0lGODlhAQABAPAAAP///wAAACwAAAAAAQABAAACAkQBADs=', 'base64');
 
@@ -11,10 +11,13 @@ export async function GET(req: Request){
   try{
     const { searchParams } = new URL(req.url);
     const code = (searchParams.get('code')||'').toLowerCase();
-    if(code){
-      const { data:link } = await supabase.from('affiliate_links').select('id').eq('code', code).maybeSingle();
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if(code && url && key){
+      const db = createClient(url, key, { auth: { persistSession:false } });
+      const { data:link } = await db.from('affiliate_links').select('id').eq('code', code).maybeSingle();
       if(link?.id){
-        await supabase.from('affiliate_clicks').insert({ link_id: link.id, user_agent: req.headers.get('user-agent')||null, referer: req.headers.get('referer')||null });
+        await db.from('affiliate_clicks').insert({ link_id: link.id, user_agent: req.headers.get('user-agent')||null, referer: req.headers.get('referer')||null });
       }
     }
   }catch{}

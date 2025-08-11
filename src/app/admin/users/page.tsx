@@ -5,7 +5,7 @@ import { Plus, Download, Upload, RefreshCw } from 'lucide-react'
 import AdminLayout from '@/components/AdminLayout'
 import UserTable from '@/components/UserManagement/UserTable'
 import StatsCard from '@/components/charts/StatsCard'
-import { mockData } from '@/lib/supabase'
+import { mockData } from '@/lib/mockData'
 import { User } from '@/types/admin'
 
 export default function UsersPage() {

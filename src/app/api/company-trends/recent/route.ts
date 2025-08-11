@@ -1,11 +1,9 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +17,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get recent trend data from company_monthly_trends view
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      return NextResponse.json({ success:false, error:'Supabase env missing' }, { status:500 });
+    }
+    const supabase = createClient(url, key, { auth: { persistSession:false } });
+
     const { data: trends, error } = await supabase
       .from('company_monthly_trends')
       .select('shipment_month, shipment_count')
@@ -28,7 +32,6 @@ export async function GET(request: NextRequest) {
       .order('shipment_month', { ascending: true });
 
     if (error) {
-      console.error('Database error:', error);
       return NextResponse.json(
         { success: false, error: 'Failed to fetch trend data', details: error.message },
         { status: 500 }
@@ -43,50 +46,26 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Aggregate by month (combine ocean/air)
     const monthlyAggregated = trends.reduce((acc: any[], curr) => {
       const existingMonth = acc.find(item => item.shipment_month === curr.shipment_month);
-      
       if (existingMonth) {
         existingMonth.shipment_count += curr.shipment_count;
       } else {
-        acc.push({
-          shipment_month: curr.shipment_month,
-          shipment_count: curr.shipment_count
-        });
+        acc.push({ shipment_month: curr.shipment_month, shipment_count: curr.shipment_count });
       }
-      
       return acc;
     }, []);
 
-    // Calculate metrics
     const totalShipments = monthlyAggregated.reduce((sum, month) => sum + month.shipment_count, 0);
-    
-    // Current month (most recent)
     const currentMonth = monthlyAggregated[monthlyAggregated.length - 1];
     const currentMonthCount = currentMonth?.shipment_count || 0;
-    
-    // Peak month
-    const peakMonth = monthlyAggregated.reduce((max, month) => 
-      month.shipment_count > max.shipment_count ? month : max, 
-      { shipment_month: '', shipment_count: 0 }
-    );
-    
-    // 3-month trend calculation
+    const peakMonth = monthlyAggregated.reduce((max, month) => month.shipment_count > max.shipment_count ? month : max, { shipment_month: '', shipment_count: 0 });
     const recentMonths = monthlyAggregated.slice(-3);
     const olderMonths = monthlyAggregated.slice(-6, -3);
-    
-    const recentAvg = recentMonths.length > 0 
-      ? recentMonths.reduce((sum, m) => sum + m.shipment_count, 0) / recentMonths.length 
-      : 0;
-    const olderAvg = olderMonths.length > 0 
-      ? olderMonths.reduce((sum, m) => sum + m.shipment_count, 0) / olderMonths.length 
-      : 0;
-    
-    const trendPercentage = olderAvg > 0 
-      ? ((recentAvg - olderAvg) / olderAvg * 100)
-      : 0;
-    
+    const recentAvg = recentMonths.length > 0 ? recentMonths.reduce((sum, m) => sum + m.shipment_count, 0) / recentMonths.length : 0;
+    const olderAvg = olderMonths.length > 0 ? olderMonths.reduce((sum, m) => sum + m.shipment_count, 0) / olderMonths.length : 0;
+    const trendPercentage = olderAvg > 0 ? ((recentAvg - olderAvg) / olderAvg * 100) : 0;
+
     const formatMonth = (monthString: string) => {
       const date = new Date(monthString);
       return date.toLocaleDateString('en-US', { month: 'long' });
@@ -101,13 +80,12 @@ export async function GET(request: NextRequest) {
       peak_count: peakMonth.shipment_count,
       trend: trendPercentage > 0 ? `+${trendPercentage.toFixed(0)}%` : `${trendPercentage.toFixed(0)}%`,
       trend_direction: trendPercentage > 5 ? 'up' : trendPercentage < -5 ? 'down' : 'stable',
-      months_data: monthlyAggregated.slice(-6) // Last 6 months for mini chart
+      months_data: monthlyAggregated.slice(-6)
     };
 
     return NextResponse.json(result);
 
   } catch (error) {
-    console.error('Recent trend API error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error', details: (error as Error).message },
       { status: 500 }

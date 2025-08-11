@@ -1,11 +1,9 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +17,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Query the company_trend_summary view
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      return NextResponse.json({ success:false, error:'Supabase env missing' }, { status:500 });
+    }
+    const supabase = createClient(url, key, { auth: { persistSession:false } });
+
     const { data: summaryData, error } = await supabase
       .from('company_trend_summary')
       .select('*')
@@ -27,30 +31,18 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // No data found
-        return NextResponse.json({
-          success: false,
-          error: 'No trend data found for this company',
-          company: companyName
-        });
+      if ((error as any).code === 'PGRST116') {
+        return NextResponse.json({ success: false, error: 'No trend data found for this company', company: companyName });
       }
-      
-      console.error('Database error:', error);
       return NextResponse.json(
         { success: false, error: 'Failed to fetch summary data', details: error.message },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      summary: summaryData,
-      company: companyName
-    });
+    return NextResponse.json({ success: true, summary: summaryData, company: companyName });
 
   } catch (error) {
-    console.error('Company trend summary API error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error', details: (error as Error).message },
       { status: 500 }

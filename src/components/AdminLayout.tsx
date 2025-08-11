@@ -19,7 +19,7 @@ import {
   TrendingUp,
   Globe
 } from 'lucide-react'
-import { adminAuth } from '@/lib/supabase'
+import { adminAuth } from '@/lib/adminAuthMock'
 
 interface AdminLayoutProps {
   children: React.ReactNode

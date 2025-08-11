@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { adminAuth } from '@/lib/supabase'
+import { adminAuth } from '@/lib/adminAuthMock'
 
 export default function AdminRoot() {
   const router = useRouter()

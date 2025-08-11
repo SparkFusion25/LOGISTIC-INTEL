@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react'
-import { adminAuth } from '@/lib/supabase'
+import { adminAuth } from '@/lib/adminAuthMock'
 import Logo from '@/components/ui/Logo'
 
 export default function AdminLogin() {
