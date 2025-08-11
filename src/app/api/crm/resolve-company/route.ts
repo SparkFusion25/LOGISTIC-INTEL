@@ -1,3 +1,7 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -8,11 +12,14 @@ export async function GET(req: Request){
   const name = searchParams.get('name')||'';
   if (!name) return NextResponse.json({ success:false, error:'name is required' }, { status:400 });
 
-  const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return NextResponse.json({ success:false, error:'Missing Supabase env' }, { status:500 });
+  const s = createClient(url, key, { auth: { persistSession:false } });
   const { data, error } = await s.from('companies').select('id, company_name').ilike('company_name', `%${name}%`).limit(10);
   if (error) return NextResponse.json({ success:false, error:error.message }, { status:500 });
   // Best effort: exact (case-insensitive) first, else top result
-  const exact = data.find(d => norm(d.company_name) === norm(name));
-  const pick = exact || data[0];
+  const exact = (data||[]).find(d => norm(d.company_name) === norm(name));
+  const pick = exact || (data||[])[0];
   return NextResponse.json({ success: !!pick, company: pick || null });
 }
