@@ -1,3 +1,7 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -9,19 +13,18 @@ const TARGET_TITLES = [
   'Operations Manager'
 ]
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL as string
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
-const CRON_SECRET = process.env.CRON_SECRET as string
-
-if (!SUPABASE_URL || !SERVICE_KEY) {
-  console.warn('Service role client not configured: missing SUPABASE URL or SERVICE KEY')
-}
-
 export async function POST(req: NextRequest) {
   try {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL as string
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as string
+    const CRON_SECRET = process.env.CRON_SECRET as string
+
     const auth = req.headers.get('x-cron-secret')
     if (!CRON_SECRET || auth !== CRON_SECRET) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+    if (!SUPABASE_URL || !SERVICE_KEY) {
+      return NextResponse.json({ success:false, error:'Supabase env missing' }, { status:500 })
     }
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } })
