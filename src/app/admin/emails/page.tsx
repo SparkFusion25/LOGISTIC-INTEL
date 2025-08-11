@@ -18,7 +18,7 @@ import {
 import AdminLayout from '@/components/AdminLayout'
 import StatsCard from '@/components/charts/StatsCard'
 import UsageChart, { createLineChartData, createDoughnutChartData } from '@/components/charts/UsageChart'
-import { mockData } from '@/lib/supabase'
+import { mockData } from '@/lib/mockData'
 import { EmailActivity } from '@/types/admin'
 import { format } from 'date-fns'
 

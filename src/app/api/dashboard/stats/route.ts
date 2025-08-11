@@ -1,15 +1,19 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function GET() {
   try {
-    // Get real statistics from trade_data_view
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      return NextResponse.json({ success:false, error:'Supabase env missing' }, { status:500 });
+    }
+    const supabase = createClient(url, key, { auth: { persistSession:false } });
+
     const [
       { data: totalStats, error: totalError },
       { data: oceanStats, error: oceanError },
@@ -19,48 +23,29 @@ export async function GET() {
       { data: recentShipments, error: recentError },
       { data: totalValue, error: valueError }
     ] = await Promise.all([
-      // Total shipments count
       supabase.from('trade_data_view').select('*', { count: 'exact', head: true }),
-      
-      // Ocean shipments count
       supabase.from('trade_data_view').select('*', { count: 'exact', head: true }).eq('shipment_type', 'ocean'),
-      
-      // Air shipments count  
       supabase.from('trade_data_view').select('*', { count: 'exact', head: true }).eq('shipment_type', 'air'),
-      
-      // Distinct shippers count
       supabase.from('trade_data_view').select('shipper_name').not('shipper_name', 'is', null),
-      
-      // Distinct consignees count
       supabase.from('trade_data_view').select('consignee_name').not('consignee_name', 'is', null),
-      
-      // Recent shipments for activity feed
       supabase.from('trade_data_view')
         .select('unified_id, company_name, shipment_date, raw_xml_filename, shipment_type')
         .order('shipment_date', { ascending: false })
         .limit(5),
-      
-      // Total value calculation
-      supabase.from('trade_data_view')
-        .select('value_usd')
-        .not('value_usd', 'is', null)
+      supabase.from('trade_data_view').select('value_usd').not('value_usd', 'is', null)
     ]);
 
     if (totalError || oceanError || airError || shipperError || consigneeError || recentError || valueError) {
       console.error('Database query errors:', { totalError, oceanError, airError, shipperError, consigneeError, recentError, valueError });
     }
 
-    // Calculate distinct counts
     const distinctShippers = new Set(shipperStats?.map(s => s.shipper_name?.toLowerCase()).filter(Boolean)).size;
     const distinctConsignees = new Set(consigneeStats?.map(c => c.consignee_name?.toLowerCase()).filter(Boolean)).size;
-    
-    // Calculate total value
     const calculatedTotalValue = totalValue?.reduce((sum, record) => {
       const value = parseFloat(record.value_usd) || 0;
       return sum + value;
     }, 0) || 0;
 
-    // Get latest upload info
     const latestUpload = recentShipments?.[0]?.raw_xml_filename || 'No uploads yet';
 
     const stats = {

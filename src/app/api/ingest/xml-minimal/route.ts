@@ -1,47 +1,36 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 Starting minimal XML ingestion...');
-    
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) return NextResponse.json({ success:false, error:'Supabase env missing' }, { status:500 });
+    const supabase = createClient(url, key, { auth: { persistSession:false } });
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
-    if (!file) {
-      return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
-    }
+    if (!file) return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
 
-    // Parse XML manually (simple approach)
     const xmlText = await file.text();
     const shipmentMatches = xmlText.match(/<OceanShipment>([\s\S]*?)<\/OceanShipment>/g);
+    if (!shipmentMatches) return NextResponse.json({ success: false, error: 'No shipments found in XML' }, { status: 400 });
 
-    if (!shipmentMatches) {
-      return NextResponse.json({ success: false, error: 'No shipments found in XML' }, { status: 400 });
-    }
-
-    console.log(`Found ${shipmentMatches.length} shipments`);
-
-    // Extract basic data using only columns that exist
     const records = shipmentMatches.map(shipmentXml => {
       const extract = (tag: string) => {
-        const match = shipmentXml.match(new RegExp(`<${tag}>(.*?)</${tag}>`, 's'));
+        const match = shipmentXml.match(new RegExp(`<${tag}>(.*?)<\/${tag}>`, 's'));
         return match ? match[1].trim() : null;
       };
-
       const parseNumber = (value: string | null) => {
         if (!value || value === 'N/A') return null;
         const num = parseFloat(value);
         return isNaN(num) ? null : num;
       };
-
       return {
-        // Only use columns that definitely exist in ocean_shipments
         consignee_name: extract('Consignee'),
         shipper_name: extract('Shipper'),
         shipper_country: extract('ShipperCountry'),
@@ -62,61 +51,18 @@ export async function POST(request: NextRequest) {
       };
     }).filter(record => record.consignee_name || record.shipper_name);
 
-    console.log(`Inserting ${records.length} minimal records`);
-    console.log('Sample record:', records[0]);
+    const { data, error } = await supabase.from('ocean_shipments').insert(records).select('id, consignee_name, shipper_name');
+    if (error) return NextResponse.json({ success: false, error: 'Failed to insert records', details: error.message, recordCount: records.length, sampleRecord: records[0] }, { status: 500 });
 
-    // Insert using only basic columns
-    const { data, error } = await supabase
-      .from('ocean_shipments')
-      .insert(records)
-      .select('id, consignee_name, shipper_name');
-
-    if (error) {
-      console.error('Insert error:', error);
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to insert records',
-        details: error.message,
-        recordCount: records.length,
-        sampleRecord: records[0]
-      }, { status: 500 });
-    }
-
-    // Upload to storage
     const filename = `${Date.now()}_${file.name}`;
-    const { error: uploadError } = await supabase.storage
-      .from('raw-xml')
-      .upload(filename, file);
+    await supabase.storage.from('raw-xml').upload(filename, file).catch(()=>null);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Minimal XML ingestion completed',
-      recordsProcessed: shipmentMatches.length,
-      recordsInserted: data?.length || 0,
-      filename: filename,
-      storageUploaded: !uploadError,
-      sampleInserted: data?.[0],
-      nextStep: 'Check /api/search/unified for real company data'
-    });
-
+    return NextResponse.json({ success: true, message: 'Minimal XML ingestion completed', recordsProcessed: shipmentMatches.length, recordsInserted: data?.length || 0, filename, storageUploaded: true, sampleInserted: data?.[0], nextStep: 'Check /api/search/unified for real company data' });
   } catch (error) {
-    console.error('Minimal XML ingestion error:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'XML processing failed',
-      details: (error as Error).message
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'XML processing failed', details: (error as Error).message }, { status: 500 });
   }
 }
 
 export async function GET(request: NextRequest) {
-  return NextResponse.json({
-    message: 'Minimal XML ingestion endpoint',
-    description: 'Uses only basic columns that exist in ocean_shipments',
-    usage: 'POST with multipart/form-data XML file',
-    columns: [
-      'consignee_name', 'shipper_name', 'shipper_country', 'consignee_country',
-      'consignee_city', 'goods_description', 'weight_kg', 'vessel_name', 'arrival_date'
-    ]
-  });
+  return NextResponse.json({ message: 'Minimal XML ingestion endpoint', description: 'Uses only basic columns that exist in ocean_shipments', usage: 'POST with multipart/form-data XML file', columns: ['consignee_name', 'shipper_name', 'shipper_country', 'consignee_country','consignee_city', 'goods_description', 'weight_kg', 'vessel_name', 'arrival_date'] });
 }

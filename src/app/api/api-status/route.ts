@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server'
-import { mockData } from '@/lib/supabase'
+import { mockData } from '@/lib/mockData'
 import { createClient } from '@supabase/supabase-js'
 
 export async function GET() {

@@ -1,11 +1,9 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,26 +18,33 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Query the company_monthly_trends view
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      return NextResponse.json({ success:false, error:'Supabase env missing' }, { status:500 });
+    }
+    const supabase = createClient(url, key, { auth: { persistSession:false } });
+
+    const since = new Date(Date.now() - months * 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0];
+
     const { data: trends, error } = await supabase
       .from('company_monthly_trends')
       .select('*')
       .ilike('company_name', companyName.toLowerCase().trim())
-      .gte('shipment_month', `${new Date(Date.now() - months * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}`)
+      .gte('shipment_month', `${since}`)
       .order('shipment_month', { ascending: true });
 
     if (error) {
-      console.error('Database error:', error);
       return NextResponse.json(
         { success: false, error: 'Failed to fetch trend data', details: error.message },
         { status: 500 }
       );
     }
 
-    // Group by month and aggregate ocean/air shipments
     const monthlyAggregated = trends?.reduce((acc: any[], curr) => {
       const existingMonth = acc.find(item => item.shipment_month === curr.shipment_month);
-      
       if (existingMonth) {
         existingMonth.shipment_count += curr.shipment_count;
         existingMonth.total_value_usd += curr.total_value_usd || 0;
@@ -51,7 +56,6 @@ export async function GET(request: NextRequest) {
           shipment_type: 'combined'
         });
       }
-      
       return acc;
     }, []) || [];
 
@@ -64,7 +68,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Company trends API error:', error);
     return NextResponse.json(
       { success: false, error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
