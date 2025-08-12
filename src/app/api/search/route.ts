@@ -1,103 +1,114 @@
-// src/app/api/search/route.ts
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+// app/api/search/route.ts
+import { NextResponse } from 'next/server'
 
-type Mode = 'all' | 'air' | 'ocean'
-
-export async function GET(req: NextRequest) {
+// If your client lives elsewhere, update this import block (same approach as unified route).
+let supabase: any
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  supabase = require('@/lib/supabase-admin')?.supabase || require('@/lib/supabase-admin')
+} catch {
   try {
-    const { searchParams } = new URL(req.url)
-    const company = (searchParams.get('company') || '').trim()
-    const city = (searchParams.get('city') || '').trim()
-    const hs = (searchParams.get('hs') || '').trim()
-    const commodity = (searchParams.get('commodity') || '').trim()
-    const mode = ((searchParams.get('mode') || 'all').trim() as Mode)
-    const limit = Math.min(Number(searchParams.get('limit') || 50), 200)
-    const offset = Math.max(Number(searchParams.get('offset') || 0), 0)
-
-    const supabase = createRouteHandlerClient({ cookies })
-
-    // NOTE: No `progress` in select. We’ll derive a value later.
-    let q = supabase
-      .from('shipments')
-      .select(`
-        id,
-        company_id,
-        bol_number,
-        arrival_date,
-        origin_country,
-        destination_country,
-        hs_code,
-        product_description,
-        gross_weight_kg,
-        transport_mode,
-        companies:company_id (
-          id,
-          company_name,
-          city,
-          country
-        )
-      `, { count: 'exact' })
-      .order('arrival_date', { ascending: false })
-      .range(offset, offset + limit - 1)
-
-    if (mode !== 'all') q = q.eq('transport_mode', mode)
-    if (company) q = q.ilike('companies.company_name', `%${company}%`)
-    if (city) q = q.ilike('companies.city', `%${city}%`)
-    if (hs) q = q.ilike('hs_code', `%${hs}%`)
-    if (commodity) q = q.ilike('product_description', `%${commodity}%`)
-
-    const { data, error, count } = await q
-    if (error) return NextResponse.json({ success: false, error: error.message }, { status: 400 })
-
-    // Derive a progress percentage (no DB column needed)
-    const records = (data ?? []).map((r: any) => {
-      const score =
-        (r.hs_code ? 1 : 0) +
-        (r.gross_weight_kg ? 1 : 0) +
-        (r.arrival_date ? 1 : 0)
-      const progress = Math.round((score / 3) * 100)
-
-      return {
-        id: r.id,
-        company_id: r.company_id,
-        unified_company_name: r.companies?.company_name ?? 'Unknown',
-        unified_destination: r.destination_country ?? null,
-        unified_value: null,
-        unified_weight: r.gross_weight_kg ?? null,
-        unified_date: r.arrival_date ?? null,
-        unified_carrier: r.vessel_name || r.airline || null, // ok if absent
-        hs_code: r.hs_code ?? null,
-        mode: r.transport_mode as 'air' | 'ocean',
-        progress,
-        bol_number: r.bol_number ?? null,
-        vessel_name: r.vessel_name ?? null,
-        shipper_name: r.shipper_name ?? null,
-        port_of_loading: r.port_of_loading ?? null,
-        port_of_discharge: r.port_of_discharge ?? null,
-        gross_weight_kg: r.gross_weight_kg ?? null
-      }
-    })
-
-    return NextResponse.json({
-      success: true,
-      data: records,
-      total: count ?? 0,
-      pagination: { hasMore: (offset + limit) < (count ?? 0) }
-    })
-  } catch (err: any) {
-    console.error('Search API GET error:', err)
-    return NextResponse.json({ success: false, error: 'Failed to get search data' }, { status: 500 })
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    supabase = require('@/lib/supabase-server')?.supabase || require('@/lib/supabase-server')
+  } catch {
+    supabase = null
   }
 }
 
-export async function POST(req: NextRequest) {
-  // Optional: support POST with same query params in body
-  const body = await req.json().catch(() => ({}))
-  const url = new URL(req.url)
-  Object.entries(body || {}).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v))
-  })
-  return GET(new NextRequest(url.toString()))
+export const dynamic = 'force-dynamic'
+
+function normStr(v: any): string | null {
+  return v == null ? null : String(v)
+}
+
+function normalizeRow(r: any) {
+  if (!r || typeof r !== 'object') return r
+  return {
+    ...r,
+    // Normalize mode-like fields to string | null
+    shipment_mode:  normStr((r as any).shipment_mode),
+    mode:           normStr((r as any).mode),
+    shipment_type:  normStr((r as any).shipment_type),
+    transport_mode: normStr((r as any).transport_mode),
+
+    // Frequently-rendered strings
+    id:                    normStr((r as any).id),
+    unified_company_name:  normStr((r as any).unified_company_name),
+    unified_destination:   normStr((r as any).unified_destination),
+    unified_date:          normStr((r as any).unified_date),
+    unified_carrier:       normStr((r as any).unified_carrier),
+    hs_code:               normStr((r as any).hs_code),
+
+    // Numerics preserved
+    unified_value:  (r as any).unified_value ?? null,
+    unified_weight: (r as any).unified_weight ?? null,
+  }
+}
+
+// Simple/legacy search by company (and optional mode). Returns shape used by the lightweight SearchPanel.
+async function runBasicQuery(params: URLSearchParams) {
+  if (!supabase) return { rows: [], total: 0 }
+
+  const TABLE = 'unified_shipments' // adjust if your legacy endpoint queries a different table/view
+
+  const company = params.get('company') || params.get('q') || ''
+  const mode = (params.get('mode') || 'all').toLowerCase()
+  const limit = Math.max(1, Math.min(500, Number(params.get('limit') || 100)))
+  const offset = Math.max(0, Number(params.get('offset') || 0))
+
+  let query = supabase
+    .from(TABLE)
+    .select('*', { count: 'estimated' })
+    .order('unified_date', { ascending: false })
+
+  if (company) query = query.ilike('unified_company_name', `%${company}%`)
+  if (mode && mode !== 'all') {
+    query = query.or(
+      `mode.eq.${mode},shipment_type.eq.${mode},transport_mode.eq.${mode},shipment_mode.eq.${mode}`
+    )
+  }
+
+  query = query.range(offset, offset + limit - 1)
+  const { data, error, count } = await query
+  if (error) return { rows: [], total: 0, error }
+
+  return { rows: Array.isArray(data) ? data : [], total: typeof count === 'number' ? count : (data?.length || 0) }
+}
+
+export async function GET(req: Request) {
+  try {
+    const url = new URL(req.url)
+    const p = url.searchParams
+
+    const { rows, total, error } = await runBasicQuery(p)
+    if (error) console.error('[api/search] supabase error:', error)
+
+    const items = rows.map(normalizeRow)
+
+    // Some callers expect { success, data, total, pagination }, others expect { items, count }.
+    // We’ll return the richer shape and include a lightweight alias for backward compatibility.
+    const limit = Math.max(1, Math.min(500, Number(p.get('limit') || 100)))
+    const offset = Math.max(0, Number(p.get('offset') || 0))
+    const hasMore = offset + limit < total
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: items,
+        total,
+        pagination: { hasMore },
+
+        // legacy alias for older consumers:
+        items,
+        count: total,
+      },
+      { status: 200 }
+    )
+  } catch (err: any) {
+    console.error('[api/search] error:', err)
+    return NextResponse.json(
+      { success: false, error: String(err?.message || err) },
+      { status: 500 }
+    )
+  }
 }
