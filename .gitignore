@@ -38,8 +38,8 @@ build/
 .vercel
 .deployment
 
+
 # Package manager lock files (optional)
-package-lock.json
 yarn.lock
 
 # Temporary files
