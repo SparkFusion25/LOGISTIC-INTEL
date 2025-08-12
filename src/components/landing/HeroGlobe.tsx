@@ -26,20 +26,6 @@ const SAMPLE_CONTACTS: Contact[] = [
   { name: 'Nora Ali', company: 'Cairo Plastics', country: 'EG' },
 ];
 
-// Approx country centroids in degrees (lat, lon)
-const COUNTRY_COORDS: Record<string, { lat: number; lon: number }> = {
-  US: { lat: 37, lon: -95 },
-  MX: { lat: 23, lon: -102 },
-  BR: { lat: -14, lon: -51 },
-  DE: { lat: 51, lon: 10 },
-  IT: { lat: 42.5, lon: 12.5 },
-  JP: { lat: 36, lon: 138 },
-  CN: { lat: 35, lon: 103 },
-  IN: { lat: 22, lon: 79 },
-  AE: { lat: 24, lon: 54 },
-  EG: { lat: 27, lon: 30 },
-};
-
 export default function HeroGlobe({
   onDemo,
   onExplore,
@@ -104,56 +90,19 @@ export default function HeroGlobe({
             </div>
           </div>
 
-          {/* Right — 3D Globe + Pin pop-ups */}
+          {/* Right — Transparent rotating globe with 2D pin pop-ups */}
           <div className="relative">
-            <div className="relative h-[420px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden ring-1 ring-white/10 bg-gradient-to-br from-[#0f1a33] via-[#0a1430] to-[#0c1833]">
-              {/* Dot pattern */}
-              <div
-                className="absolute inset-0 opacity-20 pointer-events-none"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 1px)',
-                  backgroundSize: '36px 36px',
-                }}
-              />
-
-              {/* 3D scene container */}
-              <div className="absolute inset-0 grid place-items-center perspective-1200">
-                {/* Globe core: larger, clearer, with visible lines and rotation */}
-                <div className="relative w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full border border-white/20 bg-[radial-gradient(circle_at_30%_35%,rgba(99,102,241,.35),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(6,182,212,.28),transparent_55%)] shadow-[inset_0_0_80px_rgba(99,102,241,.25),0_0_140px_rgba(6,182,212,.22)] overflow-hidden">
-                  {/* Meridian/parallel grid */}
-                  <div className="absolute inset-0 opacity-70">
-                    {[12.5, 25, 37.5, 50, 62.5, 75].map((t) => (
-                      <div key={`t-${t}`} className="absolute inset-x-0 border-t border-white/10" style={{ top: `${t}%` }} />
-                    ))}
-                    {[12.5, 25, 37.5, 50, 62.5, 75].map((l) => (
-                      <div key={`l-${l}`} className="absolute inset-y-0 border-l border-white/10" style={{ left: `${l}%` }} />
-                    ))}
-                  </div>
-                  {/* Soft ambient pulse layer */}
-                  <div className="absolute inset-0 rounded-full animate-ambientPulse bg-[conic-gradient(from_0deg,rgba(6,182,212,.18),transparent_20%,rgba(99,102,241,.16),transparent_55%)]" />
-                </div>
-
-                {/* Pins: country-based pop-ups around the globe */}
-                <div className="absolute preserve-3d">
-                  {contacts.map((c, i) => (
-                    <PinCard key={`pin-${i}`} index={i} delayStep={0.6} contact={c} />
-                  ))}
-                </div>
+            <div className="relative h-[420px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-visible">
+              {/* Rotating transparent SVG globe */}
+              <div className="absolute inset-0 grid place-items-center pointer-events-none">
+                <RotatingGlobeSVG className="w-64 h-64 sm:w-72 sm:h-72 lg:w-80 lg:h-80 opacity-90 animate-spin-slower" />
               </div>
 
-              {/* Info pills */}
-              <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-md shadow">
-                <div className="text-[11px] text-gray-600 mb-0.5">2.4M+ Live Routes</div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[11px] text-gray-700 font-medium">Real‑time updates</span>
-                </div>
-              </div>
-
-              <div className="absolute bottom-5 right-5 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-md shadow">
-                <div className="text-[11px] text-gray-600 mb-0.5">Processing Speed</div>
-                <div className="text-sm font-bold text-gray-900">94% Faster</div>
+              {/* Pin pop-ups around the globe perimeter (2D, non-distorting) */}
+              <div className="absolute inset-0">
+                {contacts.map((c, i) => (
+                  <PinCard2D key={i} index={i} total={contacts.length} contact={c} />
+                ))}
               </div>
             </div>
           </div>
@@ -183,33 +132,61 @@ function Stat({
   );
 }
 
-function PinCard({ index, delayStep, contact }: { index: number; delayStep: number; contact: Contact }) {
-  const country = contact.country || 'US';
-  const coords = COUNTRY_COORDS[country] || { lat: 0, lon: 0 };
-  const radius = 180; // px depth from center
-  // CSS 3D sphere placement: rotateY(lon) rotateX(lat) translateZ(radius)
-  const transform = `rotateY(${coords.lon}deg) rotateX(${-coords.lat}deg) translateZ(${radius}px)`;
-  const delay = `${(index % 10) * delayStep}s`;
+function RotatingGlobeSVG({ className = '' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 200 200" fill="none">
+      <defs>
+        <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 100) rotate(90) scale(100)">
+          <stop offset="0%" stopColor="rgba(6,182,212,0.35)" />
+          <stop offset="60%" stopColor="rgba(99,102,241,0.25)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+        </radialGradient>
+      </defs>
+      <circle cx="100" cy="100" r="96" stroke="white" strokeOpacity="0.15" />
+      {/* Parallels */}
+      {[20, 40, 60, 80].map((p) => (
+        <circle key={`p-${p}`} cx="100" cy="100" r={p} stroke="white" strokeOpacity="0.08" />
+      ))}
+      {/* Meridians (approx) */}
+      {[0, 30, 60, 90, 120, 150].map((a) => (
+        <g key={`m-${a}`} transform={`rotate(${a} 100 100)`}>
+          <path d="M100 4 L100 196" stroke="white" strokeOpacity="0.08" />
+        </g>
+      ))}
+      <circle cx="100" cy="100" r="96" fill="url(#glow)" opacity="0.4" />
+    </svg>
+  );
+}
+
+function PinCard2D({ index, total, contact }: { index: number; total: number; contact: Contact }) {
+  const angleDeg = (360 / total) * index;
+  const angleRad = (Math.PI / 180) * angleDeg;
+  const radius = 140; // pixels from center for pin stem base
+  const cx = 0.5; // center normalized
+  const cy = 0.5;
+  const x = Math.cos(angleRad) * radius;
+  const y = Math.sin(angleRad) * radius;
+  const delay = `${(index % 10) * 0.6}s`;
 
   return (
-    <div className="absolute top-1/2 left-1/2 preserve-3d" style={{ transform }}>
-      {/* Pin stem */}
+    <div className="absolute left-1/2 top-1/2" style={{ transform: `translate(${x}px, ${y}px)` }}>
       <div className="-translate-x-1/2 -translate-y-1/2">
-        <div className="relative">
-          <span
-            className="absolute left-1/2 -translate-x-1/2 -top-2 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,.8)]"
-            style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
-          />
-          <div
-            className="absolute left-1/2 -translate-x-1/2 -top-2 w-[1px] h-10 bg-cyan-300/60"
-            style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
-          />
-          <div
-            className="relative -translate-x-1/2 -translate-y-full opacity-0"
-            style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
-          >
-            <ContactCardMini contact={contact as { name: string; company: string; country?: string }} />
-          </div>
+        {/* Pin head */}
+        <span
+          className="absolute left-1/2 -translate-x-1/2 -top-2 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,.8)]"
+          style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
+        />
+        {/* Stem */}
+        <div
+          className="absolute left-1/2 -translate-x-1/2 -top-2 w-[1px] h-10 bg-cyan-300/60"
+          style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
+        />
+        {/* Card */}
+        <div
+          className="relative -translate-x-1/2 -translate-y-full opacity-0"
+          style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
+        >
+          <ContactCardMini contact={contact as { name: string; company: string; country?: string }} />
         </div>
       </div>
     </div>

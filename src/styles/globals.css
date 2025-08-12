@@ -81,6 +81,10 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
     36% { opacity: 0; transform: translate(-50%, -50%) translateY(-6px) scale(0.98); }
     100% { opacity: 0; }
   }
+
+  /* Slower spin for the SVG globe */
+  @keyframes spinSlower { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .animate-spin-slower { animation: spinSlower 36s linear infinite; }
 }
 
 /* Reduce motion preference */
@@ -88,6 +92,7 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
   .animate-orbitSlow,
   .animate-orbitFastReverse,
   .animate-ambientPulse,
-  .animate-bob { animation: none !important; }
+  .animate-bob,
+  .animate-spin-slower { animation: none !important; }
   *[style*="pinPop"] { animation: none !important; }
 }
