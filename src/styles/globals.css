@@ -57,3 +57,27 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
 .animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;
 }
+
+/* HeroGlobe utilities */
+@layer utilities {
+  .perspective-1200 { perspective: 1200px; }
+  .preserve-3d { transform-style: preserve-3d; }
+
+  @keyframes orbitSlow { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+  @keyframes orbitFastReverse { 0% { transform: rotateY(360deg); } 100% { transform: rotateY(0deg); } }
+  @keyframes ambientPulse { 0%, 100% { opacity: .18; } 50% { opacity: .30; } }
+  @keyframes bob { 0%, 100% { transform: translate(-50%, -50%) translateY(0px); } 50% { transform: translate(-50%, -50%) translateY(-6px); } }
+
+  .animate-orbitSlow { animation: orbitSlow 36s linear infinite; }
+  .animate-orbitFastReverse { animation: orbitFastReverse 28s linear infinite reverse; }
+  .animate-ambientPulse { animation: ambientPulse 4.5s ease-in-out infinite; }
+  .animate-bob { animation: bob 3.6s ease-in-out infinite; }
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-orbitSlow,
+  .animate-orbitFastReverse,
+  .animate-ambientPulse,
+  .animate-bob { animation: none !important; }
+}
