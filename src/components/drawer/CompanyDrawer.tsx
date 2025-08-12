@@ -1,12 +1,16 @@
-// src/app/company/[id]/page.tsx
-import CompanyDrawer from '../../../components/drawer';
+'use client';
 
-export default function CompanyPage({ params }: { params: { id: string } }) {
-  const { id } = params; // company_id from the URL
+interface CompanyDrawerProps {
+  companyId: string;
+  plan: string;
+}
+
+export default function CompanyDrawer({ companyId, plan }: CompanyDrawerProps) {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-screen-xl mx-auto px-4 md:px-6 py-6">
-        <CompanyDrawer companyId={id} plan="trial" />
+        <h1>Company Drawer: {companyId}</h1>
+        <p>Plan: {plan}</p>
       </div>
     </div>
   );
