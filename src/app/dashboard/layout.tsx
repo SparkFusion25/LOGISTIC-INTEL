@@ -37,18 +37,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         onLogout={handleLogout}
       />
       
-      <div className="flex h-screen bg-gray-50 text-gray-900">
+      <div className="flex h-screen bg-[#0B1220] text-white/90">
         {/* Premium Sidebar - Hidden on Mobile */}
-        <aside className="hidden lg:flex w-64 bg-white shadow-xl border-r border-gray-200 flex-col">
+        <aside className="hidden lg:flex w-64 bg-[#111a2a] border-r border-white/10 flex-col">
         {/* Logo Header */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-700 to-indigo-800">
+        <div className="p-6 border-b border-white/10 bg-gradient-to-r from-cyan-600 to-indigo-700">
           <Logo 
             size="lg" 
             variant="white" 
             showText={true}
             className="text-white"
           />
-          <div className="text-xs text-indigo-200 mt-2">Trade Intelligence Platform</div>
+          <div className="text-xs text-white/80 mt-2">Trade Intelligence Platform</div>
         </div>
 
         {/* Navigation */}
@@ -61,20 +61,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 href={href}
                 className={`flex items-center px-3 py-3 rounded-lg transition-all duration-200 group ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-700'
+                    ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-md'
+                    : 'text-white/80 hover:bg-white/5 hover:text-white'
                 }`}
               >
                 <Icon 
                   size={18} 
                   className={`mr-3 ${
-                    isActive ? 'text-white' : 'text-gray-500 group-hover:text-indigo-600'
+                    isActive ? 'text-white' : 'text-white/60 group-hover:text-white'
                   }`} 
                 />
                 <span className="font-medium">{label}</span>
                 {isActive && (
                   <div className="ml-auto">
-                    <Zap className="w-4 h-4 text-indigo-200" />
+                    <Zap className="w-4 h-4 text-white/90" />
                   </div>
                 )}
               </Link>
@@ -83,19 +83,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
+        <div className="p-4 border-t border-white/10 bg-[#0B1220]">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-indigo-600 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-bold">V</span>
             </div>
             <div>
-              <div className="text-sm font-semibold text-gray-900">Valesco</div>
-              <div className="text-xs text-gray-600">Premium Account</div>
+              <div className="text-sm font-semibold text-white/90">Valesco</div>
+              <div className="text-xs text-white/60">Premium Account</div>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            className="w-full flex items-center justify-center px-3 py-2 text-sm text-white/70 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-colors"
           >
             <LogOut size={16} className="mr-2" />
             Sign Out
@@ -106,10 +106,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Premium Top Bar - Hidden on Mobile */}
-          <header className="hidden lg:block bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+          <header className="hidden lg:block bg-[#0B1220]/80 backdrop-blur border-b border-white/10 px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-gray-900 tracking-wide">
+              <h1 className="text-2xl font-bold text-white tracking-wide">
                 {pathname === '/dashboard' && 'Dashboard Overview'}
                 {pathname === '/dashboard/search' && 'Trade Intelligence Search'}
                 {pathname === '/dashboard/crm' && 'CRM Contact Center'}
@@ -118,14 +118,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 {pathname === '/dashboard/campaigns' && 'Campaign Builder'}
                 {pathname === '/dashboard/widgets/quote' && 'Quote Generator'}
               </h1>
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/15 text-emerald-300 rounded-full text-xs font-medium ring-1 ring-emerald-400/20">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                 Live Data
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <TrendingUp className="w-4 h-4 text-indigo-600" />
+              <div className="flex items-center gap-2 text-sm text-white/70">
+                <TrendingUp className="w-4 h-4 text-indigo-400" />
                 <span>Intelligence Platform</span>
               </div>
               <AuthButton />
@@ -134,7 +134,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
           {/* Dynamic Content Area */}
-          <div className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="flex-1 overflow-y-auto bg-[#0B1220]">
             <div className="p-3 sm:p-6 pb-20 sm:pb-6">
               {children}
             </div>

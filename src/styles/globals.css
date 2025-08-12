@@ -72,6 +72,15 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
   .animate-orbitFastReverse { animation: orbitFastReverse 28s linear infinite reverse; }
   .animate-ambientPulse { animation: ambientPulse 4.5s ease-in-out infinite; }
   .animate-bob { animation: bob 3.6s ease-in-out infinite; }
+
+  /* Pin pop animation: fade/scale up, hold, fade out */
+  @keyframes pinPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) translateY(6px) scale(0.92); }
+    6% { opacity: 1; transform: translate(-50%, -50%) translateY(0px) scale(1); }
+    30% { opacity: 1; transform: translate(-50%, -50%) translateY(0px) scale(1); }
+    36% { opacity: 0; transform: translate(-50%, -50%) translateY(-6px) scale(0.98); }
+    100% { opacity: 0; }
+  }
 }
 
 /* Reduce motion preference */
@@ -80,4 +89,5 @@ body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, 
   .animate-orbitFastReverse,
   .animate-ambientPulse,
   .animate-bob { animation: none !important; }
+  *[style*="pinPop"] { animation: none !important; }
 }

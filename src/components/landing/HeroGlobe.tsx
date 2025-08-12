@@ -26,6 +26,20 @@ const SAMPLE_CONTACTS: Contact[] = [
   { name: 'Nora Ali', company: 'Cairo Plastics', country: 'EG' },
 ];
 
+// Approx country centroids in degrees (lat, lon)
+const COUNTRY_COORDS: Record<string, { lat: number; lon: number }> = {
+  US: { lat: 37, lon: -95 },
+  MX: { lat: 23, lon: -102 },
+  BR: { lat: -14, lon: -51 },
+  DE: { lat: 51, lon: 10 },
+  IT: { lat: 42.5, lon: 12.5 },
+  JP: { lat: 36, lon: 138 },
+  CN: { lat: 35, lon: 103 },
+  IN: { lat: 22, lon: 79 },
+  AE: { lat: 24, lon: 54 },
+  EG: { lat: 27, lon: 30 },
+};
+
 export default function HeroGlobe({
   onDemo,
   onExplore,
@@ -33,13 +47,7 @@ export default function HeroGlobe({
   onDemo?: () => void;
   onExplore?: () => void;
 }) {
-  const { inner, outer } = useMemo(() => {
-    const half = Math.ceil(SAMPLE_CONTACTS.length / 2);
-    return {
-      inner: SAMPLE_CONTACTS.slice(0, half),
-      outer: SAMPLE_CONTACTS.slice(half),
-    };
-  }, []);
+  const contacts = useMemo(() => SAMPLE_CONTACTS, []);
 
   return (
     <section className="relative overflow-hidden">
@@ -96,7 +104,7 @@ export default function HeroGlobe({
             </div>
           </div>
 
-          {/* Right — 3D Globe + Orbiting Contact Cards */}
+          {/* Right — 3D Globe + Pin pop-ups */}
           <div className="relative">
             <div className="relative h-[420px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden ring-1 ring-white/10 bg-gradient-to-br from-[#0f1a33] via-[#0a1430] to-[#0c1833]">
               {/* Dot pattern */}
@@ -111,32 +119,25 @@ export default function HeroGlobe({
 
               {/* 3D scene container */}
               <div className="absolute inset-0 grid place-items-center perspective-1200">
-                {/* Globe core */}
-                <div className="relative w-44 h-44 sm:w-52 sm:h-52 lg:w-60 lg:h-60 rounded-full border border-white/10 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,.35),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(6,182,212,.25),transparent_55%)] shadow-[inset_0_0_60px_rgba(59,130,246,.25),0_0_120px_rgba(6,182,212,.25)] translate-z-0">
-                  {/* Meridians/parallels */}
-                  <div className="absolute inset-0 opacity-60">
-                    {[20, 40, 60, 80].map((t) => (
-                      <div key={t} className="absolute inset-x-0 border-t border-white/10" style={{ top: `${t}%` }} />
+                {/* Globe core: larger, clearer, with visible lines and rotation */}
+                <div className="relative w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 rounded-full border border-white/20 bg-[radial-gradient(circle_at_30%_35%,rgba(99,102,241,.35),transparent_55%),radial-gradient(circle_at_70%_70%,rgba(6,182,212,.28),transparent_55%)] shadow-[inset_0_0_80px_rgba(99,102,241,.25),0_0_140px_rgba(6,182,212,.22)] overflow-hidden">
+                  {/* Meridian/parallel grid */}
+                  <div className="absolute inset-0 opacity-70">
+                    {[12.5, 25, 37.5, 50, 62.5, 75].map((t) => (
+                      <div key={`t-${t}`} className="absolute inset-x-0 border-t border-white/10" style={{ top: `${t}%` }} />
                     ))}
-                    {[20, 40, 60, 80].map((l) => (
-                      <div key={l} className="absolute inset-y-0 border-l border-white/10" style={{ left: `${l}%` }} />
+                    {[12.5, 25, 37.5, 50, 62.5, 75].map((l) => (
+                      <div key={`l-${l}`} className="absolute inset-y-0 border-l border-white/10" style={{ left: `${l}%` }} />
                     ))}
                   </div>
-                  {/* Soft ambient pulse */}
-                  <div className="absolute inset-0 rounded-full animate-ambientPulse bg-[conic-gradient(from_45deg,rgba(6,182,212,.15),transparent_30%,rgba(99,102,241,.12),transparent_60%)]" />
+                  {/* Soft ambient pulse layer */}
+                  <div className="absolute inset-0 rounded-full animate-ambientPulse bg-[conic-gradient(from_0deg,rgba(6,182,212,.18),transparent_20%,rgba(99,102,241,.16),transparent_55%)]" />
                 </div>
 
-                {/* Inner orbit (slower, closer) */}
-                <div className="absolute preserve-3d animate-orbitSlow">
-                  {inner.map((c, i) => (
-                    <OrbitalCard key={`inner-${i}`} index={i} total={inner.length} radius={150} contact={c} depth="near" />
-                  ))}
-                </div>
-
-                {/* Outer orbit (faster, farther, reverse) */}
-                <div className="absolute preserve-3d animate-orbitFastReverse">
-                  {outer.map((c, i) => (
-                    <OrbitalCard key={`outer-${i}`} index={i} total={outer.length} radius={200} contact={c} depth="far" />
+                {/* Pins: country-based pop-ups around the globe */}
+                <div className="absolute preserve-3d">
+                  {contacts.map((c, i) => (
+                    <PinCard key={`pin-${i}`} index={i} delayStep={0.6} contact={c} />
                   ))}
                 </div>
               </div>
@@ -182,27 +183,34 @@ function Stat({
   );
 }
 
-function OrbitalCard({
-  index,
-  total,
-  radius,
-  contact,
-  depth,
-}: {
-  index: number;
-  total: number;
-  radius: number;
-  contact: Contact;
-  depth: 'near' | 'far';
-}) {
-  const angle = (360 / total) * index;
-  const transform = `rotateY(${angle}deg) translateZ(${radius}px)`;
-  const depthFade = depth === 'near' ? 'opacity-95' : 'opacity-75';
+function PinCard({ index, delayStep, contact }: { index: number; delayStep: number; contact: Contact }) {
+  const country = contact.country || 'US';
+  const coords = COUNTRY_COORDS[country] || { lat: 0, lon: 0 };
+  const radius = 180; // px depth from center
+  // CSS 3D sphere placement: rotateY(lon) rotateX(lat) translateZ(radius)
+  const transform = `rotateY(${coords.lon}deg) rotateX(${-coords.lat}deg) translateZ(${radius}px)`;
+  const delay = `${(index % 10) * delayStep}s`;
 
   return (
     <div className="absolute top-1/2 left-1/2 preserve-3d" style={{ transform }}>
-      <div className={`-translate-x-1/2 -translate-y-1/2 animate-bob ${depthFade}`}>
-        <ContactCardMini contact={contact} />
+      {/* Pin stem */}
+      <div className="-translate-x-1/2 -translate-y-1/2">
+        <div className="relative">
+          <span
+            className="absolute left-1/2 -translate-x-1/2 -top-2 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,.8)]"
+            style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
+          />
+          <div
+            className="absolute left-1/2 -translate-x-1/2 -top-2 w-[1px] h-10 bg-cyan-300/60"
+            style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
+          />
+          <div
+            className="relative -translate-x-1/2 -translate-y-full opacity-0"
+            style={{ animation: `pinPop 8s ease-in-out infinite`, animationDelay: delay }}
+          >
+            <ContactCardMini contact={contact as { name: string; company: string; country?: string }} />
+          </div>
+        </div>
       </div>
     </div>
   );
