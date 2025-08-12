@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import '@/styles/globals.css'
 import Providers from '@/components/Providers'
+import ClientErrorHooks from '@/components/ClientErrorHooks'
 
 export const metadata: Metadata = {
   title: 'Logistic Intel - Trade Intelligence Platform',
@@ -23,6 +24,8 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-admin-bg text-admin-text antialiased">
         <Providers>
+          {/* Client error hooks for better runtime diagnostics */}
+          <ClientErrorHooks />
           {children}
         </Providers>
       </body>
