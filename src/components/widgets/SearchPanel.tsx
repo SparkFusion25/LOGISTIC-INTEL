@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, Download, Plus, ExternalLink, Building2, Ship, Package, MapPin, Calendar, TrendingUp, Globe, Eye, AlertCircle, ChevronDown, Menu, Plane, Waves, Brain, Zap, Users } from 'lucide-react';
 import ResponsiveTable from '@/components/ui/ResponsiveTable';
 import EnrichedContactCard from '@/components/widgets/EnrichedContactCard';
-import CompanyTrendChart from '@/components/insights/CompanyTrendChart';
-import ShipmentTrendMini from '@/components/insights/ShipmentTrendMini';
+// import CompanyTrendChart from '@/components/insights/CompanyTrendChart';
+// import ShipmentTrendMini from '@/components/insights/ShipmentTrendMini';
 import ConfidenceIndicator from '@/components/ui/ConfidenceIndicator';
 import CompanyFeedback from '@/components/ui/CompanyFeedback';
 import { ConfidenceEngine } from '@/lib/confidenceEngine';
@@ -831,9 +831,7 @@ export default function SearchPanel() {
                     </span>
                                           <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-gray-900">{record.unified_company_name || 'Unknown Company'}</h3>
-                        {record.unified_company_name && (
-                          <ShipmentTrendMini companyName={record.unified_company_name} />
-                        )}
+                        {/* Trend mini removed in Phase 3 cleanup; re-add later with new TrendMini */}
                       </div>
                     <div className="flex flex-wrap gap-1">
                       {record && getCompanyMatchBadges(record)}
@@ -1035,10 +1033,7 @@ export default function SearchPanel() {
                   onStartCampaign={(contacts) => handleStartCampaign(contacts, record.unified_company_name)}
                 />
                 
-                {/* Company Shipment Trend Chart */}
-                <CompanyTrendChart 
-                  companyName={record.unified_company_name}
-                />
+                {/* Company Shipment Trend Chart removed in Phase 3 cleanup; re-add later with new TrendMini */}
               </div>
             )}
           </div>
