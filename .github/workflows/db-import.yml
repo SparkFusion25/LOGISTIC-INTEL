@@ -1,0 +1,27 @@
+name: Supabase DB Import (Safe)
+
+on:
+  workflow_dispatch: {} # run manually
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Run safe schema + helpers
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f ./scripts/SAFE_SUPABASE_SETUP.sql
+
+      - name: Seed 100 companies/contacts/shipments (idempotent)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f ./scripts/SAFE_COMPLETE_100_COMPANIES.sql
