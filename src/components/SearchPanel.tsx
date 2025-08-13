@@ -52,12 +52,15 @@ export default function SearchPanel() {
     setHasSearched(true);
     try {
       const params = new URLSearchParams();
-      Object.entries(searchFilters).forEach(([k, v]) => { if (v) params.append(k, v); });
+      if (searchFilters.company) params.append('company', searchFilters.company);
+      if (searchFilters.originCountry) params.append('origin_country', searchFilters.originCountry);
+      if (searchFilters.destinationCountry) params.append('destination_country', searchFilters.destinationCountry);
+      if (searchFilters.hsCode) params.append('hs_code', searchFilters.hsCode);
+      if (searchFilters.mode && searchFilters.mode !== 'all') params.append('mode', searchFilters.mode);
       const res = await fetch(`/api/search/unified?${params.toString()}`);
       const json = await res.json();
       if (json?.success && Array.isArray(json.data)) {
         setCompanies(json.data);
-        // Prepare for the map
         const mapped = json.data.flatMap((c: Company) => 
           c.shipments.map((s: ShipmentDetail) => ({
             origin: { city: s.port_of_loading, country: '' },
