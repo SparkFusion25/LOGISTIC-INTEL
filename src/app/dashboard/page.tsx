@@ -4,6 +4,8 @@ import { BarChart3, DollarSign, Users, TrendingUp, Mail, Search, Target, Package
 import Link from 'next/link';
 import TradeNewsFeed from '@/components/dashboard/TradeNewsFeed';
 import ResponsiveCard from '@/components/ui/ResponsiveCard';
+import dynamic from 'next/dynamic'
+const BenchmarkWidget = dynamic(() => import('@/components/BenchmarkWidget'), { ssr: false })
 
 const stats = [
   { 
@@ -182,6 +184,12 @@ export default function DashboardHome() {
             </Link>
           ))}
         </div>
+      </div>
+
+      {/* Widgets row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <BenchmarkWidget />
+        {/* Render other widgets here if available */}
       </div>
 
       {/* Recent Activity & At a Glance */}

@@ -31,6 +31,8 @@ import {
   Sparkles
 } from 'lucide-react'
 import Logo from '@/components/ui/Logo'
+import dynamic from 'next/dynamic'
+const BenchmarkWidget = dynamic(() => import('@/components/BenchmarkWidget'), { ssr: false })
 
 const LogisticIntelLanding = () => {
   const router = useRouter()
@@ -827,6 +829,11 @@ const LogisticIntelLanding = () => {
           </div>
         </div>
       </footer>
+
+      {/* Benchmark Widget */}
+      <section className="container grid md:grid-cols-2 gap-6 py-8">
+        <BenchmarkWidget />
+      </section>
 
       <style jsx>{`
         .bg-grid-pattern {

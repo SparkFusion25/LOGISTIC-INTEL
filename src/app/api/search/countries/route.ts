@@ -1,88 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase-server'
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export async function GET(req: Request) {
+  const db = supabaseServer()
+  const url = new URL(req.url)
+  const q = (url.searchParams.get('q') || '').trim()
+  const field = url.searchParams.get('field') === 'destination' ? 'destination_country' : 'origin_country'
 
-export async function GET(request: NextRequest) {
-  try {
-    console.log('🌍 Fetching unique countries from trade data');
+  let query = db.from('unified_shipments').select(`${field}`, { head: false, count: 'exact' }).not(field, 'is', null)
+  if (q) query = query.ilike(field, `${q}%`)
 
-    // Get unique origin countries from ocean_shipments
-    const { data: originData, error: originError } = await supabase
-      .from('ocean_shipments')
-      .select('shipper_country')
-      .not('shipper_country', 'is', null)
-      .not('shipper_country', 'eq', '');
+  const { data, error } = await query.limit(50)
+  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 })
 
-    if (originError) {
-      console.error('Error fetching origin countries:', originError);
-      return getDefaultCountries();
-    }
-
-    // Get unique destination countries
-    const { data: destData, error: destError } = await supabase
-      .from('ocean_shipments')
-      .select('destination_country')
-      .not('destination_country', 'is', null)
-      .not('destination_country', 'eq', '');
-
-    if (destError) {
-      console.error('Error fetching destination countries:', destError);
-      return getDefaultCountries();
-    }
-
-    // Combine and deduplicate countries
-    const allCountries = new Set<string>();
-    
-    originData?.forEach(record => {
-      if (record.shipper_country) {
-        allCountries.add(record.shipper_country.trim());
-      }
-    });
-
-    destData?.forEach(record => {
-      if (record.destination_country) {
-        allCountries.add(record.destination_country.trim());
-      }
-    });
-
-    // Convert to array and sort
-    const uniqueCountries = Array.from(allCountries)
-      .filter(country => country.length > 0)
-      .sort();
-
-    console.log(`✅ Found ${uniqueCountries.length} unique countries`);
-
-    return NextResponse.json({
-      success: true,
-      countries: uniqueCountries,
-      count: uniqueCountries.length
-    });
-
-  } catch (error) {
-    console.error('Countries API error:', error);
-    return getDefaultCountries();
+  const set = new Set<string>()
+  for (const row of data || []) {
+    const val = (row as any)[field]
+    if (val) set.add(String(val))
   }
-}
-
-function getDefaultCountries() {
-  // Fallback to common trading countries if database fails
-  const defaultCountries = [
-    'China', 'Germany', 'Japan', 'South Korea', 'Singapore', 
-    'Netherlands', 'Switzerland', 'France', 'United States',
-    'Italy', 'United Kingdom', 'Canada', 'India', 'Vietnam',
-    'Thailand', 'Malaysia', 'Indonesia', 'Taiwan', 'Belgium',
-    'Spain', 'Turkey', 'Mexico', 'Brazil', 'Australia'
-  ];
-
-  return NextResponse.json({
-    success: true,
-    countries: defaultCountries,
-    count: defaultCountries.length,
-    source: 'fallback'
-  });
+  return NextResponse.json({ success: true, data: Array.from(set).sort() })
 }
