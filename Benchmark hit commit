@@ -1,0 +1,2 @@
+git add src/app/api/widgets/benchmark/route.ts
+git commit -m "fix(benchmark): harden typing, safe averages, carrier sort; tolerate missing unified_shipments"
