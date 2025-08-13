@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase-server'
+import { supabaseServer } from '@/lib/supabase-server'
 import { s, trim } from '@/lib/strings'
 
 export async function GET(req: Request) {
@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   const limit = Math.min(parseInt((qp.limit as string) || '20', 10), 100)
   const offset = parseInt((qp.offset as string) || '0', 10)
 
-  const supabase = createServerClient()
+  const supabase = supabaseServer()
 
   let query = supabase
     .from('unified_shipments')
