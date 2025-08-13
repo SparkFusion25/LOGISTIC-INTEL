@@ -670,3 +670,374 @@ Trade Intelligence Team`;
     if (mode === 'ocean') return 'bg-blue-100 text-blue-800';
     if (mode === 'air') return 'bg-sky-100 text-sky-800';
     return 'bg-purple-100 text-purple-800';
+  };
+
+  return (
+    <>
+      {/* Notifications */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {notifications.map(notification => (
+          <div
+            key={notification.id}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg backdrop-blur-sm animate-slide-in ${
+              notification.type === 'success' ? 'bg-success/90 text-white' :
+              notification.type === 'error' ? 'bg-danger/90 text-white' :
+              'bg-blue-600/90 text-white'
+            }`}
+          >
+            {notification.type === 'success' ? (
+              <CheckCircle className="w-5 h-5" />
+            ) : notification.type === 'error' ? (
+              <AlertCircle className="w-5 h-5" />
+            ) : (
+              <AlertCircle className="w-5 h-5" />
+            )}
+            <span className="text-sm font-medium">{notification.message}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Company Detail Modal */}
+      <CompanyDetailModal
+        company={selectedCompany}
+        isOpen={isCompanyModalOpen}
+        onClose={() => setIsCompanyModalOpen(false)}
+        onAddToCRM={handleAddToCRM}
+        onSendEmail={handleSendInsight}
+        userPlan={userPlan}
+        isAddingToCRM={operationLoading[`crm_${selectedCompany?.company_name}`] || false}
+        isSendingEmail={operationLoading[`email_${selectedCompany?.company_name}`] || false}
+      />
+
+      {/* Main Search Panel */}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto p-6">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3 mb-2">
+              <Globe className="w-8 h-8 text-brand" />
+              Trade Intelligence Search
+            </h1>
+            <p className="text-slate-600">Discover and analyze global trade patterns and company insights</p>
+          </div>
+
+          {/* Search Filters */}
+          <div className="card p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Company Name
+                </label>
+                <input
+                  type="text"
+                  value={searchFilters.company}
+                  onChange={(e) => setSearchFilters({...searchFilters, company: e.target.value})}
+                  placeholder="Enter company name..."
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Origin Country
+                </label>
+                <input
+                  type="text"
+                  value={searchFilters.originCountry}
+                  onChange={(e) => setSearchFilters({...searchFilters, originCountry: e.target.value})}
+                  placeholder="e.g., China, India..."
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Destination Country
+                </label>
+                <input
+                  type="text"
+                  value={searchFilters.destinationCountry}
+                  onChange={(e) => setSearchFilters({...searchFilters, destinationCountry: e.target.value})}
+                  placeholder="e.g., USA, Germany..."
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Commodity/Product
+                </label>
+                <input
+                  type="text"
+                  value={searchFilters.commodity}
+                  onChange={(e) => setSearchFilters({...searchFilters, commodity: e.target.value})}
+                  placeholder="e.g., Electronics, Textiles..."
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  HS Code
+                </label>
+                <input
+                  type="text"
+                  value={searchFilters.hsCode}
+                  onChange={(e) => setSearchFilters({...searchFilters, hsCode: e.target.value})}
+                  placeholder="e.g., 8471..."
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Shipment Mode
+                </label>
+                <select
+                  value={filterMode}
+                  onChange={(e) => setFilterMode(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+                >
+                  <option value="all">All Modes</option>
+                  <option value="ocean">Ocean Only</option>
+                  <option value="air">Air Only</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => setSearchFilters({
+                  company: '',
+                  originCountry: '',
+                  destinationCountry: '',
+                  commodity: '',
+                  hsCode: ''
+                })}
+                className="text-sm text-slate-600 hover:text-slate-800"
+              >
+                Clear Filters
+              </button>
+              
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="btn-primary disabled:opacity-50"
+              >
+                {loading ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin mr-2" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Search Companies
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Results Section */}
+          {hasSearched && (
+            <div className="mb-4 flex justify-between items-center">
+              <p className="text-sm text-slate-600">
+                Found <span className="font-semibold">{companies.length}</span> companies
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
+                    viewMode === 'cards'
+                      ? 'bg-brand text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Cards
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
+                    viewMode === 'table'
+                      ? 'bg-brand text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Table
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Company Cards/Table */}
+          {companies.length > 0 && viewMode === 'cards' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {companies.map((company, idx) => (
+                <div
+                  key={idx}
+                  className="card p-6 hover:shadow-xl transition-shadow cursor-pointer"
+                  onClick={() => handleCompanyClick(company)}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="font-semibold text-lg text-slate-900">{company.company_name}</h3>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getModeColor(company.shipment_mode)}`}>
+                          {company.shipment_mode?.toUpperCase() || 'MIXED'}
+                        </span>
+                        {company.is_in_crm && (
+                          <span className="bg-success/10 text-success px-2 py-1 rounded-lg text-xs font-medium">
+                            ✓ In CRM
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={`px-3 py-1 rounded-lg text-sm font-medium border ${getConfidenceColor(company.confidence_score || 0)}`}>
+                      {company.confidence_score || 0}%
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Shipments</span>
+                      <span className="font-semibold">{company.total_shipments || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Total Value</span>
+                      <span className="font-semibold text-success">
+                        ${((company.total_value_usd || 0) / 1000000).toFixed(1)}M
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Weight</span>
+                      <span className="font-semibold">
+                        {((company.total_weight_kg || 0) / 1000).toFixed(0)}T
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">Latest</span>
+                      <span className="text-sm">{company.last_arrival || 'N/A'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-slate-200 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCRM(company);
+                      }}
+                      disabled={operationLoading[`crm_${company.company_name}`] || company.is_in_crm}
+                      className="flex-1 btn-secondary text-sm disabled:opacity-50"
+                    >
+                      {operationLoading[`crm_${company.company_name}`] ? (
+                        <Loader className="w-3 h-3 animate-spin mr-1" />
+                      ) : (
+                        <Plus className="w-3 h-3 mr-1" />
+                      )}
+                      {company.is_in_crm ? 'In CRM' : 'Add to CRM'}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCompanyClick(company);
+                      }}
+                      className="flex-1 btn-primary text-sm"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {companies.length > 0 && viewMode === 'table' && (
+            <div className="card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="text-left p-4 font-medium text-slate-700">Company</th>
+                      <th className="text-left p-4 font-medium text-slate-700">Mode</th>
+                      <th className="text-left p-4 font-medium text-slate-700">Shipments</th>
+                      <th className="text-left p-4 font-medium text-slate-700">Value</th>
+                      <th className="text-left p-4 font-medium text-slate-700">Weight</th>
+                      <th className="text-left p-4 font-medium text-slate-700">Confidence</th>
+                      <th className="text-left p-4 font-medium text-slate-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {companies.map((company, idx) => (
+                      <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="p-4">
+                          <div>
+                            <p className="font-medium text-slate-900">{company.company_name}</p>
+                            {company.is_in_crm && (
+                              <span className="text-xs text-success">✓ In CRM</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getModeColor(company.shipment_mode)}`}>
+                            {company.shipment_mode?.toUpperCase() || 'MIXED'}
+                          </span>
+                        </td>
+                        <td className="p-4">{company.total_shipments || 0}</td>
+                        <td className="p-4 text-success font-medium">
+                          ${((company.total_value_usd || 0) / 1000000).toFixed(1)}M
+                        </td>
+                        <td className="p-4">{((company.total_weight_kg || 0) / 1000).toFixed(0)}T</td>
+                        <td className="p-4">
+                          <span className={`px-2 py-1 rounded-lg text-xs font-medium border ${getConfidenceColor(company.confidence_score || 0)}`}>
+                            {company.confidence_score || 0}%
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAddToCRM(company)}
+                              disabled={operationLoading[`crm_${company.company_name}`] || company.is_in_crm}
+                              className="btn-secondary text-xs disabled:opacity-50"
+                            >
+                              {operationLoading[`crm_${company.company_name}`] ? (
+                                <Loader className="w-3 h-3 animate-spin" />
+                              ) : company.is_in_crm ? (
+                                'In CRM'
+                              ) : (
+                                'Add to CRM'
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleCompanyClick(company)}
+                              className="btn-primary text-xs"
+                            >
+                              View
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {hasSearched && companies.length === 0 && !loading && (
+            <div className="card p-12 text-center">
+              <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-700 mb-2">No Companies Found</h3>
+              <p className="text-sm text-slate-600">
+                Try adjusting your search filters or broadening your criteria
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default SearchPanelDemo;
