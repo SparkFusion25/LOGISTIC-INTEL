@@ -78,7 +78,7 @@ const mockTradeData: TradeEntry[] = [
 
 // Replace with your real API fetch logic
 export async function searchTradeData(filters: any): Promise<any[]> {
-  const response = await fetch('/api/search', {
+  const response = await fetch('/api/search/unified?company=' + encodeURIComponent(filters.company || ''), {
     method: 'POST',
     body: JSON.stringify(filters),
     headers: { 'Content-Type': 'application/json' },
