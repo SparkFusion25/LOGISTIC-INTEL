@@ -1,3 +1,5 @@
+import React from 'react'
+
 export default function WidgetCard({
   title, action, children
 }:{ title:string; action?:React.ReactNode; children:React.ReactNode }) {
