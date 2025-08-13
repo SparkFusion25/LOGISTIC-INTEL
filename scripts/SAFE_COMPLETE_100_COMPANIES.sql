@@ -1,0 +1,3 @@
+-- SQL for seeding 100 companies
+INSERT INTO companies (...) VALUES (...);
+-- other seeding commands here...

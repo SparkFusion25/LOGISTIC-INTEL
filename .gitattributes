@@ -1,0 +1,6 @@
+*.png filter=lfs diff=lfs merge=lfs
+*.jpg filter=lfs diff=lfs merge=lfs
+*.csv filter=lfs diff=lfs merge=lfs
+*.xml filter=lfs diff=lfs merge=lfs
+*.json filter=lfs diff=lfs merge=lfs
+*.sql filter=lfs diff=lfs merge=lfs
