@@ -10,9 +10,9 @@ type Payload = {
 };
 
 type Row = {
-  unified_value: number | null;
-  unified_weight: number | null;
-  unified_carrier: string | null;
+  unified_value?: number | null;
+  unified_weight?: number | null;
+  unified_carrier?: string | null;
   hs_code?: string | null;
   origin_country?: string | null;
   destination_country?: string | null;
@@ -42,36 +42,46 @@ export async function POST(req: Request) {
     const { data, error } = await q.limit(5000);
 
     // If the table/view doesn't exist yet, return an empty/harmless payload
-    // (Vercel previously showed 42P01 on some routes)
     if (error) {
       // @ts-expect-error supabase error code
       if (error.code === '42P01') {
-        return NextResponse.json({ success: true, avg_value: 0, avg_weight: 0, top_carriers: [] });
+        return NextResponse.json({ 
+          success: true, 
+          summary: { avg_value: 0, avg_weight: 0 }, 
+          topCarriers: [] 
+        });
       }
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    const rows = (data ?? []) as Row[];
+    const safeRows: Row[] = data ?? [];
 
     const toNums = (arr: Array<number | null | undefined>) =>
       arr.map((v) => (typeof v === 'number' ? v : Number(v ?? 0)) || 0);
     const avg = (arr: number[]) => (arr.length ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 100) / 100 : 0);
 
-    const avg_value = avg(toNums(rows.map((r) => r.unified_value)));
-    const avg_weight = avg(toNums(rows.map((r) => r.unified_weight)));
+    const avg_value = avg(toNums(safeRows.map((r) => r.unified_value)));
+    const avg_weight = avg(toNums(safeRows.map((r) => r.unified_weight)));
 
-    const carrierCounts = rows.reduce<Record<string, number>>((m, r) => {
-      const key = (r.unified_carrier ?? 'Unknown') as string;
-      m[key] = (m[key] ?? 0) + 1;
-      return m;
+    // Fixed type-safe reduce and sort
+    const carrierCounts = safeRows.reduce<Record<string, number>>((map, r) => {
+      const k = (r.unified_carrier ?? '').trim();
+      if (!k) return map;
+      map[k] = (map[k] ?? 0) + 1;
+      return map;
     }, {});
 
-    const top_carriers = Object.entries(carrierCounts)
-      .sort(([, a], [, b]) => b - a)
+    const topCarriers: Array<{ carrier: string; count: number }> = Object
+      .entries(carrierCounts)
+      .sort((a, b) => (b[1] as number) - (a[1] as number))
       .slice(0, 5)
-      .map(([carrier, count]) => ({ carrier, count }));
+      .map(([carrier, count]) => ({ carrier, count: count as number }));
 
-    return NextResponse.json({ success: true, avg_value, avg_weight, top_carriers });
+    return NextResponse.json({
+      success: true,
+      summary: { avg_value, avg_weight },
+      topCarriers,
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
