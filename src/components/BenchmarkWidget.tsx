@@ -44,11 +44,11 @@ export default function BenchmarkWidget() {
 
       {res?.success && (
         <div className="mt-3 space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-slate-600">Avg shipment value:</span><span className="font-semibold">${res.estimate.avg_value?.toLocaleString()}</span></div>
-          <div className="flex justify-between"><span className="text-slate-600">Avg shipment weight:</span><span className="font-semibold">{res.estimate.avg_weight}</span></div>
+          <div className="flex justify-between"><span className="text-slate-600">Avg shipment value:</span><span className="font-semibold">${res.summary?.avg_value?.toLocaleString()}</span></div>
+          <div className="flex justify-between"><span className="text-slate-600">Avg shipment weight:</span><span className="font-semibold">{res.summary?.avg_weight}</span></div>
           <div className="text-slate-600">Top carriers:</div>
           <ul className="list-disc ml-6">
-            {res.estimate.top_carriers?.map((c: any) => <li key={c.carrier}>{c.carrier} — {c.count}</li>)}
+            {res.topCarriers?.map((c: any) => <li key={c.carrier}>{c.carrier} — {c.count}</li>)}
           </ul>
         </div>
       )}
