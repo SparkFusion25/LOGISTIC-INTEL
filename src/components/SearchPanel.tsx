@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Search } from 'lucide-react';
 
 import InteractiveShipmentMap from './InteractiveShipmentMap';
 import PrimaryShipmentCard from './PrimaryShipmentCard';
 import ResponsiveTable from './ui/ResponsiveTable';
+
 
 type Mode = 'all' | 'ocean' | 'air';
 
@@ -30,13 +31,18 @@ export interface ShipmentRow {
 }
 
 export default function SearchPanel() {
+  const [q, setQ] = useState('');
   const [company, setCompany] = useState('');
+  const [origin, setOrigin] = useState('');
+  const [destination, setDestination] = useState('');
   const [mode, setMode] = useState<Mode>('all');
   const [data, setData] = useState<ShipmentRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [selected, setSelected] = useState<ShipmentRow | null>(null);
+  const [source, setSource] = useState('unified_shipments');
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Transform ShipmentRow data to match InteractiveShipmentMap expected format
   const transformedShipments = useMemo(() => {
@@ -56,25 +62,27 @@ export default function SearchPanel() {
   const fetchPage = async (reset = false) => {
     if (loading) return;
     setLoading(true);
-
     const offset = reset ? 0 : page * pageSize;
     const qs = new URLSearchParams({
-      company,
       mode,
+      q,
+      company,
+      origin,
+      destination,
       limit: String(pageSize),
       offset: String(offset)
     });
-
     try {
-      const res = await fetch(`/api/search/unified?${qs.toString()}`, { cache: 'no-store' });
+      const res = await fetch(`/api/search?${qs.toString()}`, { cache: 'no-store' });
       const json = await res.json();
       if (!json?.success) {
         setHasMore(false);
         if (reset) setData([]);
         return;
       }
-      setData(reset ? json.data : [...data, ...json.data]);
-      setHasMore(Boolean(json.pagination?.hasMore));
+      setData(reset ? json.items : [...data, ...json.items]);
+      setHasMore(json.total > offset + pageSize);
+      setSource(json.source || 'unified_shipments');
       setPage(reset ? 1 : page + 1);
     } catch {
       setHasMore(false);
@@ -84,9 +92,15 @@ export default function SearchPanel() {
   };
 
   useEffect(() => {
-    void fetchPage(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchPage(true);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [company, mode]);
+  }, [q, company, origin, destination, mode]);
 
   const columns = useMemo(
     () => [
@@ -104,12 +118,30 @@ export default function SearchPanel() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            placeholder="Search company…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search…"
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
           />
         </div>
+        <input
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          placeholder="Company"
+          className="w-40 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
+        />
+        <input
+          value={origin}
+          onChange={(e) => setOrigin(e.target.value)}
+          placeholder="Origin"
+          className="w-32 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
+        />
+        <input
+          value={destination}
+          onChange={(e) => setDestination(e.target.value)}
+          placeholder="Destination"
+          className="w-32 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
+        />
         <div className="flex gap-2">
           {(['all', 'ocean', 'air'] as Mode[]).map((m) => (
             <button
@@ -123,6 +155,7 @@ export default function SearchPanel() {
             </button>
           ))}
         </div>
+        <span className={`ml-4 px-2 py-1 rounded text-xs font-semibold ${source === 'unified_shipments' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{source === 'unified_shipments' ? 'Unified' : 'Fallback'}</span>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -138,15 +171,26 @@ export default function SearchPanel() {
           {selected && <PrimaryShipmentCard shipment={selected} />}
         </div>
 
-        <div className="lg:w-1/3 h-[600px] rounded-lg border border-gray-200 overflow-hidden">
+        <div className="lg:w-1/3 h-[600px] rounded-lg border border-gray-200 overflow-hidden flex flex-col">
           <ResponsiveTable
             columns={columns}
             data={data}
-            fetchMore={hasMore ? () => fetchPage(false) : undefined}
             loading={loading}
             rowHeight={60}
             onRowClick={(row: ShipmentRow) => setSelected(row)}
           />
+          <div className="flex justify-between items-center p-2 border-t bg-gray-50">
+            <button
+              disabled={loading || page === 1}
+              onClick={() => { setPage(page - 1); fetchPage(true); }}
+              className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+            >Prev</button>
+            <button
+              disabled={loading || !hasMore}
+              onClick={() => fetchPage(false)}
+              className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+            >Next</button>
+          </div>
         </div>
       </div>
     </div>

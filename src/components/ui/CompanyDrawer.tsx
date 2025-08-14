@@ -1,7 +1,9 @@
+
+import React from 'react';
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, TrendingUp, Users, Package, Info, Crown } from 'lucide-react'
+import { X, TrendingUp, Users, Package, Info, Crown } from 'lucide-react';
 import { getAuthUser, canAccessFeature, getFeatureGateMessage, AuthUser } from '@/lib/auth-helpers'
 
 export interface CompanyInfo {

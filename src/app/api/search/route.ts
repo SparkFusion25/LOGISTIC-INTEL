@@ -59,23 +59,39 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const p = url.searchParams;
 
-    const { rows, total, error } = await runBasicQuery(p, db);
+    let { rows, total, error } = await runBasicQuery(p, db);
+    let source = 'unified_shipments';
+    if (!rows || rows.length === 0) {
+      // Fallback to ocean_shipments
+      const fallbackQuery = async (params: URLSearchParams, db: any) => {
+        const TABLE = 'ocean_shipments';
+        const company = params.get('company') || params.get('q') || '';
+        const mode = (params.get('mode') || 'all').toLowerCase();
+        const limit = Math.max(1, Math.min(500, Number(params.get('limit') || 100)));
+        const offset = Math.max(0, Number(params.get('offset') || 0));
+        let query = db
+          .from(TABLE)
+          .select('*', { count: 'estimated' })
+          .order('date', { ascending: false });
+        if (company) query = query.ilike('company_name', `%${company}%`);
+        if (mode && mode !== 'all') {
+          query = query.eq('mode', mode);
+        }
+        query = query.range(offset, offset + limit - 1);
+        const { data, error, count } = await query;
+        return { rows: Array.isArray(data) ? data : [], total: typeof count === 'number' ? count : (data?.length || 0), error };
+      };
+      ({ rows, total, error } = await fallbackQuery(p, db));
+      source = 'ocean_shipments';
+    }
     if (error) console.error('[api/search] supabase error:', error);
-
     const items = rows.map(normalizeRow);
-
-    const limit = Math.max(1, Math.min(500, Number(p.get('limit') || 100)));
-    const offset = Math.max(0, Number(p.get('offset') || 0));
-    const hasMore = offset + limit < total;
-
     return NextResponse.json(
       {
         success: true,
-        data: items,
         total,
-        pagination: { hasMore },
         items,
-        count: total,
+        source,
       },
       { status: 200 }
     );

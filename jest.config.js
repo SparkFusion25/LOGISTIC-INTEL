@@ -1,12 +1,12 @@
-const createJestConfig = require('next/jest')({ dir: './' })
-
-/** @type {import('jest').Config} */
-const customJestConfig = {
-  testEnvironment: 'jest-environment-jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+module.exports = {
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts', '<rootDir>/jest_setup_enhanced.js'],
+  moduleFileExtensions: ['ts','tsx','js','jsx'],
+  moduleDirectories: ['node_modules', '<rootDir>/src'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-}
-
-module.exports = createJestConfig(customJestConfig)
+      '^lucide-react$': '<rootDir>/__mocks__/lucide-react/index.js',
+      '^@/(.*)$': '<rootDir>/src/$1',
+    },
+  testEnvironment: 'jsdom',
+  transformIgnorePatterns: ['/node_modules/'],
+  resolver: undefined,
+};
