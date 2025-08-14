@@ -1,0 +1,12 @@
+name: Size Guard
+on:
+  push:
+    branches:
+      - main
+jobs:
+  size-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check file sizes
+        run: |
+          # Your size check logic here...

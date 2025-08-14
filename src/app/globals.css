@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens (CSS variables) */
+:root {
+  --page: #F8FAFC;    /* slate-50 */
+  --surface: #FFFFFF; /* white cards */
+  --border: #E2E8F0;  /* slate-200 */
+  --ink: #0B1220;
+  --muted: #475569;
+}
+
+/* Base document */
+html, body { @apply bg-[var(--page)] text-[var(--ink)] antialiased; }
+.container { @apply mx-auto px-4 md:px-6 lg:px-8; }
+
+/* IMPORTANT: define @apply rules inside @layer so Tailwind can compile them */
+@layer components {
+  /* Inputs */
+  .input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm
+           placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/30;
+  }
+
+  /* Card surface */
+  .card {
+    @apply bg-white border border-slate-200 rounded-2xl shadow-card;
+  }
+
+  .card:hover {
+    @apply shadow-cardHover;
+  }
+}

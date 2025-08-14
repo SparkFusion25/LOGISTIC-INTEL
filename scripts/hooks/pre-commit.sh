@@ -1,0 +1,3 @@
+#!/bin/sh
+# Pre-commit hook to enforce file size limits
+# Add your logic here for size checks...

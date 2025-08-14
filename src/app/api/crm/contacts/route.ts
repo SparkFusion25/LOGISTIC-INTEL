@@ -1,26 +1,61 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { supabaseServer } from '@/lib/supabase-server';
 
-export async function POST(req: Request){
-  const body = await req.json();
-  const cookieStore = cookies();
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+export async function POST(req: Request) {
+  const db = supabaseServer();
+  const body = await req.json().catch(() => ({}));
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ success:false, error:'Not authenticated' }, { status:401 });
+  // Combine all relevant fields from both implementations
+  const {
+    company_id,
+    company_name,
+    status = 'lead',
+    unified_id,
+    hs_code,
+    notes,
+    full_name,
+    title,
+    email,
+    phone,
+    linkedin,
+    country,
+    city
+  } = body || {};
 
-  const payload:any = {
-    company_id: body.company_id || null,
-    company_name: body.company_name,
-    status: 'lead',
-    unified_id: body.unified_id || null,
-    hs_code: body.hs_code || null,
-    notes: body.notes || null,
+  // Authentication (using canonical pattern)
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+
+  // Upsert contact, combining all fields
+  const contactPayload = {
+    company_id: company_id || null,
+    company_name,
+    status,
+    unified_id: unified_id || null,
+    hs_code: hs_code || null,
+    notes: notes || null,
+    full_name,
+    title,
+    email,
+    phone,
+    linkedin,
+    country,
+    city,
     added_by_user: user.id
   };
 
-  const { data, error } = await supabase.from('crm_contacts').insert(payload).select('id, company_id, company_name');
-  if (error) return NextResponse.json({ success:false, error:error.message }, { status:400 });
-  return NextResponse.json({ success:true, contact: data?.[0] || null });
+  if (!company_name) {
+    return NextResponse.json({ success: false, error: 'company_name is required' }, { status: 400 });
+  }
+
+  const { data, error } = await db.from('crm_contacts').upsert(
+    contactPayload,
+    { onConflict: 'company_name, email' }
+  ).select('id, company_id, company_name, email');
+
+  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+
+  return NextResponse.json({ success: true, contact: data?.[0] || null });
 }
+// ...existing code...
+// ...existing code...

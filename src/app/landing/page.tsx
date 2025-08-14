@@ -33,6 +33,8 @@ import {
 import Logo from '@/components/ui/Logo'
 import { Hero } from '@/components/marketing/Hero'
 import { CTA } from '@/components/marketing/CTA'
+import dynamic from 'next/dynamic'
+const BenchmarkWidget = dynamic(() => import('@/components/BenchmarkWidget'), { ssr: false })
 
 const LogisticIntelLanding = () => {
   const router = useRouter()
@@ -431,6 +433,11 @@ const LogisticIntelLanding = () => {
           </div>
         </div>
       </footer>
+
+      {/* Benchmark Widget */}
+      <section className="container grid md:grid-cols-2 gap-6 py-8">
+        <BenchmarkWidget />
+      </section>
 
       <style jsx>{`
         .bg-grid-pattern {
