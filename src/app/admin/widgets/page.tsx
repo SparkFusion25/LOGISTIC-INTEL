@@ -15,7 +15,7 @@ import {
 import AdminLayout from '@/components/AdminLayout'
 import StatsCard from '@/components/charts/StatsCard'
 import UsageChart, { createBarChartData, createDoughnutChartData, createLineChartData } from '@/components/charts/UsageChart'
-import { mockData } from '@/lib/mockData'
+import { mockWidgets } from '@/lib/mockData'
 import { Widget } from '@/types/admin'
 import { format } from 'date-fns'
 
@@ -32,7 +32,7 @@ export default function WidgetsPage() {
   const loadWidgets = async () => {
     try {
       setLoading(true)
-      const widgetsData = mockData.getWidgets()
+      const widgetsData = mockWidgets
       setWidgets(widgetsData)
     } catch (error) {
       console.error('Failed to load widgets:', error)
