@@ -15,8 +15,8 @@ export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/signup', '/landing', '/pricing', '/test-admin']
-  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/api/public')
+  const publicRoutes = ['/', '/login', '/signup', '/landing', '/pricing', '/test-admin', '/dashboard']
+  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/api/public') || pathname.startsWith('/dashboard')
 
   // If accessing a protected route without a session, redirect to login
   if (!session && !isPublicRoute) {
