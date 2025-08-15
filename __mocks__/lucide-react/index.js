@@ -10,6 +10,12 @@ const api = {
   Package: make('Package'),
   Info: make('Info'),
   Crown: make('Crown'),
+  Search: make('Search'),
+  Ship: make('Ship'),
+  Plane: make('Plane'),
+  MapPin: make('MapPin'),
+  Building2: make('Building2'),
+  DollarSign: make('DollarSign'),
 };
 
 api.__esModule = true;

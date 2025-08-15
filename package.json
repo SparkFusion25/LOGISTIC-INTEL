@@ -1,3 +1,61 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9ca39043484206e3c8cf7ea57142fd1070f631db3f18a07710c3ff5be98e8b62
-size 1989
+{
+  "name": "logistic-intel",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "7.8.0",
+    "@supabase/auth-helpers-nextjs": "0.10.0",
+    "@supabase/auth-helpers-react": "0.5.0",
+    "@supabase/ssr": "0.6.1",
+    "@supabase/supabase-js": "2.55.0",
+    "@types/node": "20.17.6",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@types/xlsx": "0.0.35",
+    "autoprefixer": "10.4.16",
+    "chart.js": "4.4.0",
+    "clsx": "2.0.0",
+    "date-fns": "2.30.0",
+    "fast-xml-parser": "5.2.5",
+    "leaflet": "1.9.4",
+    "lucide-react": "0.292.0",
+    "next": "14.2.31",
+    "next-auth": "4.24.11",
+    "postcss": "8.4.31",
+    "react": "18.3.1",
+    "react-chartjs-2": "5.2.0",
+    "react-dom": "18.3.1",
+    "react-hot-toast": "2.5.2",
+    "stripe": "18.4.0",
+    "swr": "2.2.5",
+    "tailwindcss": "3.3.0",
+    "three": "0.179.1",
+    "typescript": "5.6.3",
+    "xlsx": "0.18.5"
+  },
+  "devDependencies": {
+    "@types/leaflet": "1.9.12",
+    "@types/three": "0.179.0",
+    "eslint": "8.57.1",
+    "eslint-config-next": "14.2.31",
+    "jest": "29.7.0",
+    "babel-jest": "29.7.0",
+    "@babel/preset-env": "7.24.7",
+    "@babel/preset-react": "7.24.7",
+    "@babel/preset-typescript": "7.24.7",
+    "@testing-library/react": "14.2.1",
+    "@testing-library/user-event": "14.4.3",
+    "@testing-library/jest-dom": "6.4.8",
+    "jest-environment-jsdom": "29.7.0"
+  }
+}

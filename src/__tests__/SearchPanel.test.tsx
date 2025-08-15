@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import SearchPanel from "../components/SearchPanel";
 import "@testing-library/jest-dom";
@@ -31,7 +31,7 @@ const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
   const params = Object.fromEntries(url.searchParams.entries());
   return okJson({
     success: true,
-    total: 1,
+    total: 200,
     items: [{ id: "shp_1", mode: params.mode, company: params.q || "ACME" }],
     source: "Unified",
   });
@@ -50,20 +50,24 @@ describe("SearchPanel unified search", () => {
     const user = userEvent.setup({ delay: null });
     render(<SearchPanel />);
 
-    const qInput = screen.getByRole("textbox", { name: /company|search/i });
+    const qInput = screen.getByRole("textbox", { name: /search/i });
     const originInput = screen.getByRole("textbox", { name: /origin/i });
     const destInput = screen.getByRole("textbox", { name: /destination/i });
 
-    await user.clear(qInput);      await user.type(qInput, "acme global");
-    await user.clear(originInput); await user.type(originInput, "LAX");
-    await user.clear(destInput);   await user.type(destInput, "JFK");
+    await act(async () => {
+      await user.clear(qInput);      await user.type(qInput, "acme global");
+      await user.clear(originInput); await user.type(originInput, "LAX");
+      await user.clear(destInput);   await user.type(destInput, "JFK");
 
-    const airToggle =
-      screen.queryByRole("button", { name: /air/i }) ??
-      screen.queryByRole("radio", { name: /air/i });
-    if (airToggle) await user.click(airToggle);
+      const airToggle =
+        screen.queryByRole("button", { name: /air/i }) ??
+        screen.queryByRole("radio", { name: /air/i });
+      if (airToggle) await user.click(airToggle);
+    });
 
-    jest.advanceTimersByTime(350);
+    await act(async () => {
+      jest.advanceTimersByTime(650);
+    });
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [firstCallUrl] = fetchMock.mock.calls[0];
@@ -81,8 +85,10 @@ describe("SearchPanel unified search", () => {
     // Pagination next → offset increases
     const nextBtn = screen.queryByRole("button", { name: /next/i });
     if (nextBtn) {
-      await user.click(nextBtn);
-      jest.advanceTimersByTime(10);
+      await act(async () => {
+        await user.click(nextBtn);
+        jest.advanceTimersByTime(10);
+      });
       await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
       const [secondCallUrl] = fetchMock.mock.calls[1];
       const firstOffset = parseInt(getParam(firstCallUrl, "offset") || "0", 10);

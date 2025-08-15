@@ -95,7 +95,7 @@ export default function SearchPanel() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       fetchPage(true);
-    }, 300);
+    }, 600);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
@@ -121,6 +121,7 @@ export default function SearchPanel() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search…"
+            aria-label="Search"
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
           />
         </div>
@@ -128,18 +129,21 @@ export default function SearchPanel() {
           value={company}
           onChange={(e) => setCompany(e.target.value)}
           placeholder="Company"
+          aria-label="Company"
           className="w-40 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
         />
         <input
           value={origin}
           onChange={(e) => setOrigin(e.target.value)}
           placeholder="Origin"
+          aria-label="Origin"
           className="w-32 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
         />
         <input
           value={destination}
           onChange={(e) => setDestination(e.target.value)}
           placeholder="Destination"
+          aria-label="Destination"
           className="w-32 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-200 outline-none"
         />
         <div className="flex gap-2">

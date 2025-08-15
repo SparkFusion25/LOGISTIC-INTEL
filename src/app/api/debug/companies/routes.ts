@@ -5,7 +5,10 @@ export async function GET() {
   try {
     console.log('Testing Supabase connection...');
     
-    // Test 1: Basic connection
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: true, environment: { SUPABASE_URL: 'MISSING', SERVICE_KEY: 'MISSING' }, database: { total_companies: 0, companies_sample: [], connection_status: 'SKIPPED' } });
+    }
+
     const { data: companies, error, count } = await supabaseAdmin
       .from('companies')
       .select('*', { count: 'exact' })
@@ -16,9 +19,9 @@ export async function GET() {
       return NextResponse.json({ 
         success: false,
         error: error.message, 
-        code: error.code,
-        details: error.details,
-        hint: error.hint
+        code: (error as any).code,
+        details: (error as any).details,
+        hint: (error as any).hint
       });
     }
     

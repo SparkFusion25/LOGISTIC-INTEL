@@ -28,8 +28,8 @@ export async function POST(req: Request) {
     const { data, error } = await q.limit(5000)
 
     if (error) {
-      // @ts-expect-error supabase error code
-      if (error.code === '42P01') {
+      const errorCode = (error as { code?: string }).code;
+      if (errorCode === '42P01') {
         return NextResponse.json({ 
           success: true, 
           summary: { avgValue: 0, avgWeight: 0 }, 

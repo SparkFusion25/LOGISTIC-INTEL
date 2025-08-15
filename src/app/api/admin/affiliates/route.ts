@@ -7,6 +7,7 @@ export async function GET(){
   const { data:{ user } } = await s.auth.getUser();
   if(!user) return NextResponse.json({success:false,error:'Not authenticated'},{status:401});
   const admin = supabaseAdmin;
+  if (!admin) return NextResponse.json({ success:false, error:'Server not configured' },{status:500});
   const { data:me } = await admin.from('user_profiles').select('role').eq('id', user.id).maybeSingle();
   if(me?.role!=='admin') return NextResponse.json({success:false,error:'Forbidden'},{status:403});
   const { data:accounts } = await admin.from('affiliate_accounts').select('id,name,email,default_rate_percent,is_active,created_at');
@@ -19,6 +20,7 @@ export async function POST(req:Request){
   const { data:{ user } } = await s.auth.getUser();
   if(!user) return NextResponse.json({success:false,error:'Not authenticated'},{status:401});
   const admin = supabaseAdmin;
+  if (!admin) return NextResponse.json({ success:false, error:'Server not configured' },{status:500});
   const { data:me } = await admin.from('user_profiles').select('role').eq('id', user.id).maybeSingle();
   if(me?.role!=='admin') return NextResponse.json({success:false,error:'Forbidden'},{status:403});
   const body = await req.json();

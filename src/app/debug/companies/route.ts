@@ -3,13 +3,15 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET() {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: true, message: 'Supabase not configured in this env' });
+    }
     const sb = supabaseAdmin;
     
-    // Test basic connection
     const { data: companies, error } = await sb.from('companies').select('*').limit(5);
     
     if (error) {
-      return NextResponse.json({ error: error.message, code: error.code });
+      return NextResponse.json({ error: error.message, code: (error as any).code });
     }
     
     return NextResponse.json({ 
