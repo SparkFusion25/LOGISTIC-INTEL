@@ -1,146 +1,229 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
-import { LogOut, Search, Users, Mail, BarChart3, Target, Package, Settings, Home, Zap, TrendingUp } from 'lucide-react';
-import AuthButton from '@/components/AuthButton';
-import Logo from '@/components/ui/Logo';
-import MobileNavigation from '@/components/ui/MobileNavigation';
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { 
+  Home, Search, Users, Settings, Bell, Grid3x3, 
+  ChevronDown, Menu, X, User, LogOut, HelpCircle,
+  Database, BarChart3, FileText, Mail, Calendar,
+  Send, TrendingUp, Zap, Target
+} from 'lucide-react'
 
-  const navItems = [
-    { href: '/dashboard', label: 'Overview', icon: Home },
-    { href: '/dashboard/search', label: 'Search', icon: Search },
-    { href: '/dashboard/crm', label: 'CRM', icon: Users },
-    { href: '/dashboard/email', label: 'Email', icon: Mail },
-    { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/dashboard/campaigns', label: 'Campaigns', icon: Target },
-    { href: '/dashboard/campaigns/analytics', label: 'Campaign Analytics', icon: TrendingUp },
-    { href: '/dashboard/campaigns/follow-ups', label: 'Follow-Up Automation', icon: Zap },
-    { href: '/dashboard/widgets/quote', label: 'Quote Generator', icon: Package },
-  ];
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const pathname = usePathname()
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Search Intelligence', href: '/dashboard/search', icon: Search },
+    { name: 'CRM', href: '/dashboard/crm', icon: Users },
+    { name: 'Email Campaigns', href: '/dashboard/email', icon: Mail },
+    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    { name: 'Campaign Analytics', href: '/dashboard/campaign-analytics', icon: TrendingUp },
+    { name: 'Follow-up Automation', href: '/dashboard/automation', icon: Zap },
+    { name: 'Data Sources', href: '/dashboard/data-sources', icon: Database },
+    { name: 'Reports', href: '/dashboard/reports', icon: FileText },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  ]
 
-  const handleLogout = () => {
-    // In production, this would clear session and redirect
-    localStorage.removeItem('user_session');
-    window.location.href = '/landing';
-  };
+  const quickActions = [
+    { name: 'New Search', href: '/dashboard/search/new', icon: Search },
+    { name: 'Add Contact', href: '/dashboard/crm/contacts/new', icon: Users },
+    { name: 'Create Campaign', href: '/dashboard/email/new', icon: Mail },
+    { name: 'Schedule Report', href: '/dashboard/reports/schedule', icon: Calendar },
+  ]
+
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [pathname])
 
   return (
-    <>
-      {/* Mobile Navigation */}
-      <MobileNavigation 
-        navItems={navItems} 
-        onLogout={handleLogout}
-      />
-      
-      <div className="flex h-screen bg-gray-50 text-gray-900">
-        {/* Premium Sidebar - Hidden on Mobile */}
-        <aside className="hidden lg:flex w-64 bg-white shadow-xl border-r border-gray-200 flex-col">
-        {/* Logo Header */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-700 to-indigo-800">
-          <Logo 
-            size="lg" 
-            variant="white" 
-            showText={true}
-            className="text-white"
-          />
-          <div className="text-xs text-indigo-200 mt-2">Trade Intelligence Platform</div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+          <Link href="/dashboard" className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
+              <Grid3x3 className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
+              Logistic Intel
+            </span>
+          </Link>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-1 rounded-md text-gray-400 hover:text-gray-500"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href;
+        {/* Quick Actions */}
+        <div className="px-6 py-4 border-b border-gray-200">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Actions</p>
+          <div className="space-y-1">
+            {quickActions.map((action) => (
+              <Link
+                key={action.name}
+                href={action.href}
+                className="flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-sky-50 hover:text-sky-700 transition-colors group"
+              >
+                <action.icon className="w-4 h-4 mr-3 text-gray-400 group-hover:text-sky-500" />
+                {action.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Navigation */}
+        <nav className="flex-1 px-6 py-4 space-y-1 overflow-y-auto">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Navigation</p>
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
-                key={href}
-                href={href}
-                className={`flex items-center px-3 py-3 rounded-lg transition-all duration-200 group ${
+                key={item.name}
+                href={item.href}
+                className={`flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 group ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-gray-700 hover:bg-indigo-50 hover:text-indigo-700'
+                    ? 'bg-gradient-to-r from-sky-50 to-blue-50 text-sky-700 border-l-4 border-sky-500 shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                <Icon 
-                  size={18} 
-                  className={`mr-3 ${
-                    isActive ? 'text-white' : 'text-gray-500 group-hover:text-indigo-600'
-                  }`} 
-                />
-                <span className="font-medium">{label}</span>
+                <item.icon className={`w-5 h-5 mr-3 transition-colors ${
+                  isActive ? 'text-sky-500' : 'text-gray-400 group-hover:text-gray-500'
+                }`} />
+                {item.name}
                 {isActive && (
-                  <div className="ml-auto">
-                    <Zap className="w-4 h-4 text-indigo-200" />
-                  </div>
+                  <div className="ml-auto w-2 h-2 bg-sky-500 rounded-full"></div>
                 )}
               </Link>
-            );
+            )
           })}
         </nav>
 
-        {/* User Section */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-bold">V</span>
+        {/* User Profile Section */}
+        <div className="border-t border-gray-200 p-6">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+              JD
             </div>
-            <div>
-              <div className="text-sm font-semibold text-gray-900">Valesco</div>
-              <div className="text-xs text-gray-600">Premium Account</div>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium text-gray-900">John Doe</p>
+              <p className="text-xs text-gray-500">Pro Plan</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-          >
-            <LogOut size={16} className="mr-2" />
-            Sign Out
-          </button>
         </div>
-      </aside>
+      </div>
 
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden">
-          {/* Premium Top Bar - Hidden on Mobile */}
-          <header className="hidden lg:block bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-gray-900 tracking-wide">
-                {pathname === '/dashboard' && 'Dashboard Overview'}
-                {pathname === '/dashboard/search' && 'Trade Intelligence Search'}
-                {pathname === '/dashboard/crm' && 'CRM Contact Center'}
-                {pathname === '/dashboard/email' && 'Email Outreach Hub'}
-                {pathname === '/dashboard/analytics' && 'Analytics Dashboard'}
-                {pathname === '/dashboard/campaigns' && 'Campaign Builder'}
-                {pathname === '/dashboard/widgets/quote' && 'Quote Generator'}
-              </h1>
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                Live Data
+      {/* Main content */}
+      <div className="lg:pl-64">
+        {/* Top navigation */}
+        <div className="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-200">
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <div className="hidden lg:block">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {navigation.find(item => pathname === item.href || pathname.startsWith(item.href + '/'))?.name || 'Dashboard'}
+                </h1>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <TrendingUp className="w-4 h-4 text-indigo-600" />
-                <span>Intelligence Platform</span>
-              </div>
-              <AuthButton />
-            </div>
-          </div>
-        </header>
 
-          {/* Dynamic Content Area */}
-          <div className="flex-1 overflow-y-auto bg-gray-50">
-            <div className="p-3 sm:p-6 pb-20 sm:pb-6">
-              {children}
+            <div className="flex items-center space-x-4">
+              {/* Search */}
+              <div className="hidden md:block">
+                <div className="relative">
+                  <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search companies, contacts..."
+                    className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Notifications */}
+              <button className="relative p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg">
+                <Bell className="w-6 h-6" />
+                <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+              </button>
+
+              {/* Help */}
+              <button className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg">
+                <HelpCircle className="w-6 h-6" />
+              </button>
+
+              {/* User menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    JD
+                  </div>
+                  <div className="hidden md:block text-left">
+                    <p className="text-sm font-medium text-gray-900">John Doe</p>
+                    <p className="text-xs text-gray-500">john.doe@company.com</p>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </button>
+
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <Link
+                      href="/dashboard/settings"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Profile Settings
+                    </Link>
+                    <Link
+                      href="/dashboard/billing"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Billing
+                    </Link>
+                    <div className="border-t border-gray-100 my-1"></div>
+                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Page content */}
+        <main className="flex-1">
+          {children}
         </main>
       </div>
-    </>
-  );
+    </div>
+  )
 }
