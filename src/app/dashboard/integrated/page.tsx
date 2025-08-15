@@ -1,7 +1,6 @@
 'use client'
-
 import dynamic from 'next/dynamic'
-import EmailIntegration from '@/components/EmailIntegration'
+import EmailIntegration from '@/components/dashboard/EmailIntegration'
 
 const SearchPanelDemo = dynamic(() => import('@/components/SearchPanelDemo'), { 
   ssr: false,
@@ -23,7 +22,6 @@ export default function IntegratedDashboard() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Integrated Trade Intelligence Dashboard</h1>
             <p className="text-gray-600">Search global trade data and manage your outreach campaigns</p>
           </div>
-
           {/* Main Components */}
           <SearchPanelDemo />
           <EmailIntegration />
