@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export default function NewContactPage() {
   return (
-    <div className="min-h-full bg-gray-50 p-6">
+    <div className="min-h-full">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">

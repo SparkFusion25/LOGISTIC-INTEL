@@ -9,7 +9,7 @@ export default function ReportsPage() {
   ]
 
   return (
-    <div className="p-6">
+    <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
         <p className="text-gray-600">Generate and download comprehensive business reports</p>

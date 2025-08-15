@@ -2,7 +2,7 @@ import { Zap, Clock, Mail, Users, Play, Pause, Settings } from 'lucide-react'
 
 export default function AutomationPage() {
   return (
-    <div className="p-6">
+    <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Follow-up Automation</h1>
         <p className="text-gray-600">Automate your lead follow-up sequences and campaigns</p>
