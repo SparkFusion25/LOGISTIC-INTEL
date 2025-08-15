@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { 
   Users, Plus, Search, Filter, MoreVertical, Mail, Phone, 
   Building2, MapPin, Calendar, Star, Tag, Eye, Edit3,
-  UserPlus, Download, RefreshCw, ArrowUpRight, TrendingUp
+  UserPlus, Download, RefreshCw, ArrowUpRight, TrendingUp, Upload
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 

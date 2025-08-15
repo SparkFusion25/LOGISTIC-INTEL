@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  experimental: {
-    appDir: true,
-  },
   images: {
     domains: ['images.unsplash.com', 'via.placeholder.com'],
     formats: ['image/webp', 'image/avif'],
@@ -32,31 +29,18 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=3600, stale-while-revalidate=86400',
-          },
-        ],
-      },
-      {
-        source: '/_next/static/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
     ]
   },
   async redirects() {
     return [
       {
-        source: '/home',
-        destination: '/',
+        source: '/sitemap.xml',
+        destination: '/api/sitemap',
+        permanent: true,
+      },
+      {
+        source: '/robots.txt',
+        destination: '/api/robots',
         permanent: true,
       },
     ]
@@ -72,18 +56,6 @@ const nextConfig = {
         destination: '/api/robots',
       },
     ]
-  },
-  compress: true,
-  poweredByHeader: false,
-  generateEtags: false,
-  httpAgentOptions: {
-    keepAlive: true,
-  },
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
   },
 }
 

@@ -193,7 +193,7 @@ function generateSampleBTSData(year: number, month: number): ArrayBuffer {
   ).join('\n');
   
   const csvContent = csvHeader + csvRows;
-  return new TextEncoder().encode(csvContent);
+  return new TextEncoder().encode(csvContent).buffer;
 }
 
 async function parseBTSData(data: ArrayBuffer, year: number, month: number) {
